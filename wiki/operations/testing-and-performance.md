@@ -2,7 +2,7 @@
 title: Testing and Performance
 type: verification
 status: current
-updated: 2026-09-16
+updated: 2026-09-17
 source_ids: [package-manifest, test-suite, ci-workflow, operational-scripts, database-schema]
 tags: [testing, integration, accessibility, performance, ci]
 ---
@@ -30,7 +30,11 @@ Run `npm run audit:a11y` against a prepared, running application after interface
 
 Vitest covers money conversion, account balance effects, transfers, monthly summaries, category aggregation, budgets, recurrence, investments, configuration, CSV behavior, backup validation, authentication helpers, preferences, icons, and SQL query result adapters.
 
-The last recorded review run on 2026-07-18 passed 90 tests in 16 files. Treat counts as dated evidence; `npm run test` is the current truth.
+The dependency-security verification on 2026-09-17 passed 151 tests in 28 files with Vitest 4.1.11. Treat counts as dated evidence; `npm run test` is the current truth.
+
+## Dependency audit
+
+The 2026-09-17 security-maintenance run upgraded Fastify to 5.12.1 and Vitest to 4.1.11, then passed application and test typechecks, the production build, wiki lint, and `npm audit --audit-level=high` with zero reported vulnerabilities. Dependency audit results are time-sensitive; CI and a fresh release-time audit remain authoritative.
 
 ## Integration tests
 

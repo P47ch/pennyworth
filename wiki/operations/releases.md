@@ -2,7 +2,7 @@
 title: Release Management
 type: runbook
 status: current
-updated: 2026-09-05
+updated: 2026-09-17
 source_ids: [release-policy, package-manifest, test-suite, ci-workflow, container-definitions, application-source]
 tags: [release, versioning, semver, verification]
 ---
@@ -23,6 +23,18 @@ Before v1.0:
 - Use `rc.N` only when no known blocker remains and the candidate is undergoing final release verification.
 
 Versions are release identifiers, not completion percentages. Ordinary development commits do not each receive a new application version.
+
+## Branch workflow
+
+Pennyworth uses `main` for stable release history and `develop` as the integration branch. Changes normally reach `develop` through short-lived branches and pull requests:
+
+- `feature/*` for new product behavior.
+- `fix/*` for compatible defect corrections found during normal development.
+- `chore/*` for dependencies, build tooling, CI, documentation maintenance, and other work that does not add product behavior.
+- `release/*` for final version, changelog, documentation, and verification work before merging a release into both `main` and `develop`.
+- `hotfix/*` for urgent corrections branched from `main` and merged back into both `main` and `develop`.
+
+Create `feature/*`, `fix/*`, and `chore/*` branches from the current `develop` branch and target their pull requests back to `develop`. Delete short-lived branches after merging.
 
 ## Independent version systems
 

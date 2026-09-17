@@ -162,3 +162,11 @@ Reissued valid CSRF and session cookies with the active transport attributes so 
 ## [2026-09-17] source-sync | Keep the descriptive development Compose filename
 
 Updated the container source map and local Docker and Podman commands to use `compose.dev.yml` explicitly, preserving the descriptive development-profile filename without relying on Compose's default filename discovery.
+
+## [2026-09-17] source-sync | Patch Fastify and Vitest security advisories
+
+Updated Fastify and Vitest to their patched compatible releases, refreshed the locked dependency graph, and recorded successful unit tests, application and test typechecks, production build, wiki lint, and a zero-vulnerability npm audit.
+
+## [2026-09-17] source-sync | Define the Git branch workflow
+
+Established `main` as the stable release branch and `develop` as the integration branch, with short-lived `feature/*`, `fix/*`, and `chore/*` branches targeting `develop` and release or hotfix branches merged back into both long-lived branches.
