@@ -1,0 +1,4 @@
+ALTER TABLE "User"
+ADD COLUMN "language" TEXT NOT NULL DEFAULT 'en',
+ADD COLUMN "theme" TEXT NOT NULL DEFAULT 'ledger-light',
+ADD COLUMN "hiddenMenuItems" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];

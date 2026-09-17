@@ -1,0 +1,75 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Account</p>
+    <h1>Restore preview</h1>
+  </div>
+  <a class="button-link" href="/settings/security">Back to security</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Backup contents</h2>
+    <span class="muted">Review before replacing data</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (preview) { %>
+    <div class="list-stack">
+      <div class="list-row">
+        <div><strong>Exported at</strong><span><%= preview.exportedAt %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Original user</strong><span><%= preview.userEmail %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Accounts</strong><span><%= preview.accountCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Categories</strong><span><%= preview.categoryCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Tags</strong><span><%= preview.tagCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Transactions</strong><span><%= preview.transactionCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Budgets</strong><span><%= preview.budgetCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Rules</strong><span><%= preview.ruleCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Recurring templates</strong><span><%= preview.recurringCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Assets</strong><span><%= preview.assetCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Asset prices</strong><span><%= preview.assetPriceCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Holdings</strong><span><%= preview.holdingCount %></span></div>
+      </div>
+      <div class="list-row">
+        <div><strong>Investment transactions</strong><span><%= preview.investmentTransactionCount %></span></div>
+      </div>
+    </div>
+  <% } %>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Confirm restore</h2>
+    <span class="muted">This replaces current data for your user</span>
+  </div>
+  <p class="error">Restore deletes your current accounts, categories, tags, transactions, budgets, rules, recurring templates, assets, asset prices, holdings, and investment transactions before importing this backup.</p>
+  <form method="post" action="/settings/restore/confirm" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <textarea name="backupJson" class="visually-hidden" aria-hidden="true" tabindex="-1"><%= backupJson %></textarea>
+    <label>
+      Type RESTORE
+      <input name="confirmation" autocomplete="off" required>
+    </label>
+    <button class="button-danger" type="submit" <%= preview ? "" : "disabled" %>>Restore backup</button>
+  </form>
+</section>

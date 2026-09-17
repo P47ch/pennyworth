@@ -1,0 +1,35 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Planning</p>
+    <h1>Edit budget</h1>
+  </div>
+  <a class="button-link" href="/budgets?month=<%= budget.month.toISOString().slice(0, 7) %>">Back to budgets</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%- categoryLabel(budget.category) %></h2>
+    <span class="muted"><%= budget.month.toISOString().slice(0, 7) %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/budgets/<%= budget.id %>" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Month
+      <input type="month" name="month" value="<%= budget.month.toISOString().slice(0, 7) %>" required>
+    </label>
+    <label>
+      Category
+      <select name="categoryId" required>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>" <%= budget.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Amount
+      <input name="amount" inputmode="decimal" value="<%= (budget.amountMinor / 100).toFixed(2) %>" required>
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

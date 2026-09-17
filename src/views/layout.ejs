@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="<%= userPreferences.language %>" data-theme="<%= userPreferences.theme %>">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= t(title) %> - Pennyworth</title>
+    <script src="/public/theme-init.js"></script>
+    <link rel="stylesheet" href="/public/styles.css">
+    <script src="/public/app.js" defer></script>
+  </head>
+  <body class="<%= typeof hideNav !== "undefined" && hideNav ? "auth-body" : "" %>">
+    <header class="site-header">
+      <div class="header-main">
+        <% if (typeof hideNav === "undefined" || !hideNav) { %>
+          <button class="icon-button menu-button" type="button" data-sidebar-toggle aria-label="<%= t("Toggle navigation") %>" aria-controls="sidebar" aria-expanded="false">
+            <%- icon("menu") %>
+          </button>
+        <% } %>
+        <a class="brand" href="/" aria-label="Pennyworth <%= t("Dashboard") %>">
+          <span class="brand-mark">P</span>
+          <span>Pennyworth</span>
+        </a>
+      </div>
+      <% if (typeof hideNav === "undefined" || !hideNav) { %>
+        <details class="account-menu" data-account-menu>
+          <summary aria-label="<%= t("Open account menu") %>: <%= currentUser.name %>" title="<%= t("Open account menu") %>">
+            <span class="user-avatar" data-avatar-key="<%= currentUser.avatar.key %>" aria-hidden="true">
+              <% if (currentUser.avatar.imagePath) { %>
+                <img src="<%= currentUser.avatar.imagePath %>" alt="" class="user-avatar-image">
+              <% } else { %>
+                <span><%= currentUser.avatar.initials %></span>
+              <% } %>
+            </span>
+            <span class="account-menu-chevron"><%- icon("chevron-down") %></span>
+          </summary>
+          <div class="account-menu-panel">
+            <div class="account-menu-identity">
+              <span class="muted"><%= t("Signed in as") %></span>
+              <strong><%= currentUser.name %></strong>
+              <span><%= currentUser.email %></span>
+            </div>
+            <nav class="account-menu-links" aria-label="<%= t("Account") %>">
+              <a href="/settings/preferences">
+                <span class="nav-icon"><%- icon("settings") %></span>
+                <span><%= t("Preferences") %></span>
+              </a>
+              <a href="/settings/security">
+                <span class="nav-icon"><%- icon("security") %></span>
+                <span><%= t("Security") %></span>
+              </a>
+            </nav>
+            <form method="post" action="/logout" class="account-menu-logout">
+              <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+              <button type="submit">
+                <span class="nav-icon"><%- icon("logout") %></span>
+                <span><%= t("Logout") %></span>
+              </button>
+            </form>
+          </div>
+        </details>
+      <% } %>
+    </header>
+    <% if (typeof hideNav === "undefined" || !hideNav) { %>
+      <div class="app-shell">
+        <button class="sidebar-backdrop" type="button" data-sidebar-close aria-label="<%= t("Close navigation") %>"></button>
+        <aside class="sidebar" id="sidebar">
+          <% for (const group of menuGroups) { %>
+            <% const visibleItems = group.items.filter((item) => !userPreferences.hiddenMenuItems.includes(item.id)); %>
+            <% if (visibleItems.length > 0) { %>
+              <div class="sidebar-section">
+                <p class="sidebar-label"><%= t(group.label) %></p>
+                <nav class="sidebar-nav" aria-label="<%= t(group.ariaLabel) %>">
+                  <% for (const item of visibleItems) { %>
+                    <% const isActive = item.href === "/" ? currentPath === "/" : currentPath === item.href || currentPath.startsWith(`${item.href}/`); %>
+                    <a href="<%= item.href %>" title="<%= t(item.title) %>" class="<%= isActive ? "is-active" : "" %>">
+                      <span class="nav-icon"><%- icon(item.icon) %></span>
+                      <span class="nav-text"><%= t(item.label) %></span>
+                    </a>
+                  <% } %>
+                </nav>
+              </div>
+            <% } %>
+          <% } %>
+          <div class="sidebar-footer">
+            <nav class="sidebar-nav" aria-label="<%= t("Account") %>">
+              <a href="/settings/preferences" title="<%= t("Settings") %>" class="<%= currentPath.startsWith("/settings/") ? "is-active" : "" %>">
+                <span class="nav-icon"><%- icon("settings") %></span>
+                <span class="nav-text"><%= t("Settings") %></span>
+              </a>
+            </nav>
+            <form method="post" action="/logout" class="nav-form">
+              <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+              <button type="submit" title="<%= t("Logout") %>">
+                <span class="nav-icon"><%- icon("logout") %></span>
+                <span class="nav-text"><%= t("Logout") %></span>
+              </button>
+            </form>
+            <p class="app-version nav-text">v<%= appVersion %></p>
+          </div>
+        </aside>
+        <main class="page">
+          <%- body %>
+        </main>
+      </div>
+    <% } else { %>
+      <main class="page">
+        <%- body %>
+      </main>
+    <% } %>
+  </body>
+</html>

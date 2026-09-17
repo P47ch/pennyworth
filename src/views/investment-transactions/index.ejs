@@ -1,0 +1,160 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Investments</p>
+    <h1>Investment transactions</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add transaction</h2>
+    <span class="muted">Manual investment history</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (accounts.length === 0 || assets.length === 0) { %>
+    <div class="empty-state">
+      <strong>Investment transactions need an account and an asset</strong>
+      <p>Create an investment or crypto account and at least one asset before adding history.</p>
+    </div>
+  <% } %>
+  <form method="post" action="/investment-transactions" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Account
+      <select name="accountId" required>
+        <option value="">Choose account</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>"><%= account.name %> (<%= account.type %>)</option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Asset
+      <select name="assetId" required>
+        <option value="">Choose asset</option>
+        <% for (const asset of assets) { %>
+          <option value="<%= asset.id %>"><%= asset.symbol %> - <%= asset.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Cash account
+      <select name="cashAccountId">
+        <option value="">Same as account</option>
+        <% for (const account of cashAccounts) { %>
+          <option value="<%= account.id %>"><%= account.name %> (<%= account.type %>)</option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Type
+      <select name="type" required>
+        <% for (const type of investmentTransactionTypes) { %>
+          <option value="<%= type %>"><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Date
+      <input type="date" name="date" value="<%= todayInputValue %>" required>
+    </label>
+    <label>
+      Quantity
+      <input name="quantity" inputmode="decimal" placeholder="Required for buy/sell">
+    </label>
+    <label>
+      Unit price
+      <input name="price" inputmode="decimal" placeholder="Required for buy/sell">
+    </label>
+    <label>
+      Amount
+      <input name="amount" inputmode="decimal" required>
+    </label>
+    <label>
+      Cash amount
+      <input name="cashAmount" inputmode="decimal" placeholder="Defaults to amount">
+    </label>
+    <label class="span-2">
+      Notes
+      <input name="notes" placeholder="Optional">
+    </label>
+    <button type="submit" <%= accounts.length === 0 || assets.length === 0 ? "disabled" : "" %>>Add transaction</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Transaction history</h2>
+    <span class="muted"><%= pagination.totalCount %> transactions</span>
+  </div>
+  <% if (investmentTransactions.length === 0) { %>
+    <div class="empty-state">
+      <strong>No investment transactions yet</strong>
+      <p>Add buys, sells, dividends, interest, and fees for investment reporting.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Account</th>
+            <th>Asset</th>
+            <th>Quantity</th>
+            <th>Unit price</th>
+            <th>Amount</th>
+            <th>Cash impact</th>
+            <th>Realized</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const transaction of investmentTransactions) { %>
+            <tr>
+              <td data-label="Date"><%= formatDateInput(transaction.date) %></td>
+              <td data-label="Type"><span class="badge badge-muted"><%= transaction.type %></span></td>
+              <td data-label="Account"><%= transaction.account.name %></td>
+              <td data-label="Asset">
+                <strong><%= transaction.asset.symbol %></strong>
+                <span class="muted"><%= transaction.asset.name %></span>
+              </td>
+              <td data-label="Quantity" class="numeric"><%= formatQuantity(transaction.quantity) || "-" %></td>
+              <td data-label="Unit price" class="numeric"><%= transaction.priceMinor === null ? "-" : formatMoney(transaction.priceMinor, transaction.asset.currency) %></td>
+              <td data-label="Amount" class="numeric"><%= formatMoney(transaction.amountMinor, transaction.asset.currency) %></td>
+              <td data-label="Cash impact" class="numeric">
+                <%= transaction.type === "buy" || transaction.type === "fee" ? "-" : "+" %><%= formatMoney(transaction.cashAmountMinor, transaction.cashAccount?.currency || transaction.account.currency) %>
+                <span class="muted"><%= transaction.cashAccount?.name || transaction.account.name %></span>
+              </td>
+              <td data-label="Realized" class="numeric"><%= transaction.realizedGainMinor === null ? "-" : formatMoney(transaction.realizedGainMinor, transaction.asset.currency) %></td>
+              <td data-label="Notes"><%= transaction.notes || "-" %></td>
+              <td data-label="Actions">
+                <div class="row-actions">
+                  <a class="action-link" href="/investment-transactions/<%= transaction.id %>/edit">Edit</a>
+                  <form method="post" action="/investment-transactions/<%= transaction.id %>/delete">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <nav class="pagination" aria-label="Investment transaction pages">
+      <% if (pagination.hasPreviousPage) { %>
+        <a href="/investment-transactions?page=<%= pagination.page - 1 %>">Previous</a>
+      <% } else { %>
+        <span class="muted">Previous</span>
+      <% } %>
+      <span>Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+      <% if (pagination.hasNextPage) { %>
+        <a href="/investment-transactions?page=<%= pagination.page + 1 %>">Next</a>
+      <% } else { %>
+        <span class="muted">Next</span>
+      <% } %>
+    </nav>
+  <% } %>
+</section>

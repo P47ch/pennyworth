@@ -1,0 +1,418 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                           String                        @id @default(cuid())
+  email                        String                        @unique
+  name                         String
+  passwordHash                 String
+  role                         UserRole                      @default(member)
+  isActive                     Boolean                       @default(true)
+  mustChangePassword           Boolean                       @default(false)
+  sessionVersion               Int                           @default(0)
+  investmentProjectionVersion  Int                           @default(0)
+  language                     String                        @default("en")
+  theme                        String                        @default("light")
+  avatarKey                    String                        @default("initials")
+  hiddenMenuItems              String[]                      @default([])
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+  accounts                     Account[]
+  categories                   Category[]
+  tags                         Tag[]
+  transactions                 Transaction[]
+  budgets                      Budget[]
+  rules                        Rule[]
+  recurringTransactions        RecurringTransaction[]
+  assets                       Asset[]
+  assetPrices                  AssetPrice[]
+  holdings                     Holding[]
+  investmentTransactions       InvestmentTransaction[]
+  investmentPositions          InvestmentPosition[]
+  investmentTransactionResults InvestmentTransactionResult[]
+  transactionImportBatches     TransactionImportBatch[]
+
+  @@index([role, isActive])
+}
+
+model TransactionImportBatch {
+  id            String    @id @default(cuid())
+  userId        String
+  contentHash   String
+  status        String    @default("pending")
+  importedCount Int?
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([id, userId])
+  @@index([userId, createdAt])
+}
+
+model Account {
+  id                         String                  @id @default(cuid())
+  userId                     String
+  name                       String
+  type                       AccountType
+  currency                   String
+  openingBalanceMinor        Int
+  institution                String?
+  isActive                   Boolean                 @default(true)
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
+  user                       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceTransactions         Transaction[]           @relation("SourceAccount")
+  destinationTransfers       Transaction[]           @relation("DestinationAccount")
+  recurringSources           RecurringTransaction[]  @relation("RecurringSourceAccount")
+  recurringDestinations      RecurringTransaction[]  @relation("RecurringDestinationAccount")
+  holdings                   Holding[]
+  investmentTransactions     InvestmentTransaction[]
+  investmentCashTransactions InvestmentTransaction[] @relation("InvestmentCashAccount")
+  investmentPositions        InvestmentPosition[]
+
+  @@unique([userId, name])
+  @@unique([id, userId])
+  @@index([userId])
+  @@index([type])
+}
+
+model Category {
+  id                    String                 @id @default(cuid())
+  userId                String
+  parentId              String?
+  name                  String
+  type                  CategoryType
+  color                 String?
+  icon                  String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent                Category?              @relation("CategoryTree", fields: [parentId, userId], references: [id, userId], onDelete: NoAction)
+  children              Category[]             @relation("CategoryTree")
+  transactions          Transaction[]
+  budgets               Budget[]
+  rules                 Rule[]
+  recurringTransactions RecurringTransaction[]
+
+  @@unique([userId, name])
+  @@unique([id, userId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([type])
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  userId      String
+  categoryId  String
+  month       DateTime
+  amountMinor Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    Category @relation(fields: [categoryId, userId], references: [id, userId], onDelete: NoAction)
+
+  @@unique([userId, categoryId, month])
+  @@index([userId])
+  @@index([categoryId])
+  @@index([month])
+}
+
+model Tag {
+  id           String           @id @default(cuid())
+  userId       String
+  name         String
+  color        String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions TransactionTag[]
+  rules        RuleTag[]
+
+  @@unique([userId, name])
+  @@unique([id, userId])
+  @@index([userId])
+}
+
+model Rule {
+  id         String    @id @default(cuid())
+  userId     String
+  categoryId String
+  name       String
+  matchText  String
+  priority   Int       @default(0)
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category  @relation(fields: [categoryId, userId], references: [id, userId], onDelete: NoAction)
+  tags       RuleTag[]
+
+  @@unique([userId, name])
+  @@unique([id, userId])
+  @@index([userId])
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([priority])
+}
+
+model RuleTag {
+  ruleId String
+  tagId  String
+  userId String
+  rule   Rule   @relation(fields: [ruleId, userId], references: [id, userId], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId, userId], references: [id, userId], onDelete: Cascade)
+
+  @@id([ruleId, tagId])
+  @@index([userId])
+  @@index([tagId])
+}
+
+model Transaction {
+  id                   String           @id @default(cuid())
+  userId               String
+  type                 TransactionType
+  date                 DateTime
+  amountMinor          Int
+  sourceAccountId      String?
+  destinationAccountId String?
+  categoryId           String?
+  description          String?
+  notes                String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceAccount        Account?         @relation("SourceAccount", fields: [sourceAccountId, userId], references: [id, userId], onDelete: NoAction)
+  destinationAccount   Account?         @relation("DestinationAccount", fields: [destinationAccountId, userId], references: [id, userId], onDelete: NoAction)
+  category             Category?        @relation(fields: [categoryId, userId], references: [id, userId], onDelete: NoAction)
+  tags                 TransactionTag[]
+
+  @@unique([id, userId])
+  @@index([userId, date])
+  @@index([userId, type, date])
+  @@index([userId, sourceAccountId, date])
+  @@index([userId, destinationAccountId, date])
+  @@index([userId, categoryId, date])
+}
+
+model RecurringTransaction {
+  id                   String             @id @default(cuid())
+  userId               String
+  name                 String
+  type                 TransactionType
+  amountMinor          Int
+  sourceAccountId      String?
+  destinationAccountId String?
+  categoryId           String?
+  description          String?
+  notes                String?
+  frequency            RecurringFrequency @default(monthly)
+  nextDate             DateTime
+  isActive             Boolean            @default(true)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceAccount        Account?           @relation("RecurringSourceAccount", fields: [sourceAccountId, userId], references: [id, userId], onDelete: NoAction)
+  destinationAccount   Account?           @relation("RecurringDestinationAccount", fields: [destinationAccountId, userId], references: [id, userId], onDelete: NoAction)
+  category             Category?          @relation(fields: [categoryId, userId], references: [id, userId], onDelete: NoAction)
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([nextDate])
+  @@index([isActive])
+  @@index([sourceAccountId])
+  @@index([destinationAccountId])
+  @@index([categoryId])
+}
+
+model Asset {
+  id                     String                  @id @default(cuid())
+  userId                 String
+  symbol                 String
+  name                   String
+  type                   AssetType
+  currency               String
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  holdings               Holding[]
+  prices                 AssetPrice[]
+  investmentTransactions InvestmentTransaction[]
+  investmentPositions    InvestmentPosition[]
+
+  @@unique([userId, symbol])
+  @@unique([id, userId])
+  @@index([userId])
+  @@index([type])
+  @@index([isActive])
+}
+
+model AssetPrice {
+  id         String   @id @default(cuid())
+  userId     String
+  assetId    String
+  date       DateTime
+  priceMinor Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset      Asset    @relation(fields: [assetId, userId], references: [id, userId], onDelete: Cascade)
+
+  @@unique([userId, assetId, date])
+  @@index([userId])
+  @@index([assetId])
+  @@index([date])
+}
+
+model InvestmentTransaction {
+  id              String                       @id @default(cuid())
+  userId          String
+  accountId       String
+  cashAccountId   String?
+  assetId         String
+  type            InvestmentTransactionType
+  date            DateTime
+  quantity        Decimal?                     @db.Decimal(24, 8)
+  priceMinor      Int?
+  amountMinor     Int
+  cashAmountMinor Int
+  notes           String?
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+  user            User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account         Account                      @relation(fields: [accountId, userId], references: [id, userId], onDelete: NoAction)
+  cashAccount     Account?                     @relation("InvestmentCashAccount", fields: [cashAccountId, userId], references: [id, userId], onDelete: NoAction)
+  asset           Asset                        @relation(fields: [assetId, userId], references: [id, userId], onDelete: NoAction)
+  result          InvestmentTransactionResult?
+
+  @@unique([id, userId])
+  @@index([userId])
+  @@index([accountId])
+  @@index([cashAccountId])
+  @@index([assetId])
+  @@index([date])
+  @@index([type])
+  @@index([userId, accountId, assetId, date])
+}
+
+model InvestmentTransactionResult {
+  transactionId     String                @id
+  userId            String
+  realizedGainMinor Int?
+  updatedAt         DateTime              @updatedAt
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction       InvestmentTransaction @relation(fields: [transactionId, userId], references: [id, userId], onDelete: Cascade)
+
+  @@unique([transactionId, userId])
+  @@index([userId])
+}
+
+model InvestmentPosition {
+  id                String   @id @default(cuid())
+  userId            String
+  accountId         String
+  assetId           String
+  quantity          Decimal  @db.Decimal(24, 8)
+  costBasisMinor    Int
+  averageCostMinor  Int
+  realizedGainMinor Int
+  dividendMinor     Int
+  interestMinor     Int
+  feeMinor          Int
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account           Account  @relation(fields: [accountId, userId], references: [id, userId], onDelete: NoAction)
+  asset             Asset    @relation(fields: [assetId, userId], references: [id, userId], onDelete: NoAction)
+
+  @@unique([userId, accountId, assetId])
+  @@index([userId])
+  @@index([accountId])
+  @@index([assetId])
+}
+
+model Holding {
+  id               String   @id @default(cuid())
+  userId           String
+  accountId        String
+  assetId          String
+  quantity         Decimal  @db.Decimal(24, 8)
+  averageCostMinor Int
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account          Account  @relation(fields: [accountId, userId], references: [id, userId], onDelete: NoAction)
+  asset            Asset    @relation(fields: [assetId, userId], references: [id, userId], onDelete: NoAction)
+
+  @@unique([userId, accountId, assetId])
+  @@index([userId])
+  @@index([accountId])
+  @@index([assetId])
+}
+
+model TransactionTag {
+  transactionId String
+  tagId         String
+  userId        String
+  transaction   Transaction @relation(fields: [transactionId, userId], references: [id, userId], onDelete: Cascade)
+  tag           Tag         @relation(fields: [tagId, userId], references: [id, userId], onDelete: Cascade)
+
+  @@id([transactionId, tagId])
+  @@index([userId])
+  @@index([tagId])
+}
+
+enum AccountType {
+  bank
+  cash
+  credit_card
+  savings
+  investment
+  crypto_wallet
+  other
+}
+
+enum TransactionType {
+  income
+  expense
+  transfer
+}
+
+enum CategoryType {
+  income
+  expense
+  both
+}
+
+enum RecurringFrequency {
+  monthly
+}
+
+enum AssetType {
+  stock
+  etf
+  fund
+  bond
+  crypto
+  other
+}
+
+enum InvestmentTransactionType {
+  buy
+  sell
+  dividend
+  interest
+  fee
+}
+
+enum UserRole {
+  admin
+  member
+}

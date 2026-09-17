@@ -1,0 +1,23 @@
+<% if (rows.length === 0) { %>
+  <div class="empty-state">
+    <strong><%= t("No priced positions") %></strong>
+    <p><%= t("Add buy activity and manual prices to calculate allocation.") %></p>
+  </div>
+<% } else { %>
+  <div class="bar-list">
+    <% const maxValue = Math.max(...rows.map((row) => row.valueMinor), 1); %>
+    <% for (const row of rows) { %>
+      <div class="bar-row">
+        <div class="bar-row-top">
+          <span><%= row.name %></span>
+          <strong><%= formatMoney(row.valueMinor) %></strong>
+        </div>
+        <progress class="bar-track" max="<%= maxValue %>" value="<%= row.valueMinor %>" aria-label="<%= row.name %> allocation"></progress>
+        <div class="bar-row-top">
+          <span class="muted"><%= t("Cost basis") %> <%= formatMoney(row.costBasisMinor) %></span>
+          <span class="muted"><%= formatPercent(row.percent) %></span>
+        </div>
+      </div>
+    <% } %>
+  </div>
+<% } %>

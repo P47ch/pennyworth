@@ -1,0 +1,94 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Money locations</p>
+    <h1>Accounts</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add account</h2>
+    <span class="muted">Bank, cash, savings, cards</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/accounts" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" required>
+    </label>
+    <label>
+      Type
+      <select name="type" required>
+        <% for (const type of accountTypes) { %>
+          <option value="<%= type %>"><%= type.replaceAll("_", " ") %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Currency
+      <input name="currency" value="<%= primaryCurrency %>" maxlength="3" readonly required>
+    </label>
+    <label>
+      Opening balance
+      <input name="openingBalance" inputmode="decimal" value="0.00" required>
+    </label>
+    <label>
+      Institution
+      <input name="institution">
+    </label>
+    <button type="submit">Add account</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Account balances</h2>
+    <span class="muted"><%= accounts.length %> accounts</span>
+  </div>
+  <% if (accounts.length === 0) { %>
+    <div class="empty-state">
+      <strong>No accounts yet</strong>
+      <p>Create your first account to begin tracking money movement.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Institution</th>
+            <th class="numeric">Balance</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const account of accounts) { %>
+            <tr>
+              <td data-label="Name"><strong><%= account.name %></strong></td>
+              <td data-label="Type"><%= account.type.replaceAll("_", " ") %></td>
+              <td data-label="Institution"><%= account.institution || "-" %></td>
+              <td data-label="Balance" class="numeric"><%= formatMoney(account.currentBalanceMinor, account.currency) %></td>
+              <td data-label="Status"><span class="badge <%= account.isActive ? "badge-active" : "badge-muted" %>"><%= account.isActive ? "Active" : "Inactive" %></span></td>
+              <td data-label="Actions">
+                <div class="row-actions">
+                  <a class="action-link" href="/accounts/<%= account.id %>/edit">Edit</a>
+                  <form method="post" action="/accounts/<%= account.id %>/toggle-active">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-secondary" type="submit"><%= account.isActive ? "Inactivate" : "Reactivate" %></button>
+                  </form>
+                  <form method="post" action="/accounts/<%= account.id %>/delete">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

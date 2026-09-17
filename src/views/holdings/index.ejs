@@ -1,0 +1,144 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Investments</p>
+    <h1>Holdings</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add manual adjustment</h2>
+    <span class="muted">Optional fallback outside investment activity</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (accounts.length === 0 || assets.length === 0) { %>
+    <div class="empty-state">
+      <strong>Manual adjustments need an investment account and an asset</strong>
+      <p>Create an investment or crypto account and at least one asset before adding an adjustment.</p>
+    </div>
+  <% } %>
+  <form method="post" action="/holdings" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Account
+      <select name="accountId" required>
+        <option value="">Choose account</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>"><%= account.name %> (<%= account.type %>)</option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Asset
+      <select name="assetId" required>
+        <option value="">Choose asset</option>
+        <% for (const asset of assets) { %>
+          <option value="<%= asset.id %>"><%= asset.symbol %> - <%= asset.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Quantity
+      <input name="quantity" inputmode="decimal" placeholder="12.5" required>
+    </label>
+    <label>
+      Average cost
+      <input name="averageCost" inputmode="decimal" value="0.00" required>
+    </label>
+    <label class="span-2">
+      Notes
+      <input name="notes" placeholder="Optional">
+    </label>
+    <button type="submit" <%= accounts.length === 0 || assets.length === 0 ? "disabled" : "" %>>Add adjustment</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Holding list</h2>
+    <span class="muted"><%= holdings.length %> positions</span>
+  </div>
+  <% if (holdings.length === 0) { %>
+    <div class="empty-state">
+      <strong>No positions yet</strong>
+      <p>Add investment activity or manual adjustments for investment and crypto accounts.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th>Asset</th>
+            <th>Source</th>
+            <th>Type</th>
+            <th>Quantity</th>
+            <th>Average cost</th>
+            <th>Cost basis</th>
+            <th>Latest price</th>
+            <th>Estimated value</th>
+            <th>Unrealized</th>
+            <th>Realized</th>
+            <th>Income</th>
+            <th>Fees</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const holding of holdings) { %>
+            <tr>
+              <td data-label="Account"><%= holding.account.name %></td>
+              <td data-label="Asset">
+                <strong><%= holding.asset.symbol %></strong>
+                <span class="muted"><%= holding.asset.name %></span>
+              </td>
+              <td data-label="Source"><span class="badge badge-muted"><%= holding.source === "calculated" ? "activity" : "manual" %></span></td>
+              <td data-label="Type"><span class="badge badge-muted"><%= holding.asset.type %></span></td>
+              <td data-label="Quantity" class="numeric"><%= formatQuantity(holding.quantity) %></td>
+              <td data-label="Average cost" class="numeric"><%= formatMoney(holding.averageCostMinor, holding.asset.currency) %></td>
+              <td data-label="Cost basis" class="numeric"><%= formatMoney(holding.costBasisMinor, holding.asset.currency) %></td>
+              <td data-label="Latest price" class="numeric">
+                <% if (holding.latestPrice) { %>
+                  <%= formatMoney(holding.latestPrice.priceMinor, holding.asset.currency) %>
+                  <span class="muted"><%= holding.latestPrice.date.toISOString().slice(0, 10) %></span>
+                <% } else { %>
+                  -
+                <% } %>
+              </td>
+              <td data-label="Estimated value" class="numeric">
+                <%= holding.estimatedValueMinor === null ? "-" : formatMoney(holding.estimatedValueMinor, holding.asset.currency) %>
+              </td>
+              <td data-label="Unrealized" class="numeric">
+                <%= holding.unrealizedGainMinor === null ? "-" : formatMoney(holding.unrealizedGainMinor, holding.asset.currency) %>
+              </td>
+              <td data-label="Realized" class="numeric">
+                <%= holding.realizedGainMinor === null ? "-" : formatMoney(holding.realizedGainMinor, holding.asset.currency) %>
+              </td>
+              <td data-label="Income" class="numeric">
+                <%= holding.dividendMinor === null || holding.interestMinor === null ? "-" : formatMoney(holding.dividendMinor + holding.interestMinor, holding.asset.currency) %>
+              </td>
+              <td data-label="Fees" class="numeric">
+                <%= holding.feeMinor === null ? "-" : formatMoney(holding.feeMinor, holding.asset.currency) %>
+              </td>
+              <td data-label="Notes"><%= holding.notes || "-" %></td>
+              <td data-label="Actions">
+                <% if (holding.source === "manual") { %>
+                  <div class="row-actions">
+                    <a class="action-link" href="/holdings/<%= holding.id %>/edit">Edit</a>
+                    <form method="post" action="/holdings/<%= holding.id %>/delete">
+                      <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                      <button class="button-danger" type="submit">Delete</button>
+                    </form>
+                  </div>
+                <% } else { %>
+                  <a class="action-link" href="/investment-transactions">Activity</a>
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

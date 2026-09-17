@@ -1,0 +1,35 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Investments</p>
+    <h1>Edit asset price</h1>
+  </div>
+  <a class="button-link" href="/asset-prices">Back to prices</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= assetPrice.asset.symbol %></h2>
+    <span class="badge badge-muted"><%= formatDateInput(assetPrice.date) %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/asset-prices/<%= assetPrice.id %>" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Asset
+      <select name="assetId" required>
+        <% for (const asset of assets) { %>
+          <option value="<%= asset.id %>" <%= assetPrice.assetId === asset.id ? "selected" : "" %>><%= asset.symbol %> - <%= asset.name %> (<%= asset.currency %>)</option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Date
+      <input type="date" name="date" value="<%= formatDateInput(assetPrice.date) %>" required>
+    </label>
+    <label>
+      Price
+      <input name="price" inputmode="decimal" value="<%= (assetPrice.priceMinor / 100).toFixed(2) %>" required>
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

@@ -1,0 +1,63 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Ledger import</p>
+    <h1>Map columns</h1>
+  </div>
+  <a class="button-link" href="/transactions/import">Back to import</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Column mapping</h2>
+    <span class="muted"><%= headers.length %> columns detected</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <p class="success" data-import-mapping-status hidden></p>
+  <form
+    method="post"
+    action="/transactions/import/preview"
+    class="form-grid"
+    data-import-mapping-form
+    data-import-headers="<%= JSON.stringify(headers) %>"
+  >
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <textarea class="visually-hidden" name="csvText" aria-hidden="true" tabindex="-1"><%= csvText %></textarea>
+
+    <% for (const option of mappingOptions) { %>
+      <label>
+        <%= option.label %><%= option.required ? " *" : "" %>
+        <select name="<%= option.key %>" <%= option.required ? "required" : "" %>>
+          <option value="">Not mapped</option>
+          <% for (const header of headers) { %>
+            <option value="<%= header %>" <%= (mapping[option.key] || option.guess) === header ? "selected" : "" %>><%= header %></option>
+          <% } %>
+        </select>
+      </label>
+    <% } %>
+
+    <label>
+      Default type
+      <select name="defaultType">
+        <option value="">Use mapped type</option>
+        <% for (const type of transactionTypes) { %>
+          <option value="<%= type %>" <%= mapping.defaultType === type ? "selected" : "" %>><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+
+    <label>
+      Default account
+      <select name="defaultAccountId">
+        <option value="">Use mapped account</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= mapping.defaultAccountId === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+
+    <div class="import-mapping-actions">
+      <button type="submit">Preview import</button>
+      <button class="button-secondary" type="button" data-clear-import-mapping>Clear saved mapping</button>
+    </div>
+  </form>
+</section>

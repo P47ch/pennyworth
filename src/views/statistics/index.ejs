@@ -1,0 +1,442 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Analysis</p>
+    <h1>Statistics</h1>
+  </div>
+</section>
+
+<section class="summary-grid" aria-label="Statistics summary">
+  <article class="summary-card summary-card-primary">
+    <span>Net worth</span>
+    <strong><%= formatMoney(statistics.totalBalanceMinor) %></strong>
+    <small>Cash plus investments</small>
+  </article>
+  <article class="summary-card">
+    <span>Monthly income</span>
+    <strong><%= formatMoney(statistics.currentMonth.incomeMinor) %></strong>
+    <small>Current month</small>
+  </article>
+  <article class="summary-card">
+    <span>Monthly expenses</span>
+    <strong><%= formatMoney(statistics.currentMonth.expensesMinor) %></strong>
+    <small>Current month</small>
+  </article>
+  <article class="summary-card">
+    <span>Savings rate</span>
+    <strong><%= formatPercent(statistics.currentMonth.savingsRate) %></strong>
+    <small>Current month</small>
+  </article>
+</section>
+
+<section
+  class="panel analytics-panel"
+  data-net-worth-chart="<%= JSON.stringify({
+    locale: userPreferences.language === 'it' ? 'it-IT' : 'en-US',
+    currency: statistics.primaryCurrency,
+    points: statistics.netWorthHistory,
+    labels: {
+      netWorth: t('Net worth'),
+      cash: t('Cash balance'),
+      investments: t('Investment value')
+    }
+  }) %>"
+>
+  <% const hasNetWorthHistory = statistics.netWorthHistory.some((point) => point.cashBalanceMinor !== 0 || point.investmentValueMinor !== 0); %>
+  <div class="analytics-heading">
+    <div>
+      <p class="eyebrow">History</p>
+      <h2>Net worth over time</h2>
+    </div>
+    <% if (hasNetWorthHistory) { %>
+      <div class="chart-range" role="group" aria-label="Select net worth chart range">
+        <button type="button" data-net-worth-range="3" aria-pressed="false">3M</button>
+        <button type="button" data-net-worth-range="6" aria-pressed="false">6M</button>
+        <button type="button" data-net-worth-range="12" aria-pressed="true">1Y</button>
+      </div>
+    <% } %>
+  </div>
+
+  <% if (!hasNetWorthHistory) { %>
+    <div class="empty-state analytics-empty"><strong>No net worth history yet</strong><p>Add account activity or valued investments to populate this chart.</p></div>
+  <% } else { %>
+    <div class="chart-legend" role="group" aria-label="Select net worth chart series">
+      <button type="button" data-net-worth-series="netWorth" aria-pressed="true">
+        <span class="chart-swatch chart-swatch-net-worth" aria-hidden="true"></span>Net worth
+      </button>
+      <button type="button" data-net-worth-series="cash" aria-pressed="true">
+        <span class="chart-swatch chart-swatch-cash" aria-hidden="true"></span>Cash balance
+      </button>
+      <button type="button" data-net-worth-series="investments" aria-pressed="true">
+        <span class="chart-swatch chart-swatch-investments" aria-hidden="true"></span>Investment value
+      </button>
+    </div>
+
+    <div class="cashflow-chart-wrap">
+      <canvas data-net-worth-canvas role="img" aria-label="Monthly net worth, cash balance, and investment value" aria-describedby="net-worth-chart-help">
+        Monthly net worth data is available in the table below.
+      </canvas>
+      <div class="chart-tooltip" data-net-worth-tooltip hidden></div>
+    </div>
+    <p class="chart-help muted" id="net-worth-chart-help">Month-end values use ledger activity and the latest manual asset price recorded by that date. Manual holdings are treated as opening positions.</p>
+
+    <details class="chart-data-details">
+      <summary>Show net worth data</summary>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Period</th><th class="numeric">Net worth</th><th class="numeric">Cash balance</th><th class="numeric">Investment value</th></tr>
+          </thead>
+          <tbody>
+            <% for (const point of statistics.netWorthHistory) { %>
+              <tr>
+                <td data-label="Period"><%= point.label %></td>
+                <td data-label="Net worth" class="numeric"><%= formatMoney(point.netWorthMinor) %></td>
+                <td data-label="Cash balance" class="numeric"><%= formatMoney(point.cashBalanceMinor) %></td>
+                <td data-label="Investment value" class="numeric"><%= formatMoney(point.investmentValueMinor) %></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  <% } %>
+</section>
+
+<section
+  class="panel analytics-panel"
+  data-account-balance-chart="<%= JSON.stringify({
+    locale: userPreferences.language === 'it' ? 'it-IT' : 'en-US',
+    currency: statistics.primaryCurrency,
+    history: statistics.accountBalanceHistory
+  }) %>"
+>
+  <% const hasAccountBalanceHistory = statistics.accountBalanceHistory.series.length > 0; %>
+  <div class="analytics-heading">
+    <div>
+      <p class="eyebrow">Accounts</p>
+      <h2>Account balances over time</h2>
+    </div>
+    <% if (hasAccountBalanceHistory) { %>
+      <div class="chart-range" role="group" aria-label="Select account balance chart range">
+        <button type="button" data-account-balance-range="3" aria-pressed="false">3M</button>
+        <button type="button" data-account-balance-range="6" aria-pressed="false">6M</button>
+        <button type="button" data-account-balance-range="12" aria-pressed="true">1Y</button>
+      </div>
+    <% } %>
+  </div>
+
+  <% if (!hasAccountBalanceHistory) { %>
+    <div class="empty-state analytics-empty"><strong>No account balance history yet</strong><p>Add an account to populate this chart.</p></div>
+  <% } else { %>
+    <div class="chart-legend" role="group" aria-label="Select account balance chart series">
+      <% statistics.accountBalanceHistory.series.forEach((series, seriesIndex) => { %>
+        <button type="button" data-account-balance-series="<%= series.accountId %>" aria-pressed="true">
+          <span class="chart-swatch chart-swatch-line chart-series-<%= seriesIndex % 8 %>" aria-hidden="true"></span><%= series.name %>
+        </button>
+      <% }) %>
+    </div>
+
+    <div class="cashflow-chart-wrap">
+      <canvas data-account-balance-canvas role="img" aria-label="Monthly account balances" aria-describedby="account-balance-chart-help">
+        Monthly account balance data is available in the table below.
+      </canvas>
+      <div class="chart-tooltip" data-account-balance-tooltip hidden></div>
+    </div>
+    <p class="chart-help muted" id="account-balance-chart-help">Month-end balances include opening balances, transfers, and investment cash activity.</p>
+
+    <details class="chart-data-details">
+      <summary>Show account balance data</summary>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Period</th>
+              <% for (const series of statistics.accountBalanceHistory.series) { %>
+                <th class="numeric"><%= series.name %></th>
+              <% } %>
+            </tr>
+          </thead>
+          <tbody>
+            <% statistics.accountBalanceHistory.months.forEach((month, monthIndex) => { %>
+              <tr>
+                <td data-label="Period"><%= month.label %></td>
+                <% for (const series of statistics.accountBalanceHistory.series) { %>
+                  <td data-label="<%= series.name %>" class="numeric"><%= formatMoney(series.balancesMinor[monthIndex], series.currency) %></td>
+                <% } %>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  <% } %>
+</section>
+
+<section
+  class="panel analytics-panel"
+  data-cashflow-chart="<%= JSON.stringify({
+    locale: userPreferences.language === 'it' ? 'it-IT' : 'en-US',
+    currency: statistics.primaryCurrency,
+    months: statistics.months,
+    labels: {
+      income: t('Income'),
+      expenses: t('Expenses'),
+      net: t('Net cashflow'),
+      openMonth: t('Open month transactions')
+    }
+  }) %>"
+>
+  <% const hasCashflow = statistics.months.some((month) => month.incomeMinor !== 0 || month.expensesMinor !== 0); %>
+  <div class="analytics-heading">
+    <div>
+      <p class="eyebrow">Cashflow</p>
+      <h2>Income, expenses, and net result</h2>
+    </div>
+    <% if (hasCashflow) { %>
+      <div class="chart-range" role="group" aria-label="Select chart range">
+        <button type="button" data-chart-range="3" aria-pressed="false">3M</button>
+        <button type="button" data-chart-range="6" aria-pressed="false">6M</button>
+        <button type="button" data-chart-range="12" aria-pressed="true">1Y</button>
+      </div>
+    <% } %>
+  </div>
+
+  <% if (!hasCashflow) { %>
+    <div class="empty-state analytics-empty"><strong>No cashflow activity yet</strong><p>Add income or expense transactions to populate this chart.</p></div>
+  <% } else { %>
+    <div class="chart-legend" role="group" aria-label="Select chart series">
+      <button type="button" data-series-toggle="income" aria-pressed="true">
+        <span class="chart-swatch chart-swatch-income" aria-hidden="true"></span>Income
+      </button>
+      <button type="button" data-series-toggle="expenses" aria-pressed="true">
+        <span class="chart-swatch chart-swatch-expense" aria-hidden="true"></span>Expenses
+      </button>
+      <button type="button" data-series-toggle="net" aria-pressed="true">
+        <span class="chart-swatch chart-swatch-net" aria-hidden="true"></span>Net cashflow
+      </button>
+    </div>
+
+    <div class="cashflow-chart-wrap">
+      <canvas data-cashflow-canvas role="img" aria-label="Monthly income, expenses, and net cashflow" aria-describedby="cashflow-chart-help">
+        Monthly cashflow data is available in the table below.
+      </canvas>
+      <div class="chart-tooltip" data-chart-tooltip hidden></div>
+    </div>
+    <p class="chart-help muted" id="cashflow-chart-help">Select a month to open its transactions. On touch screens, tap once for details and again to open.</p>
+
+    <details class="chart-data-details">
+      <summary>Show monthly data</summary>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Period</th><th class="numeric">Income</th><th class="numeric">Expenses</th><th class="numeric">Net cashflow</th></tr>
+          </thead>
+          <tbody>
+            <% for (const month of statistics.months) { %>
+              <tr>
+                <td data-label="Period"><a href="/transactions?<%= new URLSearchParams({ from: month.from, to: month.to }).toString() %>"><%= month.label %></a></td>
+                <td data-label="Income" class="numeric"><%= formatMoney(month.incomeMinor) %></td>
+                <td data-label="Expenses" class="numeric"><%= formatMoney(month.expensesMinor) %></td>
+                <td data-label="Net cashflow" class="numeric"><%= formatMoney(month.netCashflowMinor) %></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  <% } %>
+</section>
+
+<% const categoryHistorySeries = statistics.categorySpendingHistory.series.map((series) => ({
+  ...series,
+  name: series.key === 'other' ? t('Other') : series.key === 'uncategorized' ? t('Uncategorized') : series.name
+})); %>
+<section
+  class="panel analytics-panel"
+  data-category-spending-chart="<%= JSON.stringify({
+    locale: userPreferences.language === 'it' ? 'it-IT' : 'en-US',
+    currency: statistics.primaryCurrency,
+    history: { ...statistics.categorySpendingHistory, series: categoryHistorySeries }
+  }) %>"
+>
+  <% const hasCategorySpendingHistory = categoryHistorySeries.length > 0; %>
+  <div class="analytics-heading">
+    <div>
+      <p class="eyebrow">Spending</p>
+      <h2>Spending by category over time</h2>
+    </div>
+    <% if (hasCategorySpendingHistory) { %>
+      <div class="chart-range" role="group" aria-label="Select category spending chart range">
+        <button type="button" data-category-spending-range="3" aria-pressed="false">3M</button>
+        <button type="button" data-category-spending-range="6" aria-pressed="false">6M</button>
+        <button type="button" data-category-spending-range="12" aria-pressed="true">1Y</button>
+      </div>
+    <% } %>
+  </div>
+
+  <% if (!hasCategorySpendingHistory) { %>
+    <div class="empty-state analytics-empty"><strong>No category spending history yet</strong><p>Add expense transactions to populate this chart.</p></div>
+  <% } else { %>
+    <div class="chart-legend" role="group" aria-label="Select category spending chart series">
+      <% categoryHistorySeries.forEach((series, seriesIndex) => { %>
+        <button type="button" data-category-spending-series="<%= series.key %>" aria-pressed="true">
+          <span class="chart-swatch chart-series-<%= seriesIndex % 8 %>" aria-hidden="true"></span><%- categoryLabel(series) %>
+        </button>
+      <% }) %>
+    </div>
+
+    <div class="cashflow-chart-wrap">
+      <canvas data-category-spending-canvas role="img" aria-label="Monthly spending by category" aria-describedby="category-spending-chart-help">
+        Monthly category spending data is available in the table below.
+      </canvas>
+      <div class="chart-tooltip" data-category-spending-tooltip hidden></div>
+    </div>
+    <p class="chart-help muted" id="category-spending-chart-help">Shows the top five categories from the full 12-month period; remaining spending is grouped as Other.</p>
+
+    <details class="chart-data-details">
+      <summary>Show category spending data</summary>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Period</th>
+              <% for (const series of categoryHistorySeries) { %>
+                <th class="numeric"><%= series.name %></th>
+              <% } %>
+              <th class="numeric">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% statistics.categorySpendingHistory.months.forEach((month, monthIndex) => { %>
+              <% const monthTotalMinor = categoryHistorySeries.reduce((sum, series) => sum + series.amountsMinor[monthIndex], 0); %>
+              <tr>
+                <td data-label="Period"><%= month.label %></td>
+                <% for (const series of categoryHistorySeries) { %>
+                  <td data-label="<%= series.name %>" class="numeric"><%= formatMoney(series.amountsMinor[monthIndex]) %></td>
+                <% } %>
+                <td data-label="Total" class="numeric"><strong><%= formatMoney(monthTotalMinor) %></strong></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  <% } %>
+</section>
+
+<section class="panel spending-panel" data-spending-explorer>
+  <div class="analytics-heading">
+    <div>
+      <p class="eyebrow">Spending</p>
+      <h2>Spending breakdown</h2>
+    </div>
+    <div class="chart-range" role="tablist" aria-label="Group spending by">
+      <button type="button" role="tab" id="spending-category-tab" aria-controls="spending-category-panel" aria-selected="true" data-spending-tab="category">Category</button>
+      <button type="button" role="tab" id="spending-tag-tab" aria-controls="spending-tag-panel" aria-selected="false" tabindex="-1" data-spending-tab="tag">Tag</button>
+    </div>
+  </div>
+  <p class="muted section-intro">Top 10 for the last 12 months. Select a row to view the matching transactions.</p>
+
+  <% const reportFrom = statistics.months[0]?.from || ''; %>
+  <% const reportTo = statistics.months.at(-1)?.to || ''; %>
+  <div role="tabpanel" id="spending-category-panel" aria-labelledby="spending-category-tab" data-spending-panel="category">
+    <% if (statistics.categoryExpenses.length === 0) { %>
+      <div class="empty-state"><strong>No category spending yet</strong><p>Add expenses with categories to populate this section.</p></div>
+    <% } else { %>
+      <div class="spending-list">
+        <% const maxCategory = Math.max(...statistics.categoryExpenses.map((row) => row.amountMinor)); %>
+        <% for (const row of statistics.categoryExpenses) { %>
+          <% if (row.id) { %>
+            <a class="spending-row" href="/transactions?<%= new URLSearchParams({ type: 'expense', categoryId: row.id, from: reportFrom, to: reportTo }).toString() %>">
+              <span class="spending-row-copy"><strong><%- categoryLabel(row) %></strong><span><%= formatMoney(row.amountMinor) %></span></span>
+              <progress class="bar-track" max="<%= maxCategory %>" value="<%= row.amountMinor %>" aria-label="<%= row.name %> category spending"></progress>
+            </a>
+          <% } else { %>
+            <div class="spending-row">
+              <span class="spending-row-copy"><strong><%- categoryLabel(row) %></strong><span><%= formatMoney(row.amountMinor) %></span></span>
+              <progress class="bar-track" max="<%= maxCategory %>" value="<%= row.amountMinor %>" aria-label="<%= row.name %> category spending"></progress>
+            </div>
+          <% } %>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+  <div role="tabpanel" id="spending-tag-panel" aria-labelledby="spending-tag-tab" data-spending-panel="tag" hidden>
+    <% if (statistics.tagExpenses.length === 0) { %>
+      <div class="empty-state"><strong>No tagged spending yet</strong><p>Add tags to expense transactions to populate this section.</p></div>
+    <% } else { %>
+      <div class="spending-list">
+        <% const maxTag = Math.max(...statistics.tagExpenses.map((row) => row.amountMinor)); %>
+        <% for (const row of statistics.tagExpenses) { %>
+          <% if (row.id) { %>
+            <a class="spending-row" href="/transactions?<%= new URLSearchParams({ type: 'expense', tagId: row.id, from: reportFrom, to: reportTo }).toString() %>">
+              <span class="spending-row-copy"><strong><%= row.name %></strong><span><%= formatMoney(row.amountMinor) %></span></span>
+              <progress class="bar-track" max="<%= maxTag %>" value="<%= row.amountMinor %>" aria-label="<%= row.name %> tag spending"></progress>
+            </a>
+          <% } else { %>
+            <div class="spending-row">
+              <span class="spending-row-copy"><strong><%= row.name %></strong><span><%= formatMoney(row.amountMinor) %></span></span>
+              <progress class="bar-track" max="<%= maxTag %>" value="<%= row.amountMinor %>" aria-label="<%= row.name %> tag spending"></progress>
+            </div>
+          <% } %>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<section class="stats-grid">
+  <article class="panel">
+    <div class="panel-heading">
+      <h2>Largest expenses</h2>
+      <span class="muted">Top 10, last 12 months</span>
+    </div>
+    <% if (statistics.largestExpenses.length === 0) { %>
+      <div class="empty-state"><strong>No expenses yet</strong><p>Add expense transactions to see largest outflows.</p></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Description</th><th class="numeric">Amount</th></tr></thead>
+          <tbody>
+            <% for (const transaction of statistics.largestExpenses) { %>
+              <tr>
+                <td data-label="Date"><%= transaction.date.toISOString().slice(0, 10) %></td>
+                <td data-label="Description">
+                  <strong>
+                    <% if (transaction.description) { %>
+                      <%= transaction.description %>
+                    <% } else if (transaction.categoryName) { %>
+                      <%- categoryLabel({ name: transaction.categoryName, color: transaction.categoryColor, icon: transaction.categoryIcon }) %>
+                    <% } else { %>
+                      Expense
+                    <% } %>
+                  </strong>
+                </td>
+                <td data-label="Amount" class="numeric"><%= formatMoney(transaction.amountMinor, transaction.currency || primaryCurrency) %></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </article>
+
+  <article class="panel">
+    <div class="panel-heading">
+      <h2>Account balances</h2>
+      <span class="muted"><%= statistics.accounts.length %> active</span>
+    </div>
+    <div class="list-stack">
+      <% for (const account of statistics.accounts) { %>
+        <div class="list-row">
+          <div><strong><%= account.name %></strong><span><%= account.type.replaceAll("_", " ") %> · <%= account.currency %></span></div>
+          <strong><%= formatMoney(account.currentBalanceMinor, account.currency) %></strong>
+        </div>
+      <% } %>
+    </div>
+  </article>
+</section>
+
+<script src="/vendor/chartjs/chart.umd.js" defer></script>
+<script src="/public/statistics.js" defer></script>

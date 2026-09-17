@@ -1,0 +1,28 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Account</p>
+    <h1>Restore complete</h1>
+  </div>
+  <a class="button-link" href="/">Dashboard</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Imported data</h2>
+    <span class="muted"><%= preview.exportedAt %></span>
+  </div>
+  <p class="success">Backup restored successfully.</p>
+  <div class="list-stack">
+    <div class="list-row"><div><strong>Accounts</strong><span><%= preview.accountCount %></span></div></div>
+    <div class="list-row"><div><strong>Categories</strong><span><%= preview.categoryCount %></span></div></div>
+    <div class="list-row"><div><strong>Tags</strong><span><%= preview.tagCount %></span></div></div>
+    <div class="list-row"><div><strong>Transactions</strong><span><%= preview.transactionCount %></span></div></div>
+    <div class="list-row"><div><strong>Budgets</strong><span><%= preview.budgetCount %></span></div></div>
+    <div class="list-row"><div><strong>Rules</strong><span><%= preview.ruleCount %></span></div></div>
+    <div class="list-row"><div><strong>Recurring templates</strong><span><%= preview.recurringCount %></span></div></div>
+    <div class="list-row"><div><strong>Assets</strong><span><%= preview.assetCount %></span></div></div>
+    <div class="list-row"><div><strong>Asset prices</strong><span><%= preview.assetPriceCount %></span></div></div>
+    <div class="list-row"><div><strong>Holdings</strong><span><%= preview.holdingCount %></span></div></div>
+    <div class="list-row"><div><strong>Investment transactions</strong><span><%= preview.investmentTransactionCount %></span></div></div>
+  </div>
+</section>

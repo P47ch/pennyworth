@@ -1,0 +1,43 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Money locations</p>
+    <h1>Edit account</h1>
+  </div>
+  <a class="button-link" href="/accounts">Back to accounts</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= account.name %></h2>
+    <span class="badge <%= account.isActive ? "badge-active" : "badge-muted" %>"><%= account.isActive ? "Active" : "Inactive" %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/accounts/<%= account.id %>" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" value="<%= account.name %>" required>
+    </label>
+    <label>
+      Type
+      <select name="type" required>
+        <% for (const type of accountTypes) { %>
+          <option value="<%= type %>" <%= account.type === type ? "selected" : "" %>><%= type.replaceAll("_", " ") %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Currency
+      <input name="currency" value="<%= account.currency %>" maxlength="3" readonly required>
+    </label>
+    <label>
+      Opening balance
+      <input name="openingBalance" inputmode="decimal" value="<%= (account.openingBalanceMinor / 100).toFixed(2) %>" required>
+    </label>
+    <label>
+      Institution
+      <input name="institution" value="<%= account.institution || "" %>">
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

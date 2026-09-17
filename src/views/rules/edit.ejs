@@ -1,0 +1,51 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Automation</p>
+    <h1>Edit rule</h1>
+  </div>
+  <a class="button-link" href="/rules">Back to rules</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= rule.name %></h2>
+    <span class="badge <%= rule.isActive ? "badge-active" : "badge-muted" %>"><%= rule.isActive ? "active" : "inactive" %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/rules/<%= rule.id %>" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" value="<%= rule.name %>" required>
+    </label>
+    <label>
+      Match text
+      <input name="matchText" value="<%= rule.matchText %>" required>
+    </label>
+    <label>
+      Category
+      <select name="categoryId" required>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>" <%= rule.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <fieldset class="full-width">
+      <legend>Tags to add</legend>
+      <div class="checkbox-list">
+        <% const selectedTagIds = new Set(rule.tags.map((item) => item.tagId)); %>
+        <% for (const tag of tags) { %>
+          <label>
+            <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= selectedTagIds.has(tag.id) ? "checked" : "" %>>
+            <%= tag.name %>
+          </label>
+        <% } %>
+      </div>
+    </fieldset>
+    <label class="checkbox-row">
+      <input type="checkbox" name="isActive" <%= rule.isActive ? "checked" : "" %>>
+      Active
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

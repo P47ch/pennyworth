@@ -1,0 +1,103 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Administration</p>
+    <h1>Settings</h1>
+  </div>
+</section>
+
+<%- include("../partials/settings-tabs.ejs") %>
+
+<% if (temporaryCredential) { %>
+  <section class="panel credential-panel" aria-labelledby="temporary-password-heading">
+    <div class="panel-heading">
+      <div>
+        <h2 id="temporary-password-heading">Temporary password</h2>
+        <p class="muted">Copy this password now. It will not be shown again.</p>
+      </div>
+      <span class="badge badge-active">Created</span>
+    </div>
+    <dl class="credential-details">
+      <div><dt>User</dt><dd><%= temporaryCredential.user.name %> &lt;<%= temporaryCredential.user.email %>&gt;</dd></div>
+      <div><dt>Password</dt><dd><code><%= temporaryCredential.temporaryPassword %></code></dd></div>
+    </dl>
+    <p class="muted">The user must replace it after signing in.</p>
+  </section>
+<% } %>
+
+<section class="panel">
+  <div class="panel-heading">
+    <div>
+      <h2>Add user</h2>
+      <p class="muted">Creates an isolated ledger with starter categories and tags.</p>
+    </div>
+  </div>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/settings/users" class="form-grid settings-user-form">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input type="text" name="name" value="<%= form.name %>" maxlength="100" autocomplete="off" required>
+    </label>
+    <label>
+      Email
+      <input type="email" name="email" value="<%= form.email %>" maxlength="320" autocomplete="off" required>
+    </label>
+    <button type="submit">Create user</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <div>
+      <h2>Users</h2>
+      <p class="muted">Financial data stays private to each account.</p>
+    </div>
+    <span class="muted"><%= users.length %> total</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Access</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const user of users) { %>
+          <tr>
+            <td data-label="Name"><strong><%= user.name %></strong></td>
+            <td data-label="Email"><%= user.email %></td>
+            <td data-label="Role"><%= t(user.role === "admin" ? "Administrator" : "Member") %></td>
+            <td data-label="Status">
+              <span class="badge <%= user.isActive ? "badge-active" : "badge-muted" %>"><%= t(user.isActive ? "Active" : "Inactive") %></span>
+            </td>
+            <td data-label="Access"><%= t(user.mustChangePassword ? "Password change required" : "Ready") %></td>
+            <td data-label="Actions">
+              <div class="row-actions">
+                <% if (user.id !== currentUser.id) { %>
+                  <form method="post" action="/settings/users/<%= user.id %>/reset-password">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-secondary" type="submit">Reset password</button>
+                  </form>
+                  <% if (user.role !== "admin") { %>
+                    <form method="post" action="/settings/users/<%= user.id %>/active">
+                      <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                      <input type="hidden" name="isActive" value="<%= user.isActive ? "false" : "true" %>">
+                      <button class="<%= user.isActive ? "button-danger" : "button-secondary" %>" type="submit"><%= t(user.isActive ? "Deactivate" : "Activate") %></button>
+                    </form>
+                  <% } %>
+                <% } else { %>
+                  <span class="muted">Current user</span>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -1,0 +1,129 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Automation</p>
+    <h1>Rules</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add rule</h2>
+    <span class="muted">Match transaction text to a category</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/rules" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" required>
+    </label>
+    <label>
+      Match text
+      <input name="matchText" placeholder="grocery, rent, spotify" required>
+    </label>
+    <label>
+      Category
+      <select name="categoryId" required>
+        <option value="">Choose category</option>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>"><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <fieldset class="full-width">
+      <legend>Tags to add</legend>
+      <div class="checkbox-list">
+        <% for (const tag of tags) { %>
+          <label>
+            <input type="checkbox" name="tagIds" value="<%= tag.id %>">
+            <%= tag.name %>
+          </label>
+        <% } %>
+      </div>
+    </fieldset>
+    <label class="checkbox-row">
+      <input type="checkbox" name="isActive" checked>
+      Active
+    </label>
+    <button type="submit">Add rule</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Rule list</h2>
+    <div class="panel-actions">
+      <a href="/rules/apply">Apply to existing</a>
+      <span class="muted"><%= rules.length %> rules</span>
+    </div>
+  </div>
+  <% if (rules.length === 0) { %>
+    <div class="empty-state">
+      <strong>No rules yet</strong>
+      <p>Add rules for merchants or recurring text you want to categorize later.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Name</th>
+            <th>Match text</th>
+            <th>Category</th>
+            <th>Tags</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let index = 0; index < rules.length; index += 1) { %>
+            <% const rule = rules[index]; %>
+            <tr>
+              <td data-label="Order">
+                <div class="row-actions">
+                  <form method="post" action="/rules/<%= rule.id %>/move">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <input type="hidden" name="direction" value="up">
+                    <button class="button-secondary" type="submit" <%= index === 0 ? "disabled" : "" %>>Up</button>
+                  </form>
+                  <form method="post" action="/rules/<%= rule.id %>/move">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <input type="hidden" name="direction" value="down">
+                    <button class="button-secondary" type="submit" <%= index === rules.length - 1 ? "disabled" : "" %>>Down</button>
+                  </form>
+                </div>
+              </td>
+              <td data-label="Name"><strong><%= rule.name %></strong></td>
+              <td data-label="Match text"><%= rule.matchText %></td>
+              <td data-label="Category"><%- categoryLabel(rule.category) %></td>
+              <td data-label="Tags">
+                <% if (rule.tags.length === 0) { %>
+                  -
+                <% } else { %>
+                  <div class="tag-list compact">
+                    <% for (const item of rule.tags) { %>
+                      <span class="tag tag-with-color"><%- colorSwatch(item.tag.color) %><%= item.tag.name %></span>
+                    <% } %>
+                  </div>
+                <% } %>
+              </td>
+              <td data-label="Status">
+                <span class="badge <%= rule.isActive ? "badge-active" : "badge-muted" %>"><%= rule.isActive ? "active" : "inactive" %></span>
+              </td>
+              <td data-label="Actions">
+                <div class="row-actions">
+                  <a class="action-link" href="/rules/<%= rule.id %>/edit">Edit</a>
+                  <form method="post" action="/rules/<%= rule.id %>/delete">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

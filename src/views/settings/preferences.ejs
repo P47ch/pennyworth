@@ -1,0 +1,98 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow"><%= t("Account") %></p>
+    <h1><%= t("Settings") %></h1>
+  </div>
+</section>
+
+<%- include("../partials/settings-tabs.ejs") %>
+
+<form method="post" action="/settings/preferences">
+  <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+
+  <section class="panel">
+    <div class="panel-heading">
+      <h2><%= t("Appearance") %></h2>
+    </div>
+    <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+    <% if (success) { %><p class="success"><%= t(success) %></p><% } %>
+    <div class="form-grid settings-fields">
+      <label>
+        <%= t("Language") %>
+        <select name="language" required>
+          <% for (const language of languages) { %>
+            <option value="<%= language.id %>" <%= preferences.language === language.id ? "selected" : "" %>><%= t(language.label) %></option>
+          <% } %>
+        </select>
+        <span class="field-hint"><%= t("Interface language") %></span>
+      </label>
+      <label>
+        <%= t("Theme") %>
+        <select name="theme" required data-theme-preview>
+          <% for (const theme of themes) { %>
+            <option value="<%= theme.id %>" <%= preferences.theme === theme.id ? "selected" : "" %>><%= theme.label %></option>
+          <% } %>
+        </select>
+      </label>
+    </div>
+    <fieldset class="avatar-picker">
+      <legend><%= t("Avatar") %></legend>
+      <p class="muted"><%= t("Choose how you appear in the account menu.") %></p>
+      <div class="avatar-option-grid">
+        <% for (const avatar of avatarChoices) { %>
+          <label class="avatar-option">
+            <input
+              class="visually-hidden"
+              type="radio"
+              name="avatarKey"
+              value="<%= avatar.id %>"
+              <%= preferences.avatarKey === avatar.id ? "checked" : "" %>
+            >
+            <span class="avatar-option-visual" aria-hidden="true">
+              <% if (avatar.imagePath) { %>
+                <img src="<%= avatar.imagePath %>" alt="" loading="lazy">
+              <% } else { %>
+                <span><%= avatar.initials %></span>
+              <% } %>
+            </span>
+            <span class="avatar-option-label"><%= t(avatar.label) %></span>
+          </label>
+        <% } %>
+      </div>
+    </fieldset>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <div>
+        <h2><%= t("Menu visibility") %></h2>
+        <p class="muted"><%= t("Select the pages shown in the sidebar. Settings and logout always remain available.") %></p>
+      </div>
+    </div>
+    <fieldset class="menu-preferences">
+      <legend><%= t("Visible pages") %></legend>
+      <% for (const group of menuGroups) { %>
+        <div class="menu-preference-group">
+          <strong><%= t(group.label) %></strong>
+          <div class="checkbox-list">
+            <% for (const item of group.items) { %>
+              <label>
+                <input
+                  type="checkbox"
+                  name="visibleMenuItems"
+                  value="<%= item.id %>"
+                  <%= preferences.hiddenMenuItems.includes(item.id) ? "" : "checked" %>
+                >
+                <span class="nav-icon"><%- icon(item.icon) %></span>
+                <%= t(item.label) %>
+              </label>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    </fieldset>
+    <div class="form-actions">
+      <button type="submit"><%= t("Save preferences") %></button>
+    </div>
+  </section>
+</form>

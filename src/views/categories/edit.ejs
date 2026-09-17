@@ -1,0 +1,65 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Reporting groups</p>
+    <h1>Edit category</h1>
+  </div>
+  <a class="button-link" href="/categories">Back to categories</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%- categoryLabel(category) %></h2>
+    <span class="badge badge-<%= category.type %>"><%= category.type %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/categories/<%= category.id %>" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" value="<%= category.name %>" required>
+    </label>
+    <label>
+      Type
+      <select name="type" required>
+        <% for (const type of categoryTypes) { %>
+          <option value="<%= type %>" <%= category.type === type ? "selected" : "" %>><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Parent
+      <select name="parentId">
+        <option value="">None</option>
+        <% for (const parentCategory of categories) { %>
+          <option value="<%= parentCategory.id %>" <%= category.parentId === parentCategory.id ? "selected" : "" %>><%= parentCategory.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Color
+      <input class="taxonomy-color-input" type="color" name="color" value="<%= category.color || "#2563eb" %>">
+    </label>
+    <fieldset class="icon-picker full-width">
+      <legend>Icon</legend>
+      <div class="icon-choice-grid">
+        <% for (const option of categoryIconOptions) { %>
+          <label class="icon-choice">
+            <input type="radio" name="icon" value="<%= option.name %>" <%= selectedIcon === option.name ? "checked" : "" %>>
+            <span class="icon-choice-card">
+              <%- icon(option.name) %>
+              <span><%= t(option.label) %></span>
+            </span>
+          </label>
+        <% } %>
+        <label class="icon-choice">
+          <input type="radio" name="icon" value="" <%= selectedIcon === "" ? "checked" : "" %>>
+          <span class="icon-choice-card">
+            <%- icon("no-icon") %>
+            <span><%= t("No icon") %></span>
+          </span>
+        </label>
+      </div>
+    </fieldset>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

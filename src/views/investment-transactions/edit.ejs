@@ -1,0 +1,76 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Investments</p>
+    <h1>Edit investment transaction</h1>
+  </div>
+  <a class="button-link" href="/investment-transactions">Back to transactions</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= investmentTransaction.asset.symbol %></h2>
+    <span class="badge badge-muted"><%= investmentTransaction.type %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/investment-transactions/<%= investmentTransaction.id %>" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Account
+      <select name="accountId" required>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= investmentTransaction.accountId === account.id ? "selected" : "" %>><%= account.name %> (<%= account.type %>)</option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Asset
+      <select name="assetId" required>
+        <% for (const asset of assets) { %>
+          <option value="<%= asset.id %>" <%= investmentTransaction.assetId === asset.id ? "selected" : "" %>><%= asset.symbol %> - <%= asset.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Cash account
+      <select name="cashAccountId">
+        <option value="" <%= investmentTransaction.cashAccountId === investmentTransaction.accountId ? "selected" : "" %>>Same as account</option>
+        <% for (const account of cashAccounts) { %>
+          <option value="<%= account.id %>" <%= investmentTransaction.cashAccountId !== investmentTransaction.accountId && investmentTransaction.cashAccountId === account.id ? "selected" : "" %>><%= account.name %> (<%= account.type %>)</option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Type
+      <select name="type" required>
+        <% for (const type of investmentTransactionTypes) { %>
+          <option value="<%= type %>" <%= investmentTransaction.type === type ? "selected" : "" %>><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Date
+      <input type="date" name="date" value="<%= formatDateInput(investmentTransaction.date) %>" required>
+    </label>
+    <label>
+      Quantity
+      <input name="quantity" inputmode="decimal" value="<%= formatQuantity(investmentTransaction.quantity) %>">
+    </label>
+    <label>
+      Unit price
+      <input name="price" inputmode="decimal" value="<%= investmentTransaction.priceMinor === null ? "" : (investmentTransaction.priceMinor / 100).toFixed(2) %>">
+    </label>
+    <label>
+      Amount
+      <input name="amount" inputmode="decimal" value="<%= (investmentTransaction.amountMinor / 100).toFixed(2) %>" required>
+    </label>
+    <label>
+      Cash amount
+      <input name="cashAmount" inputmode="decimal" value="<%= (investmentTransaction.cashAmountMinor / 100).toFixed(2) %>">
+    </label>
+    <label class="span-2">
+      Notes
+      <input name="notes" value="<%= investmentTransaction.notes || "" %>">
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

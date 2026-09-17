@@ -1,0 +1,242 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Ledger entry</p>
+    <h1>Transactions</h1>
+  </div>
+  <a class="button-link" href="/transactions/import">Import CSV</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Quick entry</h2>
+    <span class="muted">Required fields first, optional details below</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/transactions" class="quick-entry transaction-form" data-transaction-form>
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      <span>Type</span>
+      <select name="type" required data-transaction-type>
+        <% for (const type of transactionTypes) { %>
+          <option value="<%= type %>" <%= form.type === type ? "selected" : "" %>><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      <span>Date</span>
+      <input type="date" name="date" value="<%= form.date %>" required>
+    </label>
+    <label>
+      <span>Amount</span>
+      <input name="amount" inputmode="decimal" placeholder="0.00" value="<%= form.amount %>" required autofocus>
+    </label>
+    <label>
+      <span data-source-account-text>Account</span>
+      <select name="sourceAccountId" required data-persist-field="transaction-source-account">
+        <option value="">Choose account</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= form.sourceAccountId === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label data-transfer-only>
+      <span>Destination account</span>
+      <select name="destinationAccountId">
+        <option value="">Only for transfers</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= form.destinationAccountId === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label data-category-field>
+      <span>Category</span>
+      <select name="categoryId" data-persist-field="transaction-category">
+        <option value="">None</option>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>" <%= form.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label class="quick-description">
+      <span>Description</span>
+      <input name="description" placeholder="Groceries, rent, paycheck" value="<%= form.description %>">
+    </label>
+    <div class="quick-actions">
+      <button type="submit">Save transaction</button>
+    </div>
+    <fieldset class="quick-tags">
+      <legend>Tags</legend>
+      <div class="checkbox-list">
+        <% for (const tag of tags) { %>
+          <label>
+            <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= form.tagIds.includes(tag.id) ? "checked" : "" %>>
+            <%= tag.name %>
+          </label>
+        <% } %>
+      </div>
+    </fieldset>
+    <label class="quick-notes">
+      <span>Notes</span>
+      <textarea name="notes" rows="3"><%= form.notes %></textarea>
+    </label>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Filters</h2>
+    <div class="panel-actions">
+      <a href="/transactions/export.csv?<%= new URLSearchParams({
+        type: filters.typeValue,
+        accountId: filters.accountIdValue,
+        categoryId: filters.categoryIdValue,
+        tagId: filters.tagIdValue,
+        from: filters.fromValue,
+        to: filters.toValue,
+        search: filters.searchValue
+      }).toString() %>">Export CSV</a>
+      <a href="/transactions">Clear</a>
+    </div>
+  </div>
+  <form method="get" action="/transactions" class="form-grid">
+    <label>
+      Type
+      <select name="type">
+        <option value="">All types</option>
+        <% for (const type of transactionTypes) { %>
+          <option value="<%= type %>" <%= filters.typeValue === type ? "selected" : "" %>><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Account
+      <select name="accountId">
+        <option value="">All accounts</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= filters.accountIdValue === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Category
+      <select name="categoryId">
+        <option value="">All categories</option>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>" <%= filters.categoryIdValue === category.id ? "selected" : "" %>><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Tag
+      <select name="tagId">
+        <option value="">All tags</option>
+        <% for (const tag of tags) { %>
+          <option value="<%= tag.id %>" <%= filters.tagIdValue === tag.id ? "selected" : "" %>><%= tag.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      From
+      <input type="date" name="from" value="<%= filters.fromValue %>">
+    </label>
+    <label>
+      To
+      <input type="date" name="to" value="<%= filters.toValue %>">
+    </label>
+    <label>
+      Search
+      <input name="search" value="<%= filters.searchValue %>" placeholder="Description or notes">
+    </label>
+    <button type="submit">Apply filters</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Transaction list</h2>
+    <span class="muted"><%= pagination.totalCount %> entries</span>
+  </div>
+  <% if (transactions.length === 0) { %>
+    <div class="empty-state">
+      <strong>No transactions yet</strong>
+      <p>Add your first income, expense, or transfer above.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Account</th>
+            <th>Category</th>
+            <th>Tags</th>
+            <th class="numeric">Amount</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const transaction of transactions) { %>
+            <tr>
+              <td data-label="Date"><%= transaction.date.toISOString().slice(0, 10) %></td>
+              <td data-label="Type"><span class="badge badge-<%= transaction.type %>"><%= transaction.type %></span></td>
+              <td data-label="Description"><strong><%= transaction.description || "-" %></strong></td>
+              <td data-label="Account">
+                <% if (transaction.type === "transfer") { %>
+                  <%= transaction.sourceAccount?.name || "-" %> to <%= transaction.destinationAccount?.name || "-" %>
+                <% } else { %>
+                  <%= transaction.sourceAccount?.name || "-" %>
+                <% } %>
+              </td>
+              <td data-label="Category"><%- categoryLabel(transaction.category) %></td>
+              <td data-label="Tags">
+                <% if (transaction.tags.length === 0) { %>
+                  -
+                <% } else { %>
+                  <div class="tag-list compact">
+                    <% for (const item of transaction.tags) { %>
+                      <span class="tag tag-with-color"><%- colorSwatch(item.tag.color) %><%= item.tag.name %></span>
+                    <% } %>
+                  </div>
+                <% } %>
+              </td>
+              <td data-label="Amount" class="numeric"><%= formatMoney(transaction.amountMinor, transaction.sourceAccount?.currency || primaryCurrency) %></td>
+              <td data-label="Actions">
+                <div class="row-actions">
+                  <a class="action-link" href="/transactions/<%= transaction.id %>/edit">Edit</a>
+                  <form method="post" action="/transactions/<%= transaction.id %>/delete">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <% const pageParams = {
+      type: filters.typeValue,
+      accountId: filters.accountIdValue,
+      categoryId: filters.categoryIdValue,
+      tagId: filters.tagIdValue,
+      from: filters.fromValue,
+      to: filters.toValue,
+      search: filters.searchValue
+    }; %>
+    <nav class="pagination" aria-label="Transaction pages">
+      <% if (pagination.hasPreviousPage) { %>
+        <a href="/transactions?<%= new URLSearchParams({ ...pageParams, page: String(pagination.page - 1) }).toString() %>">Previous</a>
+      <% } else { %>
+        <span class="muted">Previous</span>
+      <% } %>
+      <span>Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+      <% if (pagination.hasNextPage) { %>
+        <a href="/transactions?<%= new URLSearchParams({ ...pageParams, page: String(pagination.page + 1) }).toString() %>">Next</a>
+      <% } else { %>
+        <span class="muted">Next</span>
+      <% } %>
+    </nav>
+  <% } %>
+</section>

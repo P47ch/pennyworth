@@ -1,0 +1,68 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Flexible labels</p>
+    <h1>Tags</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add tag</h2>
+    <span class="muted">Reusable transaction labels</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/tags" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" required>
+    </label>
+    <label>
+      Color
+      <input class="taxonomy-color-input" type="color" name="color" value="#2563eb">
+    </label>
+    <button type="submit">Add tag</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Tag list</h2>
+    <span class="muted"><%= tags.length %> tags</span>
+  </div>
+  <% if (tags.length === 0) { %>
+    <div class="empty-state">
+      <strong>No tags yet</strong>
+      <p>Add tags to mark recurring, business, shared, or reimbursable spending.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const tag of tags) { %>
+            <tr>
+              <td data-label="Name">
+                <span class="tag tag-with-color"><%- colorSwatch(tag.color) %><%= tag.name %></span>
+              </td>
+              <td data-label="Actions">
+                <div class="row-actions">
+                  <a class="action-link" href="/tags/<%= tag.id %>/edit">Edit</a>
+                  <form method="post" action="/tags/<%= tag.id %>/delete">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

@@ -1,0 +1,26 @@
+services:
+  app:
+    image: ${PENNYWORTH_IMAGE:-pennyworth-app}:${PENNYWORTH_TAG:-latest}
+    container_name: pennyworth
+    build:
+      context: ..
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-admin@example.com}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:?INITIAL_ADMIN_PASSWORD is required}
+      PRIMARY_CURRENCY: ${PRIMARY_CURRENCY:-EUR}
+      APP_PORT: 3000
+      APP_HOST: 0.0.0.0
+      TRANSPORT_SECURITY: ${TRANSPORT_SECURITY:?TRANSPORT_SECURITY is required}
+      APP_TIME_ZONE: ${APP_TIME_ZONE:-UTC}
+    ports:
+      - "${APP_BIND_ADDRESS:-0.0.0.0}:${APP_PORT:-3000}:3000"
+    command: sh -c "npm run db:deploy && npm run db:init-admin && npm run start"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5

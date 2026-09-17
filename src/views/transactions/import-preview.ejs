@@ -1,0 +1,107 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Ledger import</p>
+    <h1>Import preview</h1>
+  </div>
+  <a class="button-link" href="/transactions/import">Back to import</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Review</h2>
+    <span class="muted"><%= preview.validCount %> ready, <%= preview.errorCount %> with errors, <%= preview.duplicateCount %> possible duplicates</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (preview.errorCount === 0 && preview.duplicateCount === 0) { %>
+    <p class="success">All rows are ready to import.</p>
+  <% } else if (preview.errorCount > 0) { %>
+    <p class="error">Rows with errors will not be imported. Edit the CSV and preview again.</p>
+  <% } else { %>
+    <p class="error">Possible duplicates were found. Confirm only if these rows should be imported again.</p>
+  <% } %>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Row</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Account</th>
+          <th>Category</th>
+          <th>Tags</th>
+          <th class="numeric">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const row of preview.rows) { %>
+          <tr>
+            <td data-label="Row"><%= row.rowNumber %></td>
+            <td data-label="Status">
+              <% if (row.errors.length === 0 && row.warnings.length === 0) { %>
+                <span class="badge badge-active">Ready</span>
+              <% } else { %>
+                <div class="list-stack">
+                  <% if (row.errors.length > 0) { %>
+                    <span class="badge badge-expense">Error</span>
+                  <% } else { %>
+                    <span class="badge badge-transfer">Warning</span>
+                  <% } %>
+                  <% for (const item of row.errors) { %>
+                    <small class="muted"><%= item %></small>
+                  <% } %>
+                  <% for (const item of row.warnings) { %>
+                    <small class="muted"><%= item %></small>
+                  <% } %>
+                </div>
+              <% } %>
+            </td>
+            <td data-label="Date"><%= row.dateValue || "-" %></td>
+            <td data-label="Type"><%= row.type || "-" %></td>
+            <td data-label="Description"><strong><%= row.description || "-" %></strong></td>
+            <td data-label="Account">
+              <% if (row.type === "transfer") { %>
+                <%= row.sourceAccountName || "-" %> to <%= row.destinationAccountName || "-" %>
+              <% } else { %>
+                <%= row.sourceAccountName || "-" %>
+              <% } %>
+            </td>
+            <td data-label="Category">
+              <% if (row.categoryName) { %>
+                <%- categoryLabel({ name: row.categoryName, color: row.categoryColor, icon: row.categoryIcon }) %>
+              <% } else { %>
+                -
+              <% } %>
+              <% if (row.appliedRuleName) { %>
+                <small class="muted">Rule: <%= row.appliedRuleName %></small>
+              <% } %>
+            </td>
+            <td data-label="Tags"><%= row.tagNames.length > 0 ? row.tagNames.join("; ") : "-" %></td>
+            <td data-label="Amount" class="numeric"><%= row.amountMinor === null ? "-" : formatMoney(row.amountMinor, row.sourceAccountCurrency || primaryCurrency) %></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <form method="post" action="/transactions/import/confirm" class="import-confirm-form">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <input type="hidden" name="importBatchId" value="<%= importBatchId || '' %>">
+    <textarea class="visually-hidden" name="csvText" aria-hidden="true" tabindex="-1"><%= csvText %></textarea>
+    <% if (preview.duplicateCount > 0 && preview.errorCount === 0) { %>
+      <% const nonDuplicateCount = preview.rows.filter((row) => !row.duplicateOfRowNumber && !row.duplicateOfTransactionId).length; %>
+      <fieldset class="import-duplicate-options">
+        <legend>Duplicate handling</legend>
+        <label>
+          <input type="radio" name="duplicateMode" value="skip" checked>
+          Skip possible duplicates and import <%= nonDuplicateCount %> new transactions
+        </label>
+        <label>
+          <input type="radio" name="duplicateMode" value="include">
+          Import all <%= preview.validCount %> rows, including possible duplicates
+        </label>
+      </fieldset>
+    <% } %>
+    <button type="submit" <%= preview.errorCount > 0 ? "disabled" : "" %>>Confirm import</button>
+  </form>
+</section>

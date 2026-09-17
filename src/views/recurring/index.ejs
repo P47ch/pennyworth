@@ -1,0 +1,147 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Templates</p>
+    <h1>Recurring</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add recurring transaction</h2>
+    <span class="muted">Monthly templates, generated manually</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/recurring" class="form-grid transaction-form" data-transaction-form>
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" value="<%= form.name %>" required>
+    </label>
+    <label>
+      Type
+      <select name="type" required data-transaction-type>
+        <% for (const type of transactionTypes) { %>
+          <option value="<%= type %>" <%= form.type === type ? "selected" : "" %>><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Amount
+      <input name="amount" inputmode="decimal" placeholder="0.00" value="<%= form.amount %>" required>
+    </label>
+    <label>
+      <span data-source-account-text>Account</span>
+      <select name="sourceAccountId" required>
+        <option value="">Choose account</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= form.sourceAccountId === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label data-transfer-only>
+      <span>Destination account</span>
+      <select name="destinationAccountId">
+        <option value="">Only for transfers</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= form.destinationAccountId === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label data-category-field>
+      <span>Category</span>
+      <select name="categoryId">
+        <option value="">None</option>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>" <%= form.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Frequency
+      <select name="frequency" required>
+        <% for (const frequency of recurringFrequencies) { %>
+          <option value="<%= frequency %>" <%= form.frequency === frequency ? "selected" : "" %>><%= frequency %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Next date
+      <input type="date" name="nextDate" value="<%= form.nextDate %>" required>
+    </label>
+    <label>
+      Description
+      <input name="description" value="<%= form.description %>">
+    </label>
+    <label class="full-width">
+      Notes
+      <textarea name="notes" rows="3"><%= form.notes %></textarea>
+    </label>
+    <label class="checkbox-row">
+      <input type="checkbox" name="isActive" <%= form.isActive ? "checked" : "" %>>
+      Active
+    </label>
+    <button type="submit">Add recurring</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Recurring list</h2>
+    <span class="muted"><%= recurringTransactions.length %> templates</span>
+  </div>
+  <% if (recurringTransactions.length === 0) { %>
+    <div class="empty-state">
+      <strong>No recurring templates yet</strong>
+      <p>Add rent, salary, subscriptions, or transfers you want to generate manually.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Next date</th>
+            <th>Type</th>
+            <th>Account</th>
+            <th>Category</th>
+            <th class="numeric">Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const item of recurringTransactions) { %>
+            <tr>
+              <td data-label="Name"><strong><%= item.name %></strong></td>
+              <td data-label="Next date"><%= item.nextDate.toISOString().slice(0, 10) %></td>
+              <td data-label="Type"><span class="badge badge-<%= item.type %>"><%= item.type %></span></td>
+              <td data-label="Account">
+                <% if (item.type === "transfer") { %>
+                  <%= item.sourceAccount?.name || "-" %> to <%= item.destinationAccount?.name || "-" %>
+                <% } else { %>
+                  <%= item.sourceAccount?.name || "-" %>
+                <% } %>
+              </td>
+              <td data-label="Category"><%- categoryLabel(item.category) %></td>
+              <td data-label="Amount" class="numeric"><%= formatMoney(item.amountMinor, item.sourceAccount?.currency || primaryCurrency) %></td>
+              <td data-label="Status"><span class="badge <%= item.isActive ? "badge-active" : "badge-muted" %>"><%= item.isActive ? "active" : "inactive" %></span></td>
+              <td data-label="Actions">
+                <div class="row-actions">
+                  <form method="post" action="/recurring/<%= item.id %>/generate">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-secondary" type="submit" <%= item.isActive ? "" : "disabled" %>>Generate</button>
+                  </form>
+                  <a class="action-link" href="/recurring/<%= item.id %>/edit">Edit</a>
+                  <form method="post" action="/recurring/<%= item.id %>/delete">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

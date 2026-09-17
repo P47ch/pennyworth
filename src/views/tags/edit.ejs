@@ -1,0 +1,27 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Flexible labels</p>
+    <h1>Edit tag</h1>
+  </div>
+  <a class="button-link" href="/tags">Back to tags</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= tag.name %></h2>
+    <span class="tag"><%= tag.name %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/tags/<%= tag.id %>" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" value="<%= tag.name %>" required>
+    </label>
+    <label>
+      Color
+      <input class="taxonomy-color-input" type="color" name="color" value="<%= tag.color || "#2563eb" %>">
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

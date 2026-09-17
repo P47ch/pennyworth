@@ -1,0 +1,114 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Investments</p>
+    <h1>Investments</h1>
+  </div>
+  <a class="button-link" href="/investment-transactions">Add activity</a>
+</section>
+
+<section class="summary-grid" aria-label="Investment performance">
+  <article class="summary-card summary-card-primary">
+    <span>Market value</span>
+    <strong><%= formatMoney(report.performance.totalInvestmentValueMinor) %></strong>
+    <small><%= report.performance.positionCount %> positions</small>
+  </article>
+  <article class="summary-card">
+    <span>Cost basis</span>
+    <strong><%= formatMoney(report.performance.totalCostBasisMinor) %></strong>
+    <small>Open positions</small>
+  </article>
+  <article class="summary-card">
+    <span>Unrealized gain</span>
+    <strong><%= formatMoney(report.performance.totalUnrealizedGainMinor) %></strong>
+    <small>Latest manual prices</small>
+  </article>
+  <article class="summary-card">
+    <span>Realized gain</span>
+    <strong><%= formatMoney(report.performance.realizedGainMinor) %></strong>
+    <small>Sells and fees</small>
+  </article>
+  <article class="summary-card">
+    <span>Investment income</span>
+    <strong><%= formatMoney(report.performance.investmentIncomeMinor) %></strong>
+    <small>Dividends and interest</small>
+  </article>
+  <article class="summary-card">
+    <span>Fees</span>
+    <strong><%= formatMoney(report.performance.investmentFeesMinor) %></strong>
+    <small>Activity fees</small>
+  </article>
+</section>
+
+<section class="stats-grid">
+  <article class="panel">
+    <div class="panel-heading">
+      <h2>Allocation by type</h2>
+      <span class="muted"><%= report.allocationByType.length %> groups</span>
+    </div>
+    <%- include("../partials/investment-allocation.ejs", { rows: report.allocationByType, formatMoney, formatPercent }) %>
+  </article>
+
+  <article class="panel">
+    <div class="panel-heading">
+      <h2>Allocation by account</h2>
+      <span class="muted"><%= report.allocationByAccount.length %> accounts</span>
+    </div>
+    <%- include("../partials/investment-allocation.ejs", { rows: report.allocationByAccount, formatMoney, formatPercent }) %>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Allocation by asset</h2>
+    <span class="muted"><%= report.allocationByAsset.length %> assets</span>
+  </div>
+  <%- include("../partials/investment-allocation.ejs", { rows: report.allocationByAsset, formatMoney, formatPercent }) %>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Positions</h2>
+    <a href="/holdings">View holdings</a>
+  </div>
+  <% if (report.positions.length === 0) { %>
+    <div class="empty-state">
+      <strong>No calculated positions yet</strong>
+      <p>Add buy activity and manual prices to populate investment reporting.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th>Asset</th>
+            <th>Source</th>
+            <th>Type</th>
+            <th>Quantity</th>
+            <th>Cost basis</th>
+            <th>Market value</th>
+            <th>Unrealized</th>
+            <th>Income</th>
+            <th>Fees</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const position of report.positions) { %>
+            <tr>
+              <td data-label="Account"><%= position.accountName %></td>
+              <td data-label="Asset"><strong><%= position.assetSymbol %></strong><span class="muted"><%= position.assetName %></span></td>
+              <td data-label="Source"><span class="badge badge-muted"><%= position.source === "calculated" ? "activity" : "manual adjustment" %></span></td>
+              <td data-label="Type"><span class="badge badge-muted"><%= position.assetType %></span></td>
+              <td data-label="Quantity" class="numeric"><%= position.quantity %></td>
+              <td data-label="Cost basis" class="numeric"><%= formatMoney(position.costBasisMinor, position.currency) %></td>
+              <td data-label="Market value" class="numeric"><%= position.marketValueMinor === null ? "-" : formatMoney(position.marketValueMinor, position.currency) %></td>
+              <td data-label="Unrealized" class="numeric"><%= position.marketValueMinor === null ? "-" : formatMoney(position.marketValueMinor - position.costBasisMinor, position.currency) %></td>
+              <td data-label="Income" class="numeric"><%= formatMoney(position.dividendMinor + position.interestMinor, position.currency) %></td>
+              <td data-label="Fees" class="numeric"><%= formatMoney(position.feeMinor, position.currency) %></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

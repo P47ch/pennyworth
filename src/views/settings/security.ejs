@@ -1,0 +1,73 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow"><%= t("Account") %></p>
+    <h1><%= t("Settings") %></h1>
+  </div>
+</section>
+
+<%- include("../partials/settings-tabs.ejs") %>
+
+<% if (!passwordChangeRequired) { %>
+  <section class="panel">
+    <div class="panel-heading">
+      <h2><%= t("Restore") %></h2>
+      <span class="muted"><%= t("JSON import") %></span>
+    </div>
+    <div class="backup-format-help">
+      <p><%= t("Creating an import from Excel or another system? Use the documented version 9 format.") %></p>
+      <div class="row-actions">
+        <a class="action-link" href="/public/schemas/pennyworth-backup-v9.schema.json" download><%= t("Download JSON Schema") %></a>
+        <a class="action-link" href="/public/examples/pennyworth-backup-v9-starter.json" download><%= t("Download starter example") %></a>
+      </div>
+    </div>
+    <% if (restoreError) { %><p class="error"><%= restoreError %></p><% } %>
+    <form method="post" action="/settings/restore/preview" class="form-grid">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+      <label class="full-width">
+        <%= t("Backup JSON") %>
+        <textarea name="backupJson" rows="8" spellcheck="false" required></textarea>
+      </label>
+      <button type="submit"><%= t("Preview restore") %></button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <h2><%= t("Backup") %></h2>
+      <span class="muted"><%= t("JSON export") %></span>
+    </div>
+    <div class="list-row">
+      <div>
+        <strong><%= t("Download your data") %></strong>
+        <span><%= t("Exports accounts, categories, tags, transactions, and transaction tag links. Password hashes are not included.") %></span>
+      </div>
+      <a class="button-link" href="/settings/backup.json"><%= t("Export backup") %></a>
+    </div>
+  </section>
+<% } %>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= t("Change password") %></h2>
+    <span class="muted"><%= user.email %></span>
+  </div>
+  <% if (passwordChangeRequired) { %><p class="notice">Replace the temporary password before continuing.</p><% } %>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <% if (success) { %><p class="success"><%= t(success) %></p><% } %>
+  <form method="post" action="/settings/security/password" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      <%= t("Current password") %>
+      <input type="password" name="currentPassword" autocomplete="current-password" required>
+    </label>
+    <label>
+      <%= t("New password") %>
+      <input type="password" name="newPassword" autocomplete="new-password" minlength="12" required>
+    </label>
+    <label>
+      <%= t("Confirm new password") %>
+      <input type="password" name="confirmPassword" autocomplete="new-password" minlength="12" required>
+    </label>
+    <button type="submit"><%= t("Update password") %></button>
+  </form>
+</section>

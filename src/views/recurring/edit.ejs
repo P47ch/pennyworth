@@ -1,0 +1,86 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Templates</p>
+    <h1>Edit recurring</h1>
+  </div>
+  <a class="button-link" href="/recurring">Back to recurring</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= recurring.name %></h2>
+    <span class="badge <%= recurring.isActive ? "badge-active" : "badge-muted" %>"><%= recurring.isActive ? "active" : "inactive" %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/recurring/<%= recurring.id %>" class="form-grid transaction-form" data-transaction-form>
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" value="<%= recurring.name %>" required>
+    </label>
+    <label>
+      Type
+      <select name="type" required data-transaction-type>
+        <% for (const type of transactionTypes) { %>
+          <option value="<%= type %>" <%= recurring.type === type ? "selected" : "" %>><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Amount
+      <input name="amount" inputmode="decimal" value="<%= (recurring.amountMinor / 100).toFixed(2) %>" required>
+    </label>
+    <label>
+      <span data-source-account-text>Account</span>
+      <select name="sourceAccountId" required>
+        <option value="">Choose account</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= recurring.sourceAccountId === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label data-transfer-only>
+      <span>Destination account</span>
+      <select name="destinationAccountId">
+        <option value="">Only for transfers</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= recurring.destinationAccountId === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label data-category-field>
+      <span>Category</span>
+      <select name="categoryId">
+        <option value="">None</option>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>" <%= recurring.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Frequency
+      <select name="frequency" required>
+        <% for (const frequency of recurringFrequencies) { %>
+          <option value="<%= frequency %>" <%= recurring.frequency === frequency ? "selected" : "" %>><%= frequency %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Next date
+      <input type="date" name="nextDate" value="<%= recurring.nextDate.toISOString().slice(0, 10) %>" required>
+    </label>
+    <label>
+      Description
+      <input name="description" value="<%= recurring.description || "" %>">
+    </label>
+    <label class="full-width">
+      Notes
+      <textarea name="notes" rows="3"><%= recurring.notes || "" %></textarea>
+    </label>
+    <label class="checkbox-row">
+      <input type="checkbox" name="isActive" <%= recurring.isActive ? "checked" : "" %>>
+      Active
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

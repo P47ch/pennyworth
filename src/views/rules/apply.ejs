@@ -1,0 +1,62 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Automation</p>
+    <h1>Apply rules</h1>
+  </div>
+  <a class="button-link" href="/rules">Back to rules</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Preview</h2>
+    <span class="muted"><%= applications.length %> matches</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (applications.length === 0) { %>
+    <div class="empty-state">
+      <strong>No matching uncategorized expenses</strong>
+      <p>Rules will be available here when existing expense transactions match active rule text.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Account</th>
+            <th>Rule</th>
+            <th>Category</th>
+            <th>Tags</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const item of applications) { %>
+            <tr>
+              <td data-label="Date"><%= item.transaction.date.toISOString().slice(0, 10) %></td>
+              <td data-label="Description"><strong><%= item.transaction.description || "-" %></strong></td>
+              <td data-label="Account"><%= item.transaction.sourceAccount?.name || "-" %></td>
+              <td data-label="Rule"><%= item.rule.name %></td>
+              <td data-label="Category"><%- categoryLabel(item.category) %></td>
+              <td data-label="Tags">
+                <% if (item.suggestedTags.length === 0) { %>
+                  -
+                <% } else { %>
+                  <div class="tag-list compact">
+                    <% for (const tag of item.suggestedTags) { %>
+                      <span class="tag tag-with-color"><%- colorSwatch(tag.color) %><%= tag.name %></span>
+                    <% } %>
+                  </div>
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <form method="post" action="/rules/apply" class="import-confirm-form">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+      <button type="submit">Apply <%= applications.length %> updates</button>
+    </form>
+  <% } %>
+</section>

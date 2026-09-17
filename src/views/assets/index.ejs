@@ -1,0 +1,90 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Investments</p>
+    <h1>Assets</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add asset</h2>
+    <span class="muted">Manual catalog, no market data</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/assets" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Symbol
+      <input name="symbol" placeholder="VWCE, AAPL, BTC" required>
+    </label>
+    <label>
+      Name
+      <input name="name" placeholder="Vanguard FTSE All-World" required>
+    </label>
+    <label>
+      Type
+      <select name="type" required>
+        <% for (const type of assetTypes) { %>
+          <option value="<%= type %>"><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Currency
+      <input name="currency" value="<%= primaryCurrency %>" maxlength="3" readonly required>
+    </label>
+    <label class="checkbox-row">
+      <input type="checkbox" name="isActive" checked>
+      Active
+    </label>
+    <button type="submit">Add asset</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Asset list</h2>
+    <span class="muted"><%= assets.length %> assets</span>
+  </div>
+  <% if (assets.length === 0) { %>
+    <div class="empty-state">
+      <strong>No assets yet</strong>
+      <p>Add stocks, ETFs, funds, bonds, crypto, or other assets before tracking holdings.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Currency</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const asset of assets) { %>
+            <tr>
+              <td data-label="Symbol"><strong><%= asset.symbol %></strong></td>
+              <td data-label="Name"><%= asset.name %></td>
+              <td data-label="Type"><span class="badge badge-muted"><%= asset.type %></span></td>
+              <td data-label="Currency"><%= asset.currency %></td>
+              <td data-label="Status"><span class="badge <%= asset.isActive ? "badge-active" : "badge-muted" %>"><%= asset.isActive ? "active" : "inactive" %></span></td>
+              <td data-label="Actions">
+                <div class="row-actions">
+                  <a class="action-link" href="/assets/<%= asset.id %>/edit">Edit</a>
+                  <form method="post" action="/assets/<%= asset.id %>/delete">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

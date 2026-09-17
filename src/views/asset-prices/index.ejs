@@ -1,0 +1,90 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Investments</p>
+    <h1>Asset prices</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add price</h2>
+    <span class="muted">Manual closing price</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (assets.length === 0) { %>
+    <div class="empty-state">
+      <strong>No assets available</strong>
+      <p>Create an asset before adding manual prices.</p>
+    </div>
+  <% } %>
+  <form method="post" action="/asset-prices" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Asset
+      <select name="assetId" required>
+        <option value="">Choose asset</option>
+        <% for (const asset of assets) { %>
+          <option value="<%= asset.id %>"><%= asset.symbol %> - <%= asset.name %> (<%= asset.currency %>)</option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Date
+      <input type="date" name="date" value="<%= todayInputValue %>" required>
+    </label>
+    <label>
+      Price
+      <input name="price" inputmode="decimal" placeholder="123.45" required>
+    </label>
+    <button type="submit" <%= assets.length === 0 ? "disabled" : "" %>>Add price</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Price history</h2>
+    <span class="muted"><%= assetPrices.length %> prices</span>
+  </div>
+  <% if (assetPrices.length === 0) { %>
+    <div class="empty-state">
+      <strong>No prices yet</strong>
+      <p>Add manual prices to estimate holding values.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Asset</th>
+            <th>Type</th>
+            <th>Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const assetPrice of assetPrices) { %>
+            <tr>
+              <td data-label="Date"><%= formatDateInput(assetPrice.date) %></td>
+              <td data-label="Asset">
+                <strong><%= assetPrice.asset.symbol %></strong>
+                <span class="muted"><%= assetPrice.asset.name %></span>
+              </td>
+              <td data-label="Type"><span class="badge badge-muted"><%= assetPrice.asset.type %></span></td>
+              <td data-label="Price" class="numeric"><%= formatMoney(assetPrice.priceMinor, assetPrice.asset.currency) %></td>
+              <td data-label="Actions">
+                <div class="row-actions">
+                  <a class="action-link" href="/asset-prices/<%= assetPrice.id %>/edit">Edit</a>
+                  <form method="post" action="/asset-prices/<%= assetPrice.id %>/delete">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <button class="button-danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

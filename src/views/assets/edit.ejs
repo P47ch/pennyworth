@@ -1,0 +1,43 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Investments</p>
+    <h1>Edit asset</h1>
+  </div>
+  <a class="button-link" href="/assets">Back to assets</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= asset.symbol %></h2>
+    <span class="badge <%= asset.isActive ? "badge-active" : "badge-muted" %>"><%= asset.isActive ? "active" : "inactive" %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/assets/<%= asset.id %>" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Symbol
+      <input name="symbol" value="<%= asset.symbol %>" required>
+    </label>
+    <label>
+      Name
+      <input name="name" value="<%= asset.name %>" required>
+    </label>
+    <label>
+      Type
+      <select name="type" required>
+        <% for (const type of assetTypes) { %>
+          <option value="<%= type %>" <%= asset.type === type ? "selected" : "" %>><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Currency
+      <input name="currency" value="<%= asset.currency %>" maxlength="3" readonly required>
+    </label>
+    <label class="checkbox-row">
+      <input type="checkbox" name="isActive" <%= asset.isActive ? "checked" : "" %>>
+      Active
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

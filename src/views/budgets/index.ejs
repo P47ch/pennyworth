@@ -1,0 +1,84 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Planning</p>
+    <h1>Budgets</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Month</h2>
+    <span class="muted">Choose the budget period</span>
+  </div>
+  <form method="get" action="/budgets" class="form-grid">
+    <label>
+      Month
+      <input type="month" name="month" value="<%= selectedMonthValue %>" required>
+    </label>
+    <button type="submit">View month</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add budget</h2>
+    <span class="muted">One budget per category and month</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/budgets" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <input type="hidden" name="month" value="<%= selectedMonthValue %>">
+    <label>
+      Category
+      <select name="categoryId" required>
+        <option value="">Choose category</option>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>"><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Amount
+      <input name="amount" inputmode="decimal" placeholder="0.00" required>
+    </label>
+    <button type="submit">Add budget</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Budget overview</h2>
+    <span class="muted"><%= progress.length %> categories</span>
+  </div>
+  <% if (progress.length === 0) { %>
+    <div class="empty-state">
+      <strong>No budgets for this month</strong>
+      <p>Add category budgets to compare planned and actual spending.</p>
+    </div>
+  <% } else { %>
+    <div class="budget-list">
+      <% for (const row of progress) { %>
+        <article class="budget-row <%= row.isOverBudget ? "is-over-budget" : "" %>">
+          <div class="budget-row-main">
+            <div>
+              <strong><%- categoryLabel({ name: row.categoryName, color: row.categoryColor, icon: row.categoryIcon }) %></strong>
+              <span><%= formatMoney(row.spentMinor) %> spent of <%= formatMoney(row.amountMinor) %></span>
+            </div>
+            <div class="budget-row-numbers">
+              <strong><%= row.isOverBudget ? "Over" : "Left" %>: <%= formatMoney(Math.abs(row.remainingMinor)) %></strong>
+              <span><%= Math.round(row.percentUsed * 100) %>% used</span>
+            </div>
+          </div>
+          <progress class="bar-track" max="<%= row.amountMinor %>" value="<%= Math.min(row.spentMinor, row.amountMinor) %>" aria-label="<%= row.categoryName %> budget used"></progress>
+          <div class="row-actions">
+            <a class="action-link" href="/budgets/<%= row.id %>/edit">Edit</a>
+            <form method="post" action="/budgets/<%= row.id %>/delete">
+              <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+              <button class="button-danger" type="submit">Delete</button>
+            </form>
+          </div>
+        </article>
+      <% } %>
+    </div>
+  <% } %>
+</section>

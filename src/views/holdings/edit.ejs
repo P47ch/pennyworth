@@ -1,0 +1,47 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Investments</p>
+    <h1>Edit holding</h1>
+  </div>
+  <a class="button-link" href="/holdings">Back to holdings</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= holding.asset.symbol %> in <%= holding.account.name %></h2>
+    <span class="badge badge-muted"><%= holding.asset.type %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/holdings/<%= holding.id %>" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Account
+      <select name="accountId" required>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= holding.accountId === account.id ? "selected" : "" %>><%= account.name %> (<%= account.type %>)</option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Asset
+      <select name="assetId" required>
+        <% for (const asset of assets) { %>
+          <option value="<%= asset.id %>" <%= holding.assetId === asset.id ? "selected" : "" %>><%= asset.symbol %> - <%= asset.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Quantity
+      <input name="quantity" inputmode="decimal" value="<%= formatQuantity(holding.quantity) %>" required>
+    </label>
+    <label>
+      Average cost
+      <input name="averageCost" inputmode="decimal" value="<%= (holding.averageCostMinor / 100).toFixed(2) %>" required>
+    </label>
+    <label class="span-2">
+      Notes
+      <input name="notes" value="<%= holding.notes || "" %>">
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

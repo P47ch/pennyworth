@@ -1,0 +1,82 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Ledger entry</p>
+    <h1>Edit transaction</h1>
+  </div>
+  <a class="button-link" href="/transactions">Back to transactions</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2><%= transaction.description || "Transaction" %></h2>
+    <span class="badge badge-<%= transaction.type %>"><%= transaction.type %></span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/transactions/<%= transaction.id %>" class="form-grid transaction-form" data-transaction-form>
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      <span>Type</span>
+      <select name="type" required data-transaction-type>
+        <% for (const type of transactionTypes) { %>
+          <option value="<%= type %>" <%= transaction.type === type ? "selected" : "" %>><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      <span>Date</span>
+      <input type="date" name="date" value="<%= transaction.date.toISOString().slice(0, 10) %>" required>
+    </label>
+    <label>
+      <span>Amount</span>
+      <input name="amount" inputmode="decimal" value="<%= (transaction.amountMinor / 100).toFixed(2) %>" required>
+    </label>
+    <label>
+      <span data-source-account-text>Account</span>
+      <select name="sourceAccountId" required>
+        <option value="">Choose account</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= transaction.sourceAccountId === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label data-transfer-only>
+      <span>Destination account</span>
+      <select name="destinationAccountId">
+        <option value="">Only for transfers</option>
+        <% for (const account of accounts) { %>
+          <option value="<%= account.id %>" <%= transaction.destinationAccountId === account.id ? "selected" : "" %>><%= account.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label data-category-field>
+      <span>Category</span>
+      <select name="categoryId">
+        <option value="">None</option>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>" <%= transaction.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <fieldset class="full-width">
+      <legend>Tags</legend>
+      <div class="checkbox-list">
+        <% const selectedTagIds = new Set(transaction.tags.map((item) => item.tagId)); %>
+        <% for (const tag of tags) { %>
+          <label>
+            <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= selectedTagIds.has(tag.id) ? "checked" : "" %>>
+            <%= tag.name %>
+          </label>
+        <% } %>
+      </div>
+    </fieldset>
+    <label>
+      Description
+      <input name="description" value="<%= transaction.description || "" %>">
+    </label>
+    <label class="full-width">
+      Notes
+      <textarea name="notes" rows="3"><%= transaction.notes || "" %></textarea>
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+</section>

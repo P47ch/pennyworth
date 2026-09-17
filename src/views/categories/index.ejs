@@ -1,0 +1,112 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Reporting groups</p>
+    <h1>Categories</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Add category</h2>
+    <span class="muted">Income, expense, or both</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/categories" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label>
+      Name
+      <input name="name" required>
+    </label>
+    <label>
+      Type
+      <select name="type" required>
+        <% for (const type of categoryTypes) { %>
+          <option value="<%= type %>"><%= type %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Parent
+      <select name="parentId">
+        <option value="">None</option>
+        <% for (const category of categories) { %>
+          <option value="<%= category.id %>"><%= category.name %></option>
+        <% } %>
+      </select>
+    </label>
+    <label>
+      Color
+      <input class="taxonomy-color-input" type="color" name="color" value="#2563eb">
+    </label>
+    <fieldset class="icon-picker full-width">
+      <legend>Icon</legend>
+      <div class="icon-choice-grid">
+        <% for (const option of categoryIconOptions) { %>
+          <label class="icon-choice">
+            <input type="radio" name="icon" value="<%= option.name %>" <%= option.name === "other" ? "checked" : "" %>>
+            <span class="icon-choice-card">
+              <%- icon(option.name) %>
+              <span><%= t(option.label) %></span>
+            </span>
+          </label>
+        <% } %>
+        <label class="icon-choice">
+          <input type="radio" name="icon" value="">
+          <span class="icon-choice-card">
+            <%- icon("no-icon") %>
+            <span><%= t("No icon") %></span>
+          </span>
+        </label>
+      </div>
+    </fieldset>
+    <button type="submit">Add category</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Category list</h2>
+    <span class="muted"><%= categories.length %> categories</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Type</th>
+          <th>Parent</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const category of categories) { %>
+          <tr>
+            <td data-label="Category">
+              <span class="taxonomy-identity">
+                <span class="taxonomy-icon" aria-hidden="true">
+                  <% if (category.icon) { %>
+                    <%- categoryIcon(category.icon, category.color) %>
+                  <% } else { %>
+                    <%- colorSwatch(category.color) %>
+                  <% } %>
+                </span>
+                <strong><%= category.name %></strong>
+              </span>
+            </td>
+            <td data-label="Type"><span class="badge badge-<%= category.type %>"><%= category.type %></span></td>
+            <td data-label="Parent"><%- categoryLabel(category.parent) %></td>
+            <td data-label="Actions">
+              <div class="row-actions">
+                <a class="action-link" href="/categories/<%= category.id %>/edit">Edit</a>
+                <form method="post" action="/categories/<%= category.id %>/delete">
+                  <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                  <button class="button-danger" type="submit">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>

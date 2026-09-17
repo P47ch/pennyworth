@@ -1,0 +1,27 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Ledger import</p>
+    <h1>Import transactions</h1>
+  </div>
+  <a class="button-link" href="/transactions">Back to transactions</a>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>CSV source</h2>
+    <span class="muted">Headers: date, type, amount, account, destination_account, category, tags, description, notes</span>
+  </div>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/transactions/import/map" class="form-grid">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <label class="full-width">
+      CSV file
+      <input type="file" accept=".csv,text/csv" data-csv-file-input>
+    </label>
+    <label class="full-width">
+      CSV
+      <textarea name="csvText" rows="14" spellcheck="false" required data-csv-textarea><%= csvText %></textarea>
+    </label>
+    <button type="submit">Map columns</button>
+  </form>
+</section>

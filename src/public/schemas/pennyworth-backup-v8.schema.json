@@ -1,0 +1,377 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pennyworth.local/schemas/pennyworth-backup-v8.schema.json",
+  "title": "Pennyworth JSON backup version 8",
+  "description": "Importable user-scoped Pennyworth backup data. References and cross-record uniqueness are validated by Pennyworth during restore.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "app",
+    "schemaVersion",
+    "exportedAt",
+    "user",
+    "accounts",
+    "categories",
+    "tags",
+    "transactions"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "app": { "const": "Pennyworth" },
+    "schemaVersion": { "const": 8 },
+    "exportedAt": { "$ref": "#/$defs/timestamp" },
+    "user": { "$ref": "#/$defs/user" },
+    "accounts": { "type": "array", "items": { "$ref": "#/$defs/account" } },
+    "categories": { "type": "array", "items": { "$ref": "#/$defs/category" } },
+    "tags": { "type": "array", "items": { "$ref": "#/$defs/tag" } },
+    "transactions": { "type": "array", "items": { "$ref": "#/$defs/transaction" } },
+    "budgets": { "type": "array", "items": { "$ref": "#/$defs/budget" }, "default": [] },
+    "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" }, "default": [] },
+    "recurringTransactions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/recurringTransaction" },
+      "default": []
+    },
+    "assets": { "type": "array", "items": { "$ref": "#/$defs/asset" }, "default": [] },
+    "assetPrices": { "type": "array", "items": { "$ref": "#/$defs/assetPrice" }, "default": [] },
+    "holdings": { "type": "array", "items": { "$ref": "#/$defs/holding" }, "default": [] },
+    "investmentTransactions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/investmentTransaction" },
+      "default": []
+    }
+  },
+  "$comment": "JSON Schema cannot express that IDs are unique within each array or that reference IDs exist in other arrays. Pennyworth validates those rules during restore preview.",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A stable ID unique within this record family. It may be a UUID, CUID, or another non-empty string."
+    },
+    "nullableIdentifier": {
+      "anyOf": [
+        { "$ref": "#/$defs/identifier" },
+        { "type": "null" }
+      ]
+    },
+    "nullableString": { "type": ["string", "null"] },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "An ISO 8601 date-time, preferably UTC, for example 2026-09-04T12:00:00.000Z."
+    },
+    "money": {
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647,
+      "description": "Money in integer minor units; EUR 12.34 is 1234."
+    },
+    "positiveMoney": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647,
+      "description": "A positive amount in integer minor units."
+    },
+    "nonNegativeMoney": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647,
+      "description": "A non-negative amount in integer minor units."
+    },
+    "quantity": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]{0,15})(?:\\.[0-9]{1,8})?$",
+      "description": "A non-negative decimal string with at most 8 decimal places."
+    },
+    "positiveQuantity": {
+      "type": "string",
+      "pattern": "^(?=.*[1-9])(?:0|[1-9][0-9]{0,15})(?:\\.[0-9]{1,8})?$",
+      "description": "A positive decimal string with at most 8 decimal places."
+    },
+    "nullableColor": {
+      "anyOf": [
+        { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        { "type": "null" }
+      ]
+    },
+    "recordBase": {
+      "type": "object",
+      "required": ["id", "createdAt", "updatedAt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "userId": {
+          "$ref": "#/$defs/identifier",
+          "description": "Optional on handcrafted imports. Restore replaces this with the signed-in user's ID."
+        },
+        "createdAt": { "$ref": "#/$defs/timestamp" },
+        "updatedAt": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+    "user": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["email"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "email": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "createdAt": { "$ref": "#/$defs/timestamp" },
+        "updatedAt": { "$ref": "#/$defs/timestamp" }
+      },
+      "description": "Used for restore preview only. Restore keeps the signed-in user's identity and credentials."
+    },
+    "account": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["name", "type", "currency", "openingBalanceMinor"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "type": { "enum": ["bank", "cash", "credit_card", "savings", "investment", "crypto_wallet", "other"] },
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+            "openingBalanceMinor": { "$ref": "#/$defs/money" },
+            "institution": { "$ref": "#/$defs/nullableString" },
+            "isActive": { "type": "boolean", "default": true }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "category": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["name", "type"],
+          "properties": {
+            "parentId": { "$ref": "#/$defs/nullableIdentifier" },
+            "name": { "type": "string", "minLength": 1 },
+            "type": { "enum": ["income", "expense", "both"] },
+            "color": { "$ref": "#/$defs/nullableColor" },
+            "icon": { "$ref": "#/$defs/nullableString" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "tag": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "color": { "$ref": "#/$defs/nullableColor" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "transaction": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["type", "date", "amountMinor", "sourceAccountId"],
+          "properties": {
+            "type": { "enum": ["income", "expense", "transfer"] },
+            "date": { "$ref": "#/$defs/timestamp" },
+            "amountMinor": { "$ref": "#/$defs/positiveMoney" },
+            "sourceAccountId": { "$ref": "#/$defs/identifier" },
+            "destinationAccountId": { "$ref": "#/$defs/nullableIdentifier" },
+            "categoryId": { "$ref": "#/$defs/nullableIdentifier" },
+            "description": { "$ref": "#/$defs/nullableString" },
+            "notes": { "$ref": "#/$defs/nullableString" },
+            "tagIds": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/identifier" },
+              "uniqueItems": true,
+              "default": []
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "transfer" } } },
+          "then": {
+            "required": ["destinationAccountId"],
+            "properties": {
+              "destinationAccountId": { "$ref": "#/$defs/identifier" },
+              "categoryId": { "type": "null" }
+            }
+          },
+          "else": {
+            "properties": { "destinationAccountId": { "type": "null" } }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "budget": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["categoryId", "month", "amountMinor"],
+          "properties": {
+            "categoryId": { "$ref": "#/$defs/identifier" },
+            "month": { "$ref": "#/$defs/timestamp" },
+            "amountMinor": { "$ref": "#/$defs/positiveMoney" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "rule": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["categoryId", "name", "matchText"],
+          "properties": {
+            "categoryId": { "$ref": "#/$defs/identifier" },
+            "name": { "type": "string", "minLength": 1 },
+            "matchText": { "type": "string", "minLength": 1 },
+            "priority": { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 },
+            "isActive": { "type": "boolean", "default": true },
+            "tagIds": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/identifier" },
+              "uniqueItems": true,
+              "default": []
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "recurringTransaction": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["name", "type", "amountMinor", "sourceAccountId", "nextDate"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "type": { "enum": ["income", "expense", "transfer"] },
+            "amountMinor": { "$ref": "#/$defs/positiveMoney" },
+            "sourceAccountId": { "$ref": "#/$defs/identifier" },
+            "destinationAccountId": { "$ref": "#/$defs/nullableIdentifier" },
+            "categoryId": { "$ref": "#/$defs/nullableIdentifier" },
+            "description": { "$ref": "#/$defs/nullableString" },
+            "notes": { "$ref": "#/$defs/nullableString" },
+            "frequency": { "const": "monthly", "default": "monthly" },
+            "nextDate": { "$ref": "#/$defs/timestamp" },
+            "isActive": { "type": "boolean", "default": true }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "transfer" } } },
+          "then": {
+            "required": ["destinationAccountId"],
+            "properties": {
+              "destinationAccountId": { "$ref": "#/$defs/identifier" },
+              "categoryId": { "type": "null" }
+            }
+          },
+          "else": {
+            "properties": { "destinationAccountId": { "type": "null" } }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "asset": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["symbol", "name", "type", "currency"],
+          "properties": {
+            "symbol": { "type": "string", "minLength": 1 },
+            "name": { "type": "string", "minLength": 1 },
+            "type": { "enum": ["stock", "etf", "fund", "bond", "crypto", "other"] },
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+            "isActive": { "type": "boolean", "default": true }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "assetPrice": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["assetId", "date", "priceMinor"],
+          "properties": {
+            "assetId": { "$ref": "#/$defs/identifier" },
+            "date": { "$ref": "#/$defs/timestamp" },
+            "priceMinor": { "$ref": "#/$defs/positiveMoney" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "holding": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["accountId", "assetId", "quantity", "averageCostMinor"],
+          "properties": {
+            "accountId": { "$ref": "#/$defs/identifier" },
+            "assetId": { "$ref": "#/$defs/identifier" },
+            "quantity": { "$ref": "#/$defs/positiveQuantity" },
+            "averageCostMinor": { "$ref": "#/$defs/nonNegativeMoney" },
+            "notes": { "$ref": "#/$defs/nullableString" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "investmentTransaction": {
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["accountId", "assetId", "type", "date", "amountMinor"],
+          "properties": {
+            "accountId": { "$ref": "#/$defs/identifier" },
+            "cashAccountId": { "$ref": "#/$defs/nullableIdentifier" },
+            "assetId": { "$ref": "#/$defs/identifier" },
+            "type": { "enum": ["buy", "sell", "dividend", "interest", "fee"] },
+            "date": { "$ref": "#/$defs/timestamp" },
+            "quantity": {
+              "anyOf": [
+                { "$ref": "#/$defs/positiveQuantity" },
+                { "type": "null" }
+              ]
+            },
+            "priceMinor": {
+              "anyOf": [
+                { "$ref": "#/$defs/positiveMoney" },
+                { "type": "null" }
+              ]
+            },
+            "amountMinor": { "$ref": "#/$defs/positiveMoney" },
+            "cashAmountMinor": { "$ref": "#/$defs/positiveMoney" },
+            "notes": { "$ref": "#/$defs/nullableString" }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["buy", "sell"] } } },
+          "then": { "required": ["quantity", "priceMinor"] },
+          "else": {
+            "properties": {
+              "quantity": { "type": "null" },
+              "priceMinor": { "type": "null" }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}
