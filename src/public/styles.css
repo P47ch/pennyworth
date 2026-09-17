@@ -1121,6 +1121,13 @@ input[type="color"]::-webkit-color-swatch {
   border-radius: 6px;
 }
 
+/* iOS WebKit adds date-input padding outside a percentage width. */
+label > input[type="date"] {
+  width: auto;
+  min-width: 0;
+  align-self: stretch;
+}
+
 .taxonomy-color-input {
   width: 4.5rem;
 }
