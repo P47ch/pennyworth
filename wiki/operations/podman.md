@@ -2,7 +2,7 @@
 title: Podman Deployment and Operations
 type: runbook
 status: current
-updated: 2026-09-04
+updated: 2026-09-17
 source_ids: [container-definitions, environment-template, podman-docs, package-manifest]
 tags: [podman, containers, rootless, operations]
 ---
@@ -42,7 +42,7 @@ Use the same `.env` and security requirements described in [`deployment.md`](dep
 
 | Use case | Compose file | Start command |
 | --- | --- | --- |
-| Development app and database | `compose.yml` | `podman compose --env-file .env up` |
+| Development app and database | `compose.dev.yml` | `podman compose --env-file .env -f compose.dev.yml up` |
 | Private-LAN HTTP, managed PostgreSQL | `deploy/compose.prod.yml` | `podman compose --env-file .env -f deploy/compose.prod.yml up --build -d` |
 | Private-LAN HTTP, external PostgreSQL | `deploy/compose.external-db.yml` | `podman compose --env-file .env -f deploy/compose.external-db.yml up --build -d` |
 

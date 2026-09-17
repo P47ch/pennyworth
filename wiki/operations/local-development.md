@@ -2,7 +2,7 @@
 title: Local Development
 type: runbook
 status: current
-updated: 2026-09-04
+updated: 2026-09-17
 source_ids: [package-manifest, environment-template, container-definitions, operational-scripts, project-contract]
 tags: [development, setup, postgres]
 ---
@@ -33,12 +33,12 @@ PRIMARY_CURRENCY="EUR"
 
 ## Host Node with container PostgreSQL
 
-The root `compose.yml` is the default development profile, so Compose discovers it without a `-f` option.
+The root `compose.dev.yml` is the development profile. Specify it explicitly because its descriptive filename is not one of Compose's automatically discovered defaults.
 
 Start only PostgreSQL:
 
 ```bash
-docker compose up -d postgres
+docker compose -f compose.dev.yml up -d postgres
 ```
 
 Use the host-published database address:
@@ -64,14 +64,14 @@ Open `http://localhost:3000` or the configured `APP_PORT`.
 Start the development stack:
 
 ```bash
-docker compose up
+docker compose -f compose.dev.yml up
 ```
 
 The app uses `postgres` as the database hostname inside the Compose network. For a new named database volume, use another terminal after services start:
 
 ```bash
-docker compose exec app npm run db:deploy
-docker compose exec app npm run db:seed
+docker compose -f compose.dev.yml exec app npm run db:deploy
+docker compose -f compose.dev.yml exec app npm run db:seed
 ```
 
 The source tree is bind-mounted at `/app`; Linux dependencies use the separate `app-node-modules` named volume so Windows host packages are not reused inside the container.

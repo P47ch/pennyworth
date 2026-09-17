@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Log
 type: log
 status: current
-updated: 2026-09-16
+updated: 2026-09-17
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [log, audit]
 ---
@@ -158,3 +158,7 @@ Removed large relation-include parameter lists from JSON export, eliminated repe
 ## [2026-09-16] source-sync | Upgrade cookies when HTTPS is enabled
 
 Reissued valid CSRF and session cookies with the active transport attributes so switching an existing deployment to `TRANSPORT_SECURITY=https` upgrades previously stored private-HTTP cookies without extending the signed session lifetime. Synchronized the canonical security description for both cookie types.
+
+## [2026-09-17] source-sync | Keep the descriptive development Compose filename
+
+Updated the container source map and local Docker and Podman commands to use `compose.dev.yml` explicitly, preserving the descriptive development-profile filename without relying on Compose's default filename discovery.

@@ -2,7 +2,7 @@
 title: Pennyworth Source Map
 type: source-map
 status: current
-updated: 2026-09-05
+updated: 2026-09-17
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [sources, provenance]
 ---
@@ -104,7 +104,7 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 
 ## source:container-definitions
 
-- Location: [`../Dockerfile`](../Dockerfile), [`../compose.yml`](../compose.yml), and [`../deploy/`](../deploy/)
+- Location: [`../Dockerfile`](../Dockerfile), [`../compose.dev.yml`](../compose.dev.yml), and [`../deploy/`](../deploy/)
 - Kind: executable deployment source
 - Authority: images, services, health checks, ports, volumes, and startup commands
 - Covers: Docker, Podman-compatible Compose, development, private-LAN HTTP production, and managed or externally managed PostgreSQL
