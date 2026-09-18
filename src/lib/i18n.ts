@@ -484,7 +484,33 @@ const italian: Record<string, string> = {
   "Choose a valid user status.": "Scegli uno stato utente valido.",
   "You cannot deactivate your own account.": "Non puoi disattivare il tuo account.",
   "Administrator accounts cannot be deactivated here.": "Gli account amministratore non possono essere disattivati qui.",
-  "Use the Security page to change your own password.": "Usa la pagina Sicurezza per cambiare la tua password."
+  "Use the Security page to change your own password.": "Usa la pagina Sicurezza per cambiare la tua password.",
+  "Application": "Applicazione",
+  "Application updates": "Aggiornamenti dell'applicazione",
+  "Installed version": "Versione installata",
+  "Update available": "Aggiornamento disponibile",
+  "Update channel": "Canale di aggiornamento",
+  "Latest eligible release": "Ultima versione idonea",
+  "Published": "Pubblicato",
+  "Last successful check": "Ultimo controllo riuscito",
+  "Last attempted": "Ultimo tentativo",
+  "Before updating": "Prima di aggiornare",
+  "Read release notes on GitHub": "Leggi le note di rilascio su GitHub",
+  "opens in a new tab": "si apre in una nuova scheda",
+  "stable": "stabile",
+  "prerelease": "pre-rilascio",
+  "Update checks are optional and only request public GitHub release metadata from this server.":
+    "I controlli degli aggiornamenti sono facoltativi e richiedono solo metadati pubblici delle versioni GitHub da questo server.",
+  "Update checks are disabled. Set UPDATE_CHECK_ENABLED=true to enable this optional server-to-server check.":
+    "I controlli degli aggiornamenti sono disattivati. Imposta UPDATE_CHECK_ENABLED=true per abilitare questo controllo facoltativo da server a server.",
+  "The first update check is pending.": "Il primo controllo degli aggiornamenti è in attesa.",
+  "Update information is temporarily unavailable. Pennyworth will try again later.":
+    "Le informazioni sugli aggiornamenti sono temporaneamente non disponibili. Pennyworth riproverà più tardi.",
+  "Showing the last successful result; the most recent check was unavailable.":
+    "Viene mostrato l'ultimo risultato riuscito; il controllo più recente non era disponibile.",
+  "This installation is up to date for its configured channel.": "Questa installazione è aggiornata per il canale configurato.",
+  "Create a backup and read the release notes and upgrade instructions before updating Pennyworth. Updates, migrations, restarts, and container actions always remain under the operator's control.":
+    "Crea un backup e leggi le note di rilascio e le istruzioni di aggiornamento prima di aggiornare Pennyworth. Aggiornamenti, migrazioni, riavvii e azioni sui container restano sempre sotto il controllo dell'operatore."
 };
 
 export type Translator = (message: string, values?: Record<string, string | number>) => string;

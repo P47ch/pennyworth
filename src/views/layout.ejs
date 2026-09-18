@@ -40,6 +40,12 @@
               <span><%= currentUser.email %></span>
             </div>
             <nav class="account-menu-links" aria-label="<%= t("Account") %>">
+              <% if (currentUser.role === "admin" && typeof updateAvailable !== "undefined" && updateAvailable) { %>
+                <a class="update-indicator" href="/settings/application" aria-label="<%= t("Installed version") %> v<%= appVersion %>. <%= t("Update available") %>: v<%= updateAvailable.version %>.">
+                  <span class="update-status-dot" aria-hidden="true"></span>
+                  <span><%= t("Update available") %></span>
+                </a>
+              <% } %>
               <a href="/settings/preferences">
                 <span class="nav-icon"><%- icon("settings") %></span>
                 <span><%= t("Preferences") %></span>
@@ -95,7 +101,15 @@
                 <span class="nav-text"><%= t("Logout") %></span>
               </button>
             </form>
-            <p class="app-version nav-text">v<%= appVersion %></p>
+            <% if (currentUser.role === "admin" && typeof updateAvailable !== "undefined" && updateAvailable) { %>
+              <a class="app-version update-indicator nav-text" href="/settings/application" aria-label="<%= t("Installed version") %> v<%= appVersion %>. <%= t("Update available") %>: v<%= updateAvailable.version %>.">
+                <span>v<%= appVersion %></span>
+                <span class="update-status-dot" aria-hidden="true"></span>
+                <span><%= t("Update available") %></span>
+              </a>
+            <% } else { %>
+              <p class="app-version nav-text">v<%= appVersion %></p>
+            <% } %>
           </div>
         </aside>
         <main class="page">

@@ -2,7 +2,7 @@
 title: Release Management
 type: runbook
 status: current
-updated: 2026-09-17
+updated: 2026-09-18
 source_ids: [release-policy, package-manifest, test-suite, ci-workflow, container-definitions, application-source]
 tags: [release, versioning, semver, verification]
 ---
@@ -26,7 +26,7 @@ Versions are release identifiers, not completion percentages. Ordinary developme
 
 ## Branch workflow
 
-Pennyworth uses `main` for stable release history and `develop` as the integration branch. Changes normally reach `develop` through short-lived branches and pull requests:
+Pennyworth uses `main` for stable release history and `develop` as the integration branch. Changes normally reach `develop` through short-lived branches and pull requests. Branch names must follow Git Flow naming, use lowercase kebab-case after the prefix, and must not use agent or tool-specific prefixes:
 
 - `feature/*` for new product behavior.
 - `fix/*` for compatible defect corrections found during normal development.
@@ -78,6 +78,8 @@ A change can affect one, two, or all three systems. Evaluate and update each acc
    ```
 
 8. Create the corresponding GitHub Release from the tag and use the changelog entry as the basis for its notes.
+
+Every Pennyworth Git tag published as a release must have a matching GitHub Release whose tag is valid Semantic Versioning (an optional leading `v` is accepted). This is the public release metadata consumed by the optional administrator update check; drafts are ignored, stable-only installations ignore prereleases, and release prose is never interpreted as application metadata.
 
 CI remains executable truth for automated verification. A tag should identify the exact commit that passed the required checks; never move or reuse a published tag.
 

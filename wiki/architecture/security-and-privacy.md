@@ -3,7 +3,7 @@ title: Security and Privacy
 type: security
 status: current
 updated: 2026-09-18
-source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite, owasp-password-storage, node-crypto, fastify-multipart]
+source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite, owasp-password-storage, node-crypto, fastify-multipart, github-rest-releases]
 tags: [security, privacy, authentication, integrity, encryption]
 ---
 
@@ -34,6 +34,10 @@ Pennyworth stores sensitive financial data. Its current deployment model assumes
 - Current production profiles deliberately permit HTTP cookies for an isolated private LAN. Network traffic, including credentials and financial data, is not encrypted after it leaves any VPN tunnel.
 - Certificate-free private HTTP is an accepted low residual risk only while the application is unreachable from the public internet and unintended network segments. `HttpOnly`, `SameSite=Strict`, signing, and CSRF protection remain mandatory but do not replace transport encryption.
 - A centralized error handler logs full unhandled exceptions only on the server and renders a generic HTML error page with a request ID. Database codes, query details, stack traces, and exception messages are not included in browser responses.
+
+## Optional update checks
+
+Update checks default to disabled. When an operator enables them, only the Pennyworth server contacts the fixed public GitHub Releases endpoint for `P47ch/pennyworth`; browsers never contact GitHub. The request sends no user, account, financial, database, or installation identifier—only normal HTTP metadata and `Pennyworth/<installed-version>` as its user agent, visible to GitHub along with the server's public IP address. The client uses HTTPS, a five-second timeout, a bounded response, validated release URLs, ETags, and rate-limit-aware scheduling. It never renders remote release text or makes update failure affect health, readiness, login, or financial functions.
 
 ## Ownership and database integrity
 
@@ -95,3 +99,4 @@ Pennyworth is not a hardened public SaaS. Administrator-provisioned, isolated fa
 - [`owasp-password-storage`](../sources.md#sourceowasp-password-storage)
 - [`node-crypto`](../sources.md#sourcenode-crypto)
 - [`fastify-multipart`](../sources.md#sourcefastify-multipart)
+- [`github-rest-releases`](../sources.md#sourcegithub-rest-releases)

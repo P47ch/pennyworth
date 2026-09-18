@@ -555,6 +555,61 @@ a {
   line-height: 1.2;
 }
 
+.update-indicator {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  text-decoration: none;
+}
+
+.app-version.update-indicator {
+  padding-bottom: 0.1rem;
+}
+
+.update-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.account-menu-links .update-indicator {
+  color: var(--accent-strong);
+}
+
+.definition-list {
+  display: grid;
+  gap: 0;
+  margin: 0 0 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.definition-list > div {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.8fr) minmax(0, 1.2fr);
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 0;
+}
+
+.definition-list dt {
+  color: var(--muted);
+}
+
+.definition-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .definition-list > div {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}
+
 :root[data-sidebar-collapsed="true"] .app-shell {
   grid-template-columns: 4.45rem minmax(0, 1fr);
 }
@@ -2200,6 +2255,10 @@ a.spending-row:focus-visible {
   .site-header {
     gap: 0.75rem;
     padding: 0.7rem 1rem;
+  }
+
+  .settings-tabs {
+    flex-wrap: wrap;
   }
 
   .brand {

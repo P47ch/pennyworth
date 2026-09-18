@@ -27,6 +27,9 @@ services:
       APP_PORT: 3000
       APP_HOST: 0.0.0.0
       APP_TIME_ZONE: ${APP_TIME_ZONE:-UTC}
+      UPDATE_CHECK_ENABLED: ${UPDATE_CHECK_ENABLED:-false}
+      UPDATE_CHANNEL: ${UPDATE_CHANNEL:-prerelease}
+      UPDATE_CHECK_INTERVAL_HOURS: ${UPDATE_CHECK_INTERVAL_HOURS:-24}
     ports:
       - "3000:3000"
     volumes:

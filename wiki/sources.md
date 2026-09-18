@@ -151,6 +151,13 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Authority: bounded multipart parsing behavior and dependency licensing
 - Covers: single-file upload limits, in-memory parsing, and the MIT-licensed Fastify multipart plugin
 
+## source:github-rest-releases
+
+- Location: [GitHub REST API — Releases](https://docs.github.com/en/rest/releases/releases)
+- Kind: external primary documentation
+- Authority: public Releases endpoint, conditional request, and rate-limit response behavior
+- Covers: optional Pennyworth update-check request and release metadata boundary
+
 ## Sources
 
 - [`llm-wiki-pattern`](#sourcellm-wiki-pattern)

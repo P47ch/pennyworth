@@ -39,6 +39,7 @@ import { resolveAvatar } from "./lib/avatar.js";
 import { clearSessionCookie, getSessionData, refreshSessionCookie } from "./lib/session.js";
 import { applicationVersion } from "./lib/version.js";
 import { maximumEncryptedBackupEnvelopeBytes } from "./services/encryptedBackup.js";
+import { createUpdateCheckService } from "./services/updateCheck.js";
 
 const projectRoot = process.cwd();
 const config = loadConfig();
@@ -56,8 +57,22 @@ export async function buildApp() {
       level: config.isProduction ? "info" : "warn"
     }
   });
+  const updateCheckService = createUpdateCheckService({
+    enabled: config.updateCheckEnabled,
+    channel: config.updateChannel,
+    installedVersion: applicationVersion,
+    intervalHours: config.updateCheckIntervalHours,
+    logger: app.log
+  });
 
   app.decorateRequest("currentUser", null);
+  app.decorate("config", { updateChannel: config.updateChannel, installedVersion: applicationVersion });
+  app.addHook("onReady", () => {
+    updateCheckService.start();
+  });
+  app.addHook("onClose", () => {
+    updateCheckService.stop();
+  });
 
   await app.register(cookie, {
     secret: config.sessionSecret
@@ -227,6 +242,9 @@ export async function buildApp() {
     }
 
     const userPreferences = normalizeUserPreferences(user);
+    const updateState = updateCheckService.getState();
+    const updateAvailable =
+      updateState.status === "available" || updateState.status === "stale" ? updateState.release : undefined;
     reply.locals = {
       ...reply.locals,
       currentUser: {
@@ -237,13 +255,15 @@ export async function buildApp() {
         mustChangePassword: user.mustChangePassword,
         avatar: resolveAvatar(user)
       },
+      updateAvailable:
+        user.role === "admin" ? updateAvailable : undefined,
       t: createTranslator(userPreferences.language),
       userPreferences
     };
   });
 
   await app.register(authRoutes);
-  await app.register(settingsRoutes);
+  await app.register(settingsRoutes, { updateCheckService, timeZone: config.timeZone });
   await app.register(managedUserRoutes);
   await app.register(dashboardRoutes);
   await app.register(statisticsRoutes);

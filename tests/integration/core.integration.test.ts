@@ -1417,6 +1417,14 @@ describe("Administrator-managed users", () => {
 
     expect(forbiddenUsersPage.statusCode).toBe(403);
 
+    const forbiddenApplicationPage = await app.inject({
+      method: "GET",
+      url: "/settings/application",
+      headers: { cookie: `${memberCsrfCookie}; ${memberSessionCookie}` }
+    });
+    expect(forbiddenApplicationPage.statusCode).toBe(403);
+    expect(forbiddenApplicationPage.body).not.toContain("Update available");
+
     const adminLoginPage = await app.inject({ method: "GET", url: "/login" });
     const adminCsrfCookie = responseCookie(adminLoginPage, "pennyworth_csrf");
     const adminCsrfToken = adminLoginPage.body.match(/name="csrfToken" value="([^"]+)"/)?.[1] ?? "";
@@ -1432,6 +1440,9 @@ describe("Administrator-managed users", () => {
     });
     const adminSessionCookie = responseCookie(adminLogin, sessionCookieName);
     const adminCookies = `${adminCsrfCookie}; ${adminSessionCookie}`;
+    const applicationPage = await app.inject({ method: "GET", url: "/settings/application", headers: { cookie: adminCookies } });
+    expect(applicationPage.statusCode).toBe(200);
+    expect(applicationPage.body).toContain("Application updates");
     const newEmail = `${integrationId("managed-member")}@pennyworth.local`;
     createdManagedUserEmails.push(newEmail);
     const createResponse = await app.inject({

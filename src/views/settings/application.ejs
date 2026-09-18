@@ -1,0 +1,50 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow"><%= t("Settings") %></p>
+    <h1><%= t("Application") %></h1>
+  </div>
+</section>
+
+<%- include("../partials/settings-tabs.ejs") %>
+
+<section class="panel application-update-status">
+  <div class="panel-heading">
+    <div>
+      <h2><%= t("Application updates") %></h2>
+      <p class="muted"><%= t("Update checks are optional and only request public GitHub release metadata from this server.") %></p>
+    </div>
+  </div>
+
+  <dl class="definition-list">
+    <div><dt><%= t("Installed version") %></dt><dd>v<%= installedVersion %></dd></div>
+    <div><dt><%= t("Update channel") %></dt><dd><%= t(updateChannel) %></dd></div>
+    <% if (release) { %>
+      <div><dt><%= t("Latest eligible release") %></dt><dd>v<%= release.version %></dd></div>
+      <% if (release.publishedAt) { %><div><dt><%= t("Published") %></dt><dd><%= release.publishedAt %></dd></div><% } %>
+    <% } %>
+    <% if (checkedAt) { %><div><dt><%= t("Last successful check") %></dt><dd><%= checkedAt %></dd></div><% } %>
+  </dl>
+
+  <% if (updateState === "disabled") { %>
+    <p class="muted"><%= t("Update checks are disabled. Set UPDATE_CHECK_ENABLED=true to enable this optional server-to-server check.") %></p>
+  <% } else if (updateState === "pending") { %>
+    <p class="muted"><%= t("The first update check is pending.") %></p>
+  <% } else if (updateState === "unavailable") { %>
+    <p class="muted"><%= t("Update information is temporarily unavailable. Pennyworth will try again later.") %></p>
+  <% } else if (updateState === "stale") { %>
+    <p class="muted"><%= t("Showing the last successful result; the most recent check was unavailable.") %></p>
+    <% if (lastAttemptAt) { %><p class="muted"><%= t("Last attempted") %>: <%= lastAttemptAt %></p><% } %>
+  <% } else if (updateState === "available" && release) { %>
+    <p><strong><%= t("Update available") %>:</strong> v<%= release.version %></p>
+  <% } else { %>
+    <p class="muted"><%= t("This installation is up to date for its configured channel.") %></p>
+  <% } %>
+  <% if (release) { %>
+    <p><a href="<%= release.url %>" target="_blank" rel="noopener noreferrer"><%= t("Read release notes on GitHub") %> <span class="visually-hidden"><%= t("opens in a new tab") %></span></a></p>
+  <% } %>
+</section>
+
+<section class="panel">
+  <h2><%= t("Before updating") %></h2>
+  <p class="muted"><%= t("Create a backup and read the release notes and upgrade instructions before updating Pennyworth. Updates, migrations, restarts, and container actions always remain under the operator's control.") %></p>
+</section>

@@ -2,7 +2,7 @@
 title: Interface, Localization, and Accessibility
 type: feature
 status: current
-updated: 2026-09-04
+updated: 2026-09-18
 source_ids: [project-contract, application-source, interface-source, finance-source, query-source, package-manifest, test-suite]
 tags: [interface, accessibility, localization, themes]
 ---
@@ -28,6 +28,8 @@ Forms use accessible labels and native controls. Dense tables gain mobile altern
 The login form includes collapsed forgotten-password guidance. Members are directed to another application administrator for a temporary password; the only administrator is directed to the self-hosted console recovery command. The form does not collect an address or imply that Pennyworth can deliver recovery mail.
 
 Administrators see a Users settings tab. It creates isolated member accounts, shows each generated temporary password only in the immediate response, and offers password reset and access activation controls. A member using a temporary password is restricted to Security until the password is replaced.
+
+Administrators also see a quiet Application settings tab. When the optional server-side update check finds a newer eligible GitHub Release, the installed-version footer becomes a normal link with visible “Update available” text and a small dot; the same link appears in the mobile account menu. Members receive neither the indicator nor update details. The interface does not use a popup, live region, automatic navigation, or client-side GitHub request.
 
 ## Dashboard hierarchy
 

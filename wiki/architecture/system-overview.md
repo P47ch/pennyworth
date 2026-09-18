@@ -2,7 +2,7 @@
 title: System Overview
 type: architecture
 status: current
-updated: 2026-09-03
+updated: 2026-09-18
 source_ids: [project-contract, package-manifest, application-source, query-source, interface-source]
 tags: [architecture, fastify, server-rendering]
 ---
@@ -23,6 +23,8 @@ Browser
 ```
 
 `src/server.ts` loads validated configuration, registers cookies, form parsing, rate limiting, static assets, and EJS, installs security/session hooks, registers routes, and starts the server. The session hook validates the account once and stores the current user on the request for tenant-scoped route services, avoiding a second identity query. `/healthz` reports process health; `/readyz` checks database readiness.
+
+When explicitly enabled, `src/services/updateCheck.ts` runs one process-local, non-blocking GitHub Release metadata check after Fastify is ready. It uses a bounded response, timeout, ETag cache, and an unref'ed timer; it never participates in readiness, authentication, request rendering, or financial operations. Each replica has its own memory cache and timer, so deployments with multiple replicas make one request per configured interval per replica.
 
 ## Module boundaries
 

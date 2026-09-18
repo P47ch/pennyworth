@@ -27,9 +27,14 @@ APP_TIME_ZONE="Europe/Rome"
 INITIAL_ADMIN_EMAIL="admin@example.com"
 INITIAL_ADMIN_PASSWORD="replace-with-a-password-of-at-least-12-characters"
 PRIMARY_CURRENCY="EUR"
+UPDATE_CHECK_ENABLED="false"
+UPDATE_CHANNEL="prerelease"
+UPDATE_CHECK_INTERVAL_HOURS="24"
 ```
 
 `DATABASE_URL` uses `localhost` when Node runs on the host, `postgres` when the app and database share a Compose project, and an SSH-tunnel endpoint when PostgreSQL runs on another machine.
+
+Update checks are opt-in. Set `UPDATE_CHECK_ENABLED=true` only when the development server may make an ordinary HTTPS request for public Pennyworth GitHub Release metadata. `UPDATE_CHANNEL` is `prerelease` by default (includes alpha/beta/RC and stable releases) or `stable` (full releases only); `UPDATE_CHECK_INTERVAL_HOURS` accepts integers from 1 through 168.
 
 ## Host Node with container PostgreSQL
 
