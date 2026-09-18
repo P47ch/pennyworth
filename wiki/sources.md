@@ -130,6 +130,27 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Authority: current Podman provider, virtual-machine, rootless, and restart behavior
 - Covers: Compose delegation, Windows/macOS machines, and reboot management
 
+## source:owasp-password-storage
+
+- Location: [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+- Kind: external security guidance
+- Authority: KDF selection and work-factor guidance
+- Covers: the scrypt fallback configuration used for encrypted backup passphrases
+
+## source:node-crypto
+
+- Location: [Node.js Crypto documentation](https://nodejs.org/api/crypto.html)
+- Kind: external primary documentation
+- Authority: Node cryptographic API behavior
+- Covers: `scrypt`, `randomBytes`, AES-GCM authentication tags, and authenticated additional data
+
+## source:fastify-multipart
+
+- Location: [@fastify/multipart](https://github.com/fastify/fastify-multipart)
+- Kind: external primary documentation and dependency
+- Authority: bounded multipart parsing behavior and dependency licensing
+- Covers: single-file upload limits, in-memory parsing, and the MIT-licensed Fastify multipart plugin
+
 ## Sources
 
 - [`llm-wiki-pattern`](#sourcellm-wiki-pattern)

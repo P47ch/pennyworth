@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cookie from "@fastify/cookie";
 import formbody from "@fastify/formbody";
+import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
 import staticFiles from "@fastify/static";
 import view from "@fastify/view";
@@ -37,6 +38,7 @@ import { defaultUserPreferences, languages, menuGroups, normalizeUserPreferences
 import { resolveAvatar } from "./lib/avatar.js";
 import { clearSessionCookie, getSessionData, refreshSessionCookie } from "./lib/session.js";
 import { applicationVersion } from "./lib/version.js";
+import { maximumEncryptedBackupEnvelopeBytes } from "./services/encryptedBackup.js";
 
 const projectRoot = process.cwd();
 const config = loadConfig();
@@ -49,7 +51,7 @@ const localizedEjs = {
 
 export async function buildApp() {
   const app = Fastify({
-    bodyLimit: 10 * 1024 * 1024,
+    bodyLimit: 15 * 1024 * 1024,
     logger: {
       level: config.isProduction ? "info" : "warn"
     }
@@ -64,6 +66,18 @@ export async function buildApp() {
     global: false
   });
   await app.register(formbody);
+  await app.register(multipart, {
+    attachFieldsToBody: "keyValues",
+    limits: {
+      files: 1,
+      fields: 4,
+      parts: 5,
+      fileSize: maximumEncryptedBackupEnvelopeBytes,
+      fieldSize: 10 * 1024 * 1024,
+      fieldNameSize: 100,
+      headerPairs: 100
+    }
+  });
   await app.register(staticFiles, {
     root: path.join(projectRoot, "src", "public"),
     prefix: "/public/"

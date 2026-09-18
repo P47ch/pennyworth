@@ -2,7 +2,7 @@
 title: Product Status and Roadmap
 type: status
 status: current
-updated: 2026-09-05
+updated: 2026-09-18
 source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy]
 tags: [status, roadmap, verification]
 ---
@@ -29,6 +29,7 @@ Pennyworth `0.8.0-alpha.1` is an actively developed public preview, not a stable
 - Manual recurring generation for monthly income, expenses, and transfers.
 - Asset catalog, manual prices, investment activity, cash impact, derived positions, average cost, valuation, and allocation reporting.
 - JSON backup and transactional restore across supported user-owned records; investment projections are rebuilt rather than backed up.
+- Password-protected `.pwb` backup export and file-based restore using bounded scrypt and AES-256-GCM envelopes, metadata authentication, generic decrypt failures, and preview-bound confirmation; ordinary JSON remains supported.
 - Repeatable-read JSON export snapshots, primary-currency enforcement, and central signed-32-bit money bounds.
 - English/Italian localization, light/dark themes, configurable sidebar, responsive layouts, and server-rendered icons.
 - CSRF, CSP and browser headers, signed `HttpOnly` and `SameSite=Strict` cookies for the documented LAN-only HTTP topology, service ownership validation, and PostgreSQL constraints.

@@ -2,9 +2,9 @@
 title: Security and Privacy
 type: security
 status: current
-updated: 2026-09-16
-source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite]
-tags: [security, privacy, authentication, integrity]
+updated: 2026-09-18
+source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite, owasp-password-storage, node-crypto, fastify-multipart]
+tags: [security, privacy, authentication, integrity, encryption]
 ---
 
 # Security and Privacy
@@ -53,7 +53,11 @@ PostgreSQL must remain on loopback, a private container network, an encrypted tu
 
 ## Backup boundary
 
-JSON backup export is user-scoped application data. Restore requires preview and explicit confirmation, validates references and cycles before replacement, and runs transactionally. SQL dumps are the full-server recovery mechanism. Both contain sensitive financial data and require private storage and tested recovery. See [`../operations/backup-and-restore.md`](../operations/backup-and-restore.md).
+JSON backup export is user-scoped application data. Restore requires preview and explicit confirmation, validates references and cycles before replacement, and runs transactionally. SQL dumps are the full-server recovery mechanism. Both contain sensitive financial data and require private storage and tested recovery.
+
+Encrypted `.pwb` export uses a separate versioned envelope: a unique random salt and nonce, fixed OWASP scrypt fallback parameters (`N=2^17`, `r=8`, `p=1`), and AES-256-GCM with a 128-bit authentication tag. New exports require at least 12 passphrase characters, while decryption continues to allow non-empty historical passphrases. Canonical authenticated additional data binds the envelope identifier, version, algorithms, KDF parameters, salt, and nonce. Before deriving a key, parsing enforces exact structure, fixed allow-listed parameters, Base64/component lengths, and envelope-size limits. The backup passphrase is not persisted, logged, placed in a URL, or reused automatically from the account password; temporary key and passphrase buffers are cleared after key derivation where Node permits. Generic handling keeps malformed files, altered ciphertext/metadata, and wrong passphrases in the same user-visible failure category. A process-local gate permits one active KDF and two queued operations across all encrypted backup paths.
+
+Encrypted restore parses from validated bytes rather than a filename or MIME type. Its preview-confirmation token is a 15-minute HMAC bound to the authenticated user and exact submitted payload, which is Base64url-encoded in the confirmation form to preserve its original UTF-8 bytes and prevent a client from swapping content after preview. Restore decrypts and validates again before its existing database transaction. The bounded single-file multipart parser uses in-memory request data only. Encryption protects stored backup confidentiality and integrity, not a compromised session, a disclosed passphrase, or an untrusted HTTP connection; private HTTP deployments therefore display an explicit warning. See [`../operations/backup-and-restore.md`](../operations/backup-and-restore.md).
 
 ## Operational requirements
 
@@ -88,3 +92,6 @@ Pennyworth is not a hardened public SaaS. Administrator-provisioned, isolated fa
 - [`container-definitions`](../sources.md#sourcecontainer-definitions)
 - [`environment-template`](../sources.md#sourceenvironment-template)
 - [`test-suite`](../sources.md#sourcetest-suite)
+- [`owasp-password-storage`](../sources.md#sourceowasp-password-storage)
+- [`node-crypto`](../sources.md#sourcenode-crypto)
+- [`fastify-multipart`](../sources.md#sourcefastify-multipart)

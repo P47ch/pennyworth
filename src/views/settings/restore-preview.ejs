@@ -65,7 +65,15 @@
   <p class="error">Restore deletes your current accounts, categories, tags, transactions, budgets, rules, recurring templates, assets, asset prices, holdings, and investment transactions before importing this backup.</p>
   <form method="post" action="/settings/restore/confirm" class="form-grid">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
-    <textarea name="backupJson" class="visually-hidden" aria-hidden="true" tabindex="-1"><%= backupJson %></textarea>
+    <input type="hidden" name="backupPayloadBase64" value="<%= backupPayloadBase64 %>">
+    <input type="hidden" name="restorePreviewBase64" value="<%= restorePreviewBase64 %>">
+    <input type="hidden" name="restoreToken" value="<%= restoreToken %>">
+    <% if (isEncryptedBackup) { %>
+      <label>
+        <%= t("Re-enter the backup passphrase") %>
+        <input type="password" name="backupPassphrase" autocomplete="current-password" required>
+      </label>
+    <% } %>
     <label>
       Type RESTORE
       <input name="confirmation" autocomplete="off" required>

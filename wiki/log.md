@@ -170,3 +170,11 @@ Updated Fastify and Vitest to their patched compatible releases, refreshed the l
 ## [2026-09-17] source-sync | Define the Git branch workflow
 
 Established `main` as the stable release branch and `develop` as the integration branch, with short-lived `feature/*`, `fix/*`, and `chore/*` branches targeting `develop` and release or hotfix branches merged back into both long-lived branches.
+
+## [2026-09-18] source-sync | Add password-protected user backups
+
+Added version-1 `.pwb` envelopes around the unchanged user-scoped JSON backup contract, using fixed OWASP scrypt fallback parameters, AES-256-GCM authenticated metadata, bounded in-memory upload parsing, generic decryption failures, and a short-lived preview-bound confirmation token. Documented the private-HTTP passphrase limitation, recovery boundaries, test vector, and MIT-compatible multipart dependency; JSON schema version 9 and its starter file remain unchanged.
+
+## [2026-09-18] source-sync | Harden encrypted backup confirmation and passphrases
+
+Preserved original uploaded UTF-8 bytes across preview confirmation with bounded Base64url transport, enforced a 12-character minimum only for new encrypted exports, and added a shared bounded KDF gate. Kept malformed encrypted candidates in the generic decrypt-failure category and routed unexpected export failures through the generic server error handler rather than exposing backend messages.

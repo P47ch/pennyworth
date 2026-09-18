@@ -2,9 +2,9 @@
 title: JSON Backup Format
 type: runbook
 status: current
-updated: 2026-09-15
-source_ids: [application-source, database-schema, migrations, test-suite, project-contract]
-tags: [backup, restore, json, schema, migration, excel]
+updated: 2026-09-18
+source_ids: [application-source, database-schema, migrations, test-suite, project-contract, owasp-password-storage, node-crypto]
+tags: [backup, restore, json, schema, migration, excel, encryption]
 ---
 
 # JSON Backup Format
@@ -16,6 +16,41 @@ Pennyworth publishes its current user-backup format so data from spreadsheets or
 - Both files are also downloadable from **Settings → Security** in a running Pennyworth installation.
 
 The application restore preview remains authoritative. JSON Schema checks field shapes and enum values, while Pennyworth additionally checks references, duplicate IDs, category cycles, configured currency, money bounds, and database constraints.
+
+## Encrypted envelope wrapper
+
+An encrypted `.pwb` backup wraps, but does not alter, a complete JSON document in this contract. Its independent format identifier is `pennyworth-encrypted-backup` and its independent format version is `1`; it is not a JSON schema version. The published version-9 JSON Schema and starter file therefore remain unchanged.
+
+Envelope version 1 is UTF-8 JSON with exactly these properties, serialized with ordinary padded Base64 (not Base64url):
+
+```json
+{
+  "format": "pennyworth-encrypted-backup",
+  "version": 1,
+  "kdf": { "algorithm": "scrypt", "N": 131072, "r": 8, "p": 1, "keyLength": 32 },
+  "cipher": { "algorithm": "aes-256-gcm" },
+  "salt": "16-byte padded-Base64 value",
+  "nonce": "12-byte padded-Base64 value",
+  "tag": "16-byte padded-Base64 value",
+  "ciphertext": "padded-Base64 value"
+}
+```
+
+Each export creates a fresh 16-byte random salt and 12-byte random nonce. scrypt derives a 32-byte key using fixed allow-listed `N=2^17`, `r=8`, `p=1` parameters (approximately 128 MiB memory cost); the server reserves 256 MiB for the operation. AES-256-GCM encrypts the exact UTF-8 JSON bytes and produces a 16-byte tag. The authenticated additional data is the UTF-8 encoding of this exact compact JSON, with properties in the shown order and no `tag` or `ciphertext`:
+
+```json
+{"format":"pennyworth-encrypted-backup","version":1,"kdf":{"algorithm":"scrypt","N":131072,"r":8,"p":1,"keyLength":32},"cipher":{"algorithm":"aes-256-gcm"},"salt":"…","nonce":"…"}
+```
+
+The parser rejects unknown or missing properties, malformed Base64, anything other than the fixed KDF/cipher parameters, incorrect component lengths, empty ciphertext, envelopes over 14 MiB, and decrypted JSON over 10 MiB before the JSON backup preview runs. It does not accept caller-selected KDF settings. Authentication failure, malformed metadata, and wrong passphrases intentionally share one user-facing error category.
+
+### Known test vector
+
+Passphrase `vector passphrase` decrypts this version-1 envelope to UTF-8 plaintext `test vector plaintext`:
+
+```json
+{"format":"pennyworth-encrypted-backup","version":1,"kdf":{"algorithm":"scrypt","N":131072,"r":8,"p":1,"keyLength":32},"cipher":{"algorithm":"aes-256-gcm"},"salt":"TIPtsxSDKlD43YKr18jixg==","nonce":"YJBEAfDL6C3MbQPH","tag":"6czHAmpCJTEKE2nxPTSnAQ==","ciphertext":"OclItQk8Tj6RjnQQ6a3wdKoI7R34"}
+```
 
 ## Before importing
 
@@ -136,3 +171,5 @@ The repository treats this format as a fundamental public contract. Any implemen
 - [`migrations`](../sources.md#sourcemigrations)
 - [`test-suite`](../sources.md#sourcetest-suite)
 - [`project-contract`](../sources.md#sourceproject-contract)
+- [`owasp-password-storage`](../sources.md#sourceowasp-password-storage)
+- [`node-crypto`](../sources.md#sourcenode-crypto)
