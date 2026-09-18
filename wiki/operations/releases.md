@@ -2,7 +2,7 @@
 title: Release Management
 type: runbook
 status: current
-updated: 2026-09-17
+updated: 2026-09-18
 source_ids: [release-policy, package-manifest, test-suite, ci-workflow, container-definitions, application-source]
 tags: [release, versioning, semver, verification]
 ---
@@ -26,7 +26,7 @@ Versions are release identifiers, not completion percentages. Ordinary developme
 
 ## Branch workflow
 
-Pennyworth uses `main` for stable release history and `develop` as the integration branch. Changes normally reach `develop` through short-lived branches and pull requests:
+Pennyworth uses `main` for stable release history and `develop` as the integration branch. Changes normally reach `develop` through short-lived branches and pull requests. Branch names must follow Git Flow naming, use lowercase kebab-case after the prefix, and must not use agent or tool-specific prefixes:
 
 - `feature/*` for new product behavior.
 - `fix/*` for compatible defect corrections found during normal development.

@@ -178,3 +178,7 @@ Added version-1 `.pwb` envelopes around the unchanged user-scoped JSON backup co
 ## [2026-09-18] source-sync | Harden encrypted backup confirmation and passphrases
 
 Preserved original uploaded UTF-8 bytes across preview confirmation with bounded Base64url transport, enforced a 12-character minimum only for new encrypted exports, and added a shared bounded KDF gate. Kept malformed encrypted candidates in the generic decrypt-failure category and routed unexpected export failures through the generic server error handler rather than exposing backend messages.
+
+## [2026-09-18] source-sync | Make Git Flow branch names explicit
+
+Clarified that all development branches use Git Flow prefixes with lowercase kebab-case suffixes and no agent or tool-specific namespace.
