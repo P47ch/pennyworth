@@ -31,7 +31,7 @@ Pennyworth `0.8.0-alpha.1` is an actively developed public preview, not a stable
 - JSON backup and transactional restore across supported user-owned records; investment projections are rebuilt rather than backed up.
 - Password-protected `.pwb` backup export and file-based restore using bounded scrypt and AES-256-GCM envelopes, metadata authentication, generic decrypt failures, and preview-bound confirmation; ordinary JSON remains supported.
 - Repeatable-read JSON export snapshots, primary-currency enforcement, and central signed-32-bit money bounds.
-- English/Italian localization, light/dark themes, configurable sidebar, responsive layouts, and server-rendered icons.
+- English/Italian localization, light/dark themes, configurable sidebar, responsive layouts, server-rendered icons, and an administrator-only optional update indicator backed by a bounded GitHub Release metadata check.
 - CSRF, CSP and browser headers, signed `HttpOnly` and `SameSite=Strict` cookies for the documented LAN-only HTTP topology, service ownership validation, and PostgreSQL constraints.
 - Generic server-rendered error and not-found pages that keep internal exception details in server logs and expose only a request ID for correlation.
 - Docker and Podman-compatible Compose definitions for development and private-LAN HTTP production with either managed or externally managed PostgreSQL.

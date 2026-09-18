@@ -27,6 +27,9 @@ PRIMARY_CURRENCY=EUR
 APP_TIME_ZONE=Europe/Rome
 APP_BIND_ADDRESS=192.168.1.10
 TRANSPORT_SECURITY=trusted-private-http
+UPDATE_CHECK_ENABLED=false
+UPDATE_CHANNEL=prerelease
+UPDATE_CHECK_INTERVAL_HOURS=24
 ```
 
 Replace the example bind address with the Pennyworth host's intended private or VPN-interface address. Prefer a VPN address when the VPN terminates on the application host. If the VPN terminates on a router, access is encrypted only as far as that router and the remaining LAN hop is plaintext.
@@ -38,6 +41,10 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
 
 Production startup validates the database URL, port, currency, timezone, session secret, and explicit transport-security decision. It applies migrations, initializes the administrator idempotently, then starts the compiled app.
+
+### Optional release checks
+
+`UPDATE_CHECK_ENABLED` remains `false` unless the operator enables it. With `true`, the application makes a server-to-server HTTPS request to GitHub for public release metadata; GitHub can observe the server's public IP address and ordinary request headers, but Pennyworth sends no user, financial, database, or installation-specific data. `UPDATE_CHANNEL=prerelease` includes prereleases and stable releases; set `stable` to ignore prereleases. `UPDATE_CHECK_INTERVAL_HOURS` is an integer from 1 through 168 and defaults to 24. Outbound DNS and HTTPS access to GitHub are therefore required only for enabled checks; update checking is not part of the health checks.
 
 ## Accepted private HTTP boundary
 

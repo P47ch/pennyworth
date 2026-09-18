@@ -79,6 +79,8 @@ A change can affect one, two, or all three systems. Evaluate and update each acc
 
 8. Create the corresponding GitHub Release from the tag and use the changelog entry as the basis for its notes.
 
+Every Pennyworth Git tag published as a release must have a matching GitHub Release whose tag is valid Semantic Versioning (an optional leading `v` is accepted). This is the public release metadata consumed by the optional administrator update check; drafts are ignored, stable-only installations ignore prereleases, and release prose is never interpreted as application metadata.
+
 CI remains executable truth for automated verification. A tag should identify the exact commit that passed the required checks; never move or reuse a published tag.
 
 ## Related pages

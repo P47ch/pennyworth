@@ -182,3 +182,7 @@ Preserved original uploaded UTF-8 bytes across preview confirmation with bounded
 ## [2026-09-18] source-sync | Make Git Flow branch names explicit
 
 Clarified that all development branches use Git Flow prefixes with lowercase kebab-case suffixes and no agent or tool-specific namespace.
+
+## [2026-09-18] source-sync | Add optional administrator update notification
+
+Added an opt-in, process-local GitHub Release metadata check with SemVer channel filtering, strict response validation, bounded network behavior, cache/ETag handling, and an administrator-only passive interface. No database migration or user backup contract change was required because update state remains process memory only.
