@@ -2257,6 +2257,10 @@ a.spending-row:focus-visible {
     padding: 0.7rem 1rem;
   }
 
+  .settings-tabs {
+    flex-wrap: wrap;
+  }
+
   .brand {
     min-width: 0;
   }
