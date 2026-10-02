@@ -1,7 +1,10 @@
 <section class="page-heading">
   <div>
     <p class="eyebrow">Automation</p>
-    <h1>Edit rule</h1>
+    <div class="rules-title-row">
+      <h1>Edit rule</h1>
+      <%- include("../partials/rules-help.ejs") %>
+    </div>
   </div>
   <a class="button-link" href="/rules">Back to rules</a>
 </section>
@@ -11,8 +14,8 @@
     <h2><%= rule.name %></h2>
     <span class="badge <%= rule.isActive ? "badge-active" : "badge-muted" %>"><%= rule.isActive ? "active" : "inactive" %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/rules/<%= rule.id %>" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/rules/<%= rule.id %>" class="form-grid rules-form">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
@@ -20,7 +23,8 @@
     </label>
     <label>
       Match text
-      <input name="matchText" value="<%= rule.matchText %>" required>
+      <input name="matchText" value="<%= rule.matchText %>" aria-describedby="rule-match-hint" required>
+      <small class="muted" id="rule-match-hint">Separate alternatives with commas. Any matching term applies the rule; spaces within a term form a phrase.</small>
     </label>
     <label>
       Category

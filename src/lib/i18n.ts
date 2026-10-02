@@ -124,8 +124,8 @@ const italian: Record<string, string> = {
   "Confirm new password": "Conferma nuova password",
   "Confirm backup passphrase": "Conferma passphrase del backup",
   "Confirm restore": "Conferma ripristino",
-  "Creating an import from Excel or another system? Use the documented version 9 format.":
-    "Stai creando un'importazione da Excel o da un altro sistema? Usa il formato documentato della versione 9.",
+  "Creating an import from Excel or another system? Use the documented version 10 format.":
+    "Stai creando un'importazione da Excel o da un altro sistema? Usa il formato documentato della versione 10.",
   "Cost basis": "Costo fiscale",
   "CSV file": "File CSV",
   "CSV source": "Sorgente CSV",
@@ -485,6 +485,36 @@ const italian: Record<string, string> = {
   "You cannot deactivate your own account.": "Non puoi disattivare il tuo account.",
   "Administrator accounts cannot be deactivated here.": "Gli account amministratore non possono essere disattivati qui.",
   "Use the Security page to change your own password.": "Usa la pagina Sicurezza per cambiare la tua password.",
+  "How rules work": "Come funzionano le regole",
+  "Separate alternatives with commas. Any matching term applies the rule; spaces within a term form a phrase.":
+    "Separa le alternative con virgole. Basta una corrispondenza per applicare la regola; gli spazi all'interno di un termine formano una frase.",
+  "Leave empty to apply rules automatically to a new expense.":
+    "Lascia vuoto per applicare automaticamente le regole a una nuova spesa.",
+  "Active rules automatically categorize new expenses without a category, including CSV imports and generated recurring expenses.":
+    "Le regole attive categorizzano automaticamente le nuove spese senza categoria, comprese le importazioni CSV e le spese ricorrenti generate.",
+  "Matching searches description and notes, ignoring capitalization. Commas separate alternatives; any matching word or phrase is enough.":
+    "La ricerca avviene nella descrizione e nelle note, senza distinguere maiuscole e minuscole. Le virgole separano alternative; basta una parola o frase corrispondente.",
+  "Spaces stay within a phrase. For example, amazon prime matches that phrase, while lidl, aldi matches either merchant.":
+    "Gli spazi restano all'interno di una frase. Ad esempio, amazon prime cerca quella frase, mentre lidl, aldi cerca uno dei due negozi.",
+  'For a literal comma, quote the phrase: "Smith, Inc". Double quotes inside a quoted phrase must be doubled.':
+    'Per una virgola letterale, racchiudi la frase tra virgolette: "Smith, Inc". Le virgolette all\'interno della frase devono essere raddoppiate.',
+  "Rules run from top to bottom. The first match supplies the category and adds its tags, preserving existing tags.":
+    "Le regole vengono valutate dall'alto verso il basso. La prima corrispondenza assegna la categoria e aggiunge le sue etichette, mantenendo quelle esistenti.",
+  "Choosing a category yourself skips rules. Income and transfers are not affected.":
+    "Se scegli una categoria, le regole non vengono applicate. Entrate e trasferimenti non sono interessati.",
+  "Editing transactions, changing rules, and restoring backups do not automatically recategorize saved data.":
+    "Modificare transazioni, cambiare regole e ripristinare backup non ricategorizza automaticamente i dati salvati.",
+  "Use Apply to existing to preview and confirm changes to uncategorized expenses, in batches of up to 500 candidates.":
+    "Usa Applica alle esistenti per visualizzare e confermare le modifiche alle spese senza categoria, in gruppi di massimo 500 candidate.",
+  "Enter at least one matching word or phrase.": "Inserisci almeno una parola o frase da cercare.",
+  "Quote the whole phrase and double any quotes inside it.": "Racchiudi l'intera frase tra virgolette e raddoppia quelle al suo interno.",
+  "Separate quoted phrases with commas.": "Separa le frasi tra virgolette con virgole.",
+  "Match text contains an unclosed quoted phrase.": "Il testo da cercare contiene una frase con virgolette non chiuse.",
+  "Transaction saved.": "Transazione salvata.",
+  'Transaction saved. Applied rule "{rule}": category {category}.':
+    'Transazione salvata. Applicata regola "{rule}": categoria {category}.',
+  "Added tags: {tags}.": "Etichette aggiunte: {tags}.",
+  "Transaction saved. A categorization rule was applied.": "Transazione salvata. È stata applicata una regola di categorizzazione.",
   "Application": "Applicazione",
   "Application updates": "Aggiornamenti dell'applicazione",
   "Installed version": "Versione installata",
@@ -517,12 +547,10 @@ export type Translator = (message: string, values?: Record<string, string | numb
 
 export function createTranslator(language: Language): Translator {
   return (message, values = {}) => {
-    let translation = language === "it" ? italian[message] ?? message : message;
+    const translation = language === "it" ? italian[message] ?? message : message;
 
-    for (const [key, value] of Object.entries(values)) {
-      translation = translation.replaceAll(`{${key}}`, String(value));
-    }
-
-    return translation;
+    return translation.replace(/\{([^{}]+)\}/g, (placeholder, key: string) =>
+      Object.hasOwn(values, key) ? String(values[key]) : placeholder
+    );
   };
 }

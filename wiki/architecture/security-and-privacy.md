@@ -2,7 +2,7 @@
 title: Security and Privacy
 type: security
 status: current
-updated: 2026-09-18
+updated: 2026-10-02
 source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite, owasp-password-storage, node-crypto, fastify-multipart, github-rest-releases]
 tags: [security, privacy, authentication, integrity, encryption]
 ---
@@ -34,6 +34,8 @@ Pennyworth stores sensitive financial data. Its current deployment model assumes
 - Current production profiles deliberately permit HTTP cookies for an isolated private LAN. Network traffic, including credentials and financial data, is not encrypted after it leaves any VPN tunnel.
 - Certificate-free private HTTP is an accepted low residual risk only while the application is unreachable from the public internet and unintended network segments. `HttpOnly`, `SameSite=Strict`, signing, and CSRF protection remain mandatory but do not replace transport encryption.
 - A centralized error handler logs full unhandled exceptions only on the server and renders a generic HTML error page with a request ID. Database codes, query details, stack traces, and exception messages are not included in browser responses.
+
+Transaction creation feedback uses a separate signed, `HttpOnly`, `SameSite=Strict` cookie scoped to `/transactions`, with `Secure` following the configured transport and a 60-second lifetime. The payload is bounded, tied to the authenticated user, checked for expiry, and cleared when read. Rule/category/tag labels are HTML-escaped when rendered. The notice contains no amounts, account identifiers, transaction descriptions, or secrets.
 
 ## Optional update checks
 

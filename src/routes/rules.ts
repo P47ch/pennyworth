@@ -13,12 +13,21 @@ import { listCategories, listTags } from "../services/taxonomy.js";
 import { requireCurrentUser } from "../services/users.js";
 import { field, formBody } from "./form.js";
 
+function ruleFormValues(body: ReturnType<typeof formBody>) {
+  return {
+    name: field(body, "name"),
+    matchText: field(body, "matchText"),
+    categoryId: field(body, "categoryId"),
+    tagIds: Array.isArray(body.tagIds) ? body.tagIds.filter(Boolean) : body.tagIds ? [body.tagIds].filter(Boolean) : [],
+    isActive: field(body, "isActive") === "on"
+  };
+}
+
 function validateRuleInput(body: ReturnType<typeof formBody>) {
-  const name = field(body, "name").trim();
-  const matchText = field(body, "matchText").trim();
+  const values = ruleFormValues(body);
+  const name = values.name.trim();
+  const matchText = values.matchText.trim();
   const categoryId = field(body, "categoryId");
-  const tagIds = Array.isArray(body.tagIds) ? body.tagIds.filter(Boolean) : body.tagIds ? [body.tagIds].filter(Boolean) : [];
-  const isActive = field(body, "isActive") === "on";
 
   if (!name) {
     throw new Error("Rule name is required.");
@@ -33,11 +42,10 @@ function validateRuleInput(body: ReturnType<typeof formBody>) {
   }
 
   return {
+    ...values,
     name,
     matchText,
-    categoryId,
-    tagIds,
-    isActive
+    categoryId
   };
 }
 
@@ -51,6 +59,7 @@ export async function ruleRoutes(app: FastifyInstance) {
       rules,
       categories: categories.filter((category) => category.type === "expense" || category.type === "both"),
       tags,
+      form: { ...ruleFormValues({}), isActive: true },
       error: null
     });
   });
@@ -74,6 +83,7 @@ export async function ruleRoutes(app: FastifyInstance) {
         rules,
         categories: categories.filter((category) => category.type === "expense" || category.type === "both"),
         tags,
+        form: ruleFormValues(body),
         error: error instanceof Error ? error.message : "Could not create rule."
       });
     }
@@ -117,9 +127,10 @@ export async function ruleRoutes(app: FastifyInstance) {
         return reply.redirect("/rules");
       }
 
+      const submitted = ruleFormValues(body);
       return reply.code(400).view("rules/edit.ejs", {
         title: "Edit rule",
-        rule,
+        rule: { ...rule, ...submitted, tags: submitted.tagIds.map((tagId) => ({ tagId })) },
         categories: categories.filter((category) => category.type === "expense" || category.type === "both"),
         tags,
         error: error instanceof Error ? error.message : "Could not update rule."

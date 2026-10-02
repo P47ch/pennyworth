@@ -2,8 +2,8 @@
 title: Testing and Performance
 type: verification
 status: current
-updated: 2026-09-17
-source_ids: [package-manifest, test-suite, ci-workflow, operational-scripts, database-schema]
+updated: 2026-10-02
+source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema]
 tags: [testing, integration, accessibility, performance, ci]
 ---
 
@@ -31,6 +31,8 @@ Run `npm run audit:a11y` against a prepared, running application after interface
 Vitest covers money conversion, account balance effects, transfers, monthly summaries, category aggregation, budgets, recurrence, investments, configuration, CSV behavior, backup validation, authentication helpers, preferences, icons, and SQL query result adapters.
 
 The dependency-security verification on 2026-09-17 passed 151 tests in 28 files with Vitest 4.1.11. Treat counts as dated evidence; `npm run test` is the current truth.
+
+The 2026-10-02 rule-review fixes passed 211 unit tests across 35 files, both TypeScript checks, and the production build. Regression coverage checks legacy inert-rule restore/export/reimport and verifies that CSV and existing-expense previews prepare rule text once per batch. The corresponding PostgreSQL backup regression was added, but the guarded integration runner could not start because `TEST_DATABASE_URL` was unset.
 
 ## Dependency audit
 
@@ -77,6 +79,8 @@ The GitHub Actions workflow first lints the LLM wiki, then starts disposable Pos
 CI configuration is executable truth. When package scripts change, update the workflow and this page together.
 
 ## Performance dataset
+
+An in-memory CSV-preview benchmark on 2026-10-02 used 1,000 uncategorized expense rows and 10,000 unmatched active rules. The original per-transaction parser took 7,393 ms; preparing terms once per preview reduced three subsequent runs to 380, 360, and 351 ms on the same host. This measures the actual CSV-preview function without database access, not the full PostgreSQL bulk workflow. Terms are held only for the current batch, so no cross-request rule cache is required.
 
 Performance tools operate only on the reserved `performance@pennyworth.local` user and refuse production. Generate a dataset on macOS/Linux:
 
@@ -136,6 +140,7 @@ The bulk benchmark requires the seeded `performance@pennyworth.local` user, prev
 ## Sources
 
 - [`package-manifest`](../sources.md#sourcepackage-manifest)
+- [`application-source`](../sources.md#sourceapplication-source)
 - [`test-suite`](../sources.md#sourcetest-suite)
 - [`ci-workflow`](../sources.md#sourceci-workflow)
 - [`operational-scripts`](../sources.md#sourceoperational-scripts)

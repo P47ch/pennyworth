@@ -2,7 +2,7 @@
 title: Production Deployment
 type: runbook
 status: current
-updated: 2026-09-15
+updated: 2026-10-02
 source_ids: [container-definitions, environment-template, package-manifest, operational-scripts, application-source, project-contract]
 tags: [deployment, docker, podman, http, production]
 ---
@@ -125,6 +125,8 @@ Before first startup, test the `DATABASE_URL` from a container or other client o
 - Database volumes retained across rebuilds.
 
 ## Updates
+
+The rule-automation change requires migration `20261002000000_preserve_literal_rule_matching` before the new application handles requests. It quotes existing literal commas and quotes to preserve rule behavior. New exports use [JSON schema version 10](json-backup-format.md); earlier builds cannot import them and do not understand migrated quoted matching text. Keep pre-upgrade JSON and PostgreSQL backups and use the pre-upgrade database snapshot for rollback.
 
 Create JSON and SQL backups first. The default application image is built locally, so update the managed-PostgreSQL profile without trying to pull `pennyworth-app:latest` from a registry:
 

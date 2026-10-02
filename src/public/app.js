@@ -153,6 +153,21 @@ if (importMappingForm) {
   }
 }
 
+const rulesHelp = document.querySelector("[data-rules-help]");
+if (rulesHelp) {
+  document.addEventListener("click", (event) => {
+    if (!rulesHelp.contains(event.target)) {
+      rulesHelp.open = false;
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && rulesHelp.open) {
+      rulesHelp.open = false;
+      rulesHelp.querySelector("summary").focus();
+    }
+  });
+}
+
 const transactionForm = document.querySelector("[data-transaction-form]");
 
 if (transactionForm) {

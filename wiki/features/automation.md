@@ -2,7 +2,7 @@
 title: Categories, Budgets, Rules, and Recurring Templates
 type: feature
 status: current
-updated: 2026-09-04
+updated: 2026-10-02
 source_ids: [project-contract, application-source, finance-source, database-schema, migrations, test-suite]
 tags: [categories, tags, budgets, rules, recurring]
 ---
@@ -30,13 +30,21 @@ Budget progress compares that month’s category spending with the configured am
 A rule contains:
 
 - unique user-owned name;
-- case-insensitive match text;
+- case-insensitive substring alternatives separated by commas;
 - expense-compatible category;
 - integer priority;
 - active state;
 - optional tags.
 
-Active rules are evaluated in priority order against description and notes. They apply during CSV preview only when an expense row has no category. A supplied category is never overridden. The UI can also preview rules against existing uncategorized expenses before changes are applied, keeping behavior visible and reversible.
+Active rules are evaluated from top to bottom in priority order against description and notes. Any matching alternative is enough, and the first matching rule supplies its category and tags. Spaces remain inside a phrase: `amazon prime` searches that phrase, while `lidl, aldi` searches either merchant. Matching uses substrings, not whole-word boundaries or regular expressions. Empty alternatives and case-insensitive duplicates are ignored; rule forms reject input with no non-empty terms or malformed quoting. Historical whitespace-only literals remain inert regardless of active state and are preserved by backup restore/export, including quoted whitespace introduced by migration. Quote a literal comma as `"Smith, Inc"` and double literal quotes inside a quoted phrase.
+
+Rules automatically apply when a new expense has no category, including manual entry and newly generated recurring expenses. CSV preview uses the same matcher and shows its proposed category and tags before import confirmation. Selecting or mapping a category skips the rule entirely, including its tags. Rule tags are merged with existing tags without duplicates. Income and transfers are unaffected. Saving a manual or recurring entry reports the applied rule, category, and newly added tags in a localized, one-time notice.
+
+CSV and existing-expense previews prepare each active rule's parsed, lowercase terms once per batch. Matching reuses that snapshot while retaining the original priority order and category/tag references. No rule cache is retained across requests, so later previews see rule edits.
+
+Editing a transaction, changing a rule, or restoring a JSON backup does not reapply rules. The UI previews existing uncategorized expenses before explicit application. A question-mark control on the Rules and Edit rule pages explains matching, ordering, automatic application, and these boundaries without requiring JavaScript.
+
+Migration `20261002000000_preserve_literal_rule_matching` quotes special characters in existing match text so an old comma-containing rule continues to match its complete literal phrase. Users can edit it to opt into alternatives. [JSON backup version 10](../operations/json-backup-format.md) defines the new syntax; historical backups are converted to quoted literal phrases during restore.
 
 Existing-ledger preview and application are capped at 500 candidate expenses per request. Application conditionally updates only records that are still uncategorized and uses duplicate-safe tag insertion, so a concurrent manual categorization is not overwritten. The user can apply another bounded batch when more candidates remain.
 

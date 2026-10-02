@@ -2,24 +2,24 @@
 title: JSON Backup Format
 type: runbook
 status: current
-updated: 2026-09-18
+updated: 2026-10-02
 source_ids: [application-source, database-schema, migrations, test-suite, project-contract, owasp-password-storage, node-crypto]
 tags: [backup, restore, json, schema, migration, excel, encryption]
 ---
 
 # JSON Backup Format
 
-Pennyworth publishes its current user-backup format so data from spreadsheets or other finance systems can be transformed into an importable file. Use schema version `9` for newly generated files.
+Pennyworth publishes its current user-backup format so data from spreadsheets or other finance systems can be transformed into an importable file. Use schema version `10` for newly generated files.
 
-- [`pennyworth-backup-v9.schema.json`](../../src/public/schemas/pennyworth-backup-v9.schema.json) is the machine-readable JSON Schema 2020-12 definition.
-- [`pennyworth-backup-v9-starter.json`](../../src/public/examples/pennyworth-backup-v9-starter.json) is a small importable example with one account, category, tag, and expense.
+- [`pennyworth-backup-v10.schema.json`](../../src/public/schemas/pennyworth-backup-v10.schema.json) is the machine-readable JSON Schema 2020-12 definition.
+- [`pennyworth-backup-v10-starter.json`](../../src/public/examples/pennyworth-backup-v10-starter.json) is a small importable example with one account, category, tag, expense, supermarket rule, and preserved inactive whitespace-only rule.
 - Both files are also downloadable from **Settings → Security** in a running Pennyworth installation.
 
 The application restore preview remains authoritative. JSON Schema checks field shapes and enum values, while Pennyworth additionally checks references, duplicate IDs, category cycles, configured currency, money bounds, and database constraints.
 
 ## Encrypted envelope wrapper
 
-An encrypted `.pwb` backup wraps, but does not alter, a complete JSON document in this contract. Its independent format identifier is `pennyworth-encrypted-backup` and its independent format version is `1`; it is not a JSON schema version. The published version-9 JSON Schema and starter file therefore remain unchanged.
+An encrypted `.pwb` backup wraps, but does not alter, a complete JSON document in this contract. Its independent format identifier is `pennyworth-encrypted-backup` and its independent format version is `1`; it is not a JSON schema version. The wrapper remains version 1 when its contained JSON uses schema version 10.
 
 Envelope version 1 is UTF-8 JSON with exactly these properties, serialized with ordinary padded Base64 (not Base64url):
 
@@ -75,9 +75,9 @@ For Excel, semicolon-separated tag cells must be converted to JSON arrays of tag
 
 ```json
 {
-  "$schema": "/public/schemas/pennyworth-backup-v9.schema.json",
+  "$schema": "/public/schemas/pennyworth-backup-v10.schema.json",
   "app": "Pennyworth",
-  "schemaVersion": 9,
+  "schemaVersion": 10,
   "exportedAt": "2026-09-04T12:00:00.000Z",
   "user": { "email": "import@example.com" },
   "accounts": [],
@@ -94,7 +94,7 @@ For Excel, semicolon-separated tag cells must be converted to JSON arrays of tag
 }
 ```
 
-`app`, `schemaVersion`, `exportedAt`, `user`, `accounts`, `categories`, `tags`, and `transactions` are required. The remaining arrays may be omitted and then restore as empty arrays, although normal version 9 exports always include them.
+`app`, `schemaVersion`, `exportedAt`, `user`, `accounts`, `categories`, `tags`, and `transactions` are required. The remaining arrays may be omitted and then restore as empty arrays, although normal version 10 exports always include them.
 
 Every record inside an array requires:
 
@@ -151,9 +151,25 @@ Currencies use uppercase three-letter codes and must match the server's configur
 
 These cross-record rules cannot all be represented by JSON Schema. The restore preview checks them before replacement, including category compatibility, account investment compatibility, transfer semantics, and dependent feature relationships. The transactional restore repeats the complete validation immediately before replacement and rolls back if a database constraint rejects the data.
 
+## Rule matching syntax
+
+In version 10, `rules[].matchText` is a comma-separated list of case-insensitive substring alternatives. For example, `lidl, aldi, carrefour` matches any of those terms anywhere in description or notes. Spaces stay inside a phrase: `amazon prime` remains one alternative. Empty alternatives and case-insensitive duplicates are ignored, but at least one non-empty term is required.
+
+For compatibility with historical imports, backup validation also accepts a non-empty string consisting only of whitespace, or a single quoted whitespace-only literal (including `""`). These rules never match a transaction, regardless of `isActive`, and their text and active state survive restore, export, and reimport. This also covers whitespace line breaks quoted by the data migration. Rule creation/edit forms still require a non-empty matching term. Empty strings, malformed quoting, and lists containing only empty alternatives such as `, ,` remain invalid backup input.
+
+Quote a phrase containing literal commas or double quotes using CSV-style quoting. JSON must also escape its own double quotes:
+
+```json
+{ "matchText": "\"Smith, Inc\", \"The \"\"Corner\"\" Shop\"" }
+```
+
+Malformed quoting is rejected during preview, before restore can replace any data. The schema describes this grammar; the importer validates it. Restore always writes the saved transaction categories and tags without applying current rules, even when a transaction is uncategorized and matches a restored rule.
+
 ## Version compatibility
 
-Pennyworth currently imports historical schema versions `1` through `9`, defaulting record families that did not exist in earlier versions. Version `9` publishes the stricter service-level relationship validation contract; version `8` remains available for historical exports and is not rewritten. External conversion tools should generate only the current version and should treat the filename and `schemaVersion` as versioned contracts that may gain a new file in a future release.
+Pennyworth imports schema versions `1` through `10`, defaulting record families that did not exist in earlier versions. Version `9` introduced stricter service-level relationship validation. Version `10` changes `rules[].matchText` from one literal phrase to comma-separated alternatives. Versions `1`–`9` are upgraded during restore by quoting literal commas and quotes, preserving their old matching behavior. Restoring version 10 retains the saved matching text. The [version 9 schema](../../src/public/schemas/pennyworth-backup-v9.schema.json), [version 9 starter](../../src/public/examples/pennyworth-backup-v9-starter.json), and version 8 artifacts remain published without modification.
+
+Migration `20261002000000_preserve_literal_rule_matching` performs the equivalent quoting for existing database rules. Editing an old comma-containing rule is required to opt it into alternatives. Earlier application builds cannot import version 10 backups and do not understand the migrated quoted matching syntax; retain pre-upgrade PostgreSQL and JSON backups for rollback. External conversion tools should generate only the current version and treat the filename and `schemaVersion` as versioned contracts.
 
 The repository treats this format as a fundamental public contract. Any implementation change affecting exported or restored fields, types, enums, defaults, relationships, validation, or record families must update the current schema, starter example, documentation, and synchronization tests in the same change. Incompatible changes require a new schema version and new versioned filenames; superseded published schemas remain available for historical exports.
 

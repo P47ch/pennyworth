@@ -1,5 +1,8 @@
 import type { RecurringFrequency, TransactionType } from "@prisma/client";
 import type { FastifyInstance } from "fastify";
+import { createTranslator } from "../lib/i18n.js";
+import { normalizeUserPreferences } from "../lib/preferences.js";
+import { setTransactionNotice } from "../lib/transactionNotice.js";
 import { parseMoneyToMinorUnits } from "../finance/money.js";
 import { loadConfig } from "../lib/config.js";
 import { parseDateOnly, todayDateInput } from "../lib/dates.js";
@@ -163,7 +166,8 @@ export async function recurringRoutes(app: FastifyInstance) {
     const user = await requireCurrentUser(request);
     const { recurringId } = request.params as { recurringId: string };
 
-    await generateRecurringTransaction(user.id, recurringId);
+    const transaction = await generateRecurringTransaction(user.id, recurringId);
+    setTransactionNotice(reply, user.id, transaction.appliedRule, createTranslator(normalizeUserPreferences(user).language), loadConfig().secureCookies);
     return reply.redirect("/transactions");
   });
 

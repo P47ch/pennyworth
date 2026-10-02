@@ -17,7 +17,7 @@ import {
   getMonthlyCashflowTotals,
   getMonthlyExpenseTotalsByCategory
 } from "../../src/queries/reporting.js";
-import { buildUserBackup, restoreUserBackup } from "../../src/services/backup.js";
+import { buildUserBackup, currentBackupSchemaVersion, previewBackupJson, restoreUserBackup } from "../../src/services/backup.js";
 import { getInvestmentReport } from "../../src/services/investmentSummary.js";
 import { resetUserPasswordByEmail } from "../../src/services/passwordRecovery.js";
 import { createHolding } from "../../src/services/holdings.js";
@@ -27,7 +27,10 @@ import {
   listInvestmentTransactionPage,
   updateInvestmentTransaction
 } from "../../src/services/investmentTransactions.js";
-import { createTransaction } from "../../src/services/transactions.js";
+import { createTransaction, updateTransaction } from "../../src/services/transactions.js";
+import { createRule, previewRuleApplications } from "../../src/services/rules.js";
+import { generateRecurringTransaction } from "../../src/services/recurring.js";
+import { matchRuleForText } from "../../src/lib/ruleMatching.js";
 
 const testIdPrefix = "integration-test-";
 const createdUserIds: string[] = [];
@@ -140,6 +143,77 @@ afterAll(async () => {
 });
 
 describe("database-backed finance behavior", () => {
+  it("keeps legacy inert rules importable after export and reimport", async () => {
+    const user = await createUser();
+    const category = await prisma.category.create({ data: { userId: user.id, name: "Legacy rule category", type: "expense" } });
+    await prisma.rule.createMany({ data: [
+      { userId: user.id, categoryId: category.id, name: "Active whitespace", matchText: "   ", isActive: true },
+      { userId: user.id, categoryId: category.id, name: "Inactive line breaks", matchText: " \r\n\t ", isActive: false }
+    ] });
+    const legacy = await buildUserBackup(user.id);
+    legacy.schemaVersion = 9;
+    await restoreUserBackup(user.id, JSON.stringify(legacy));
+    const exported = await buildUserBackup(user.id);
+    expect(previewBackupJson(JSON.stringify(exported)).ruleCount).toBe(2);
+    expect(matchRuleForText({ description: "Any merchant", notes: " \r\n\t " }, exported.rules)).toBeNull();
+    await restoreUserBackup(user.id, JSON.stringify(exported));
+    const reexported = await buildUserBackup(user.id);
+    expect(reexported.rules).toEqual(exported.rules);
+  });
+
+  it("shares rule matching across creation, recurring generation, preview, and versioned restore", async () => {
+    const [user, otherUser] = await Promise.all([createUser(), createUser()]);
+    const account = await createAccount(user.id, "rule-cash", 10_000);
+    const [category, manualCategory, otherCategory] = await Promise.all([
+      prisma.category.create({ data: { userId: user.id, name: "Rule food", type: "expense" } }),
+      prisma.category.create({ data: { userId: user.id, name: "Manual food", type: "expense" } }),
+      prisma.category.create({ data: { userId: otherUser.id, name: "Other food", type: "expense" } })
+    ]);
+    const tag = await prisma.tag.create({ data: { userId: user.id, name: "household" } });
+    await createRule({ userId: otherUser.id, name: "Other user", matchText: "aldi", categoryId: otherCategory.id, tagIds: [], isActive: true });
+    await createRule({ userId: user.id, name: "Inactive", matchText: "aldi", categoryId: manualCategory.id, tagIds: [], isActive: false });
+    await createRule({ userId: user.id, name: "Supermarkets", matchText: "lidl, aldi", categoryId: category.id, tagIds: [tag.id], isActive: true });
+    const entry = {
+      userId: user.id, type: "expense" as const, date: new Date("2026-10-02T00:00:00.000Z"), amountMinor: 1000,
+      sourceAccountId: account.id, description: "Card payment", notes: "ALDI weekly shopping", tagIds: [tag.id]
+    };
+    const created = await createTransaction(entry);
+    expect(created.categoryId).toBe(category.id);
+    expect(created.appliedRule).toEqual({ name: "Supermarkets", categoryName: "Rule food", addedTagNames: [] });
+    await expect(prisma.transactionTag.count({ where: { transactionId: created.id, userId: user.id } })).resolves.toBe(1);
+    const manual = await createTransaction({ ...entry, categoryId: manualCategory.id, tagIds: [] });
+    expect(manual.appliedRule).toBeNull();
+    await expect(prisma.transactionTag.count({ where: { transactionId: manual.id } })).resolves.toBe(0);
+
+    const recurring = await prisma.recurringTransaction.create({ data: {
+      userId: user.id, name: "Recurring shopping", type: "expense", amountMinor: 500,
+      sourceAccountId: account.id, description: "LIDL", nextDate: entry.date, frequency: "monthly"
+    } });
+    const generated = await generateRecurringTransaction(user.id, recurring.id);
+    expect(generated.categoryId).toBe(category.id);
+    expect(generated.appliedRule?.addedTagNames).toEqual(["household"]);
+    await expect(prisma.recurringTransaction.findUnique({ where: { id: recurring.id } })).resolves.toMatchObject({
+      nextDate: new Date("2026-11-02T00:00:00.000Z")
+    });
+
+    await updateTransaction({ ...entry, transactionId: created.id, tagIds: [] });
+    const applications = await previewRuleApplications(user.id);
+    expect(applications.map((item) => item.transaction.id)).toContain(created.id);
+    const backup = await buildUserBackup(user.id);
+    expect(backup.schemaVersion).toBe(currentBackupSchemaVersion);
+    await restoreUserBackup(user.id, JSON.stringify(backup));
+    await expect(prisma.transaction.findUnique({ where: { id: created.id } })).resolves.toMatchObject({ categoryId: null });
+    await expect(prisma.transactionTag.count({ where: { transactionId: created.id } })).resolves.toBe(0);
+
+    const legacy = JSON.parse(JSON.stringify(backup));
+    legacy.schemaVersion = 9;
+    legacy.rules[1].matchText = 'Smith, "Inc"';
+    await restoreUserBackup(user.id, JSON.stringify(legacy));
+    const restored = await prisma.rule.findUniqueOrThrow({ where: { id: legacy.rules[1].id } });
+    expect(matchRuleForText({ description: 'Smith, "Inc"' }, [restored])).not.toBeNull();
+    expect(matchRuleForText({ description: "Smith" }, [restored])).toBeNull();
+  });
+
   it("enforces investment ownership and value shapes inside PostgreSQL", async () => {
     const [user, otherUser] = await Promise.all([createUser(), createUser()]);
     const [account, cashAccount, otherAccount] = await Promise.all([

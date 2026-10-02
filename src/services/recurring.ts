@@ -214,7 +214,7 @@ export async function generateRecurringTransaction(userId: string, recurringId: 
     throw new Error("Recurring transaction is inactive.");
   }
 
-  await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     const nextDate = addOneMonth(recurring.nextDate);
     const advanceResult = await tx.recurringTransaction.updateMany({
       where: { id: recurringId, userId, nextDate: recurring.nextDate, isActive: true },
@@ -225,7 +225,7 @@ export async function generateRecurringTransaction(userId: string, recurringId: 
       throw new Error("Recurring transaction was already generated or is inactive.");
     }
 
-    await createTransaction(
+    return createTransaction(
       {
         userId,
         type: recurring.type,

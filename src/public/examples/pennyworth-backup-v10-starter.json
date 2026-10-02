@@ -1,0 +1,89 @@
+{
+  "$schema": "/public/schemas/pennyworth-backup-v10.schema.json",
+  "app": "Pennyworth",
+  "schemaVersion": 10,
+  "exportedAt": "2026-10-02T12:00:00.000Z",
+  "user": {
+    "email": "import@example.com"
+  },
+  "accounts": [
+    {
+      "id": "account-main",
+      "name": "Main bank",
+      "type": "bank",
+      "currency": "EUR",
+      "openingBalanceMinor": 100000,
+      "institution": null,
+      "isActive": true,
+      "createdAt": "2026-10-02T12:00:00.000Z",
+      "updatedAt": "2026-10-02T12:00:00.000Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "category-food",
+      "parentId": null,
+      "name": "Food",
+      "type": "expense",
+      "color": "#d97706",
+      "icon": "food",
+      "createdAt": "2026-10-02T12:00:00.000Z",
+      "updatedAt": "2026-10-02T12:00:00.000Z"
+    }
+  ],
+  "tags": [
+    {
+      "id": "tag-imported",
+      "name": "imported",
+      "color": "#2563eb",
+      "createdAt": "2026-10-02T12:00:00.000Z",
+      "updatedAt": "2026-10-02T12:00:00.000Z"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "transaction-groceries-1",
+      "type": "expense",
+      "date": "2026-09-03T00:00:00.000Z",
+      "amountMinor": 4599,
+      "sourceAccountId": "account-main",
+      "destinationAccountId": null,
+      "categoryId": "category-food",
+      "description": "Groceries",
+      "notes": "Created from another system",
+      "tagIds": ["tag-imported"],
+      "createdAt": "2026-10-02T12:00:00.000Z",
+      "updatedAt": "2026-10-02T12:00:00.000Z"
+    }
+  ],
+  "budgets": [],
+  "rules": [
+    {
+      "id": "rule-supermarkets",
+      "categoryId": "category-food",
+      "name": "Supermarkets",
+      "matchText": "lidl, aldi, carrefour",
+      "priority": 0,
+      "isActive": true,
+      "tagIds": ["tag-imported"],
+      "createdAt": "2026-10-02T12:00:00.000Z",
+      "updatedAt": "2026-10-02T12:00:00.000Z"
+    },
+    {
+      "id": "rule-legacy-inert",
+      "categoryId": "category-food",
+      "name": "Preserved legacy inert rule",
+      "matchText": "   ",
+      "priority": 10,
+      "isActive": false,
+      "tagIds": [],
+      "createdAt": "2026-10-02T12:00:00.000Z",
+      "updatedAt": "2026-10-02T12:00:00.000Z"
+    }
+  ],
+  "recurringTransactions": [],
+  "assets": [],
+  "assetPrices": [],
+  "holdings": [],
+  "investmentTransactions": []
+}

@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Index
 type: index
 status: current
-updated: 2026-09-05
+updated: 2026-10-02
 source_ids: [project-contract, application-source, llm-wiki-pattern]
 tags: [index, navigation]
 ---
@@ -33,7 +33,7 @@ Read this page first. It catalogs every maintained page and gives agents a bound
 ## Features
 
 - [`features/transactions.md`](features/transactions.md) — transaction lifecycle, filters, pagination, CSV import/export, and duplicate handling.
-- [`features/automation.md`](features/automation.md) — categories, tags, budgets, categorization rules, and recurring templates.
+- [`features/automation.md`](features/automation.md) — categories, tags, budgets, automatic categorization rules, and recurring templates.
 - [`features/investments.md`](features/investments.md) — assets, prices, activity, positions, valuation, and cash impact.
 - [`features/interface-and-accessibility.md`](features/interface-and-accessibility.md) — server-rendered UI, themes, localization, navigation, mobile behavior, and audits.
 
@@ -44,7 +44,7 @@ Read this page first. It catalogs every maintained page and gives agents a bound
 - [`operations/testing-and-performance.md`](operations/testing-and-performance.md) — unit, integration, accessibility, CI, performance data, and release verification.
 - [`operations/deployment.md`](operations/deployment.md) — LAN production requirements, Compose profiles, updates, and troubleshooting.
 - [`operations/backup-and-restore.md`](operations/backup-and-restore.md) — JSON and PostgreSQL backup/restore boundaries and procedures.
-- [`operations/json-backup-format.md`](operations/json-backup-format.md) — version 9 JSON fields, relationships, conversion guidance, schema, and starter file.
+- [`operations/json-backup-format.md`](operations/json-backup-format.md) — version 10 JSON fields, rule matching syntax, inert legacy rules, historical compatibility, schema, and starter file.
 - [`operations/podman.md`](operations/podman.md) — Podman setup, Compose lifecycle, rootless operation, reboots, and engine migration.
 
 ## Sources

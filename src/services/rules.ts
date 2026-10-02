@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../lib/db.js";
+import { createRuleMatcher, validateRuleMatchText } from "../lib/ruleMatching.js";
 import {
   assertCategorySupportsExpense,
   lockCategoriesForUse,
@@ -54,8 +55,8 @@ export async function listRules(userId: string) {
   });
 }
 
-export async function listActiveRules(userId: string) {
-  return prisma.rule.findMany({
+export async function listActiveRules(userId: string, db: typeof prisma | Prisma.TransactionClient = prisma) {
+  return db.rule.findMany({
     where: { userId, isActive: true },
     include: ruleInclude,
     orderBy: [{ priority: "asc" }, { name: "asc" }]
@@ -77,6 +78,7 @@ export async function createRule(input: {
   tagIds: string[];
   isActive: boolean;
 }) {
+  const matchText = validateRuleMatchText(input.matchText);
   return prisma.$transaction(async (tx) => {
     await assertRuleCategory(input.userId, input.categoryId, tx);
     await assertRuleTags(input.userId, input.tagIds, tx);
@@ -89,7 +91,7 @@ export async function createRule(input: {
       data: {
         userId: input.userId,
         name: input.name,
-        matchText: input.matchText,
+        matchText,
         categoryId: input.categoryId,
         priority: (highestPriority._max.priority ?? -10) + 10,
         isActive: input.isActive,
@@ -112,6 +114,7 @@ export async function updateRule(input: {
   tagIds: string[];
   isActive: boolean;
 }) {
+  const matchText = validateRuleMatchText(input.matchText);
   return prisma.$transaction(async (tx) => {
     const rule = await tx.rule.findFirst({
       where: { id: input.ruleId, userId: input.userId },
@@ -130,7 +133,7 @@ export async function updateRule(input: {
       where: { id_userId: { id: input.ruleId, userId: input.userId } },
       data: {
         name: input.name,
-        matchText: input.matchText,
+        matchText,
         categoryId: input.categoryId,
         isActive: input.isActive,
         tags: {
@@ -195,15 +198,6 @@ export type RuleApplicationTransaction = {
   tags: Array<{ tagId: string }>;
 };
 
-export function matchRuleForText(
-  transaction: { description: string | null; notes: string | null },
-  rules: Awaited<ReturnType<typeof listActiveRules>>
-) {
-  const searchableText = `${transaction.description ?? ""} ${transaction.notes ?? ""}`.toLowerCase();
-
-  return rules.find((rule) => rule.matchText.trim() && searchableText.includes(rule.matchText.trim().toLowerCase())) ?? null;
-}
-
 export async function previewRuleApplications(userId: string, limit = ruleApplicationLimit) {
   const safeLimit = Math.min(ruleApplicationLimit, Math.max(1, Math.trunc(limit)));
   const [rules, transactions] = await Promise.all([
@@ -219,9 +213,10 @@ export async function previewRuleApplications(userId: string, limit = ruleApplic
     })
   ]);
 
+  const matchRule = createRuleMatcher(rules);
   return transactions
     .map((transaction) => {
-      const rule = matchRuleForText(transaction, rules);
+      const rule = matchRule(transaction);
 
       if (!rule) {
         return null;

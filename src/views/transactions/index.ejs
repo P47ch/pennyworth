@@ -6,6 +6,10 @@
   <a class="button-link" href="/transactions/import">Import CSV</a>
 </section>
 
+<% if (typeof notice !== "undefined" && notice) { %>
+  <p class="success" role="status"><%= notice %></p>
+<% } %>
+
 <section class="panel">
   <div class="panel-heading">
     <h2>Quick entry</h2>
@@ -50,12 +54,13 @@
     </label>
     <label data-category-field>
       <span>Category</span>
-      <select name="categoryId" data-persist-field="transaction-category">
+      <select name="categoryId" aria-describedby="transaction-rule-hint">
         <option value="">None</option>
         <% for (const category of categories) { %>
           <option value="<%= category.id %>" <%= form.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
         <% } %>
       </select>
+      <small class="muted" id="transaction-rule-hint">Leave empty to apply rules automatically to a new expense.</small>
     </label>
     <label class="quick-description">
       <span>Description</span>

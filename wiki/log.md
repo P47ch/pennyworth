@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Log
 type: log
 status: current
-updated: 2026-09-17
+updated: 2026-10-02
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [log, audit]
 ---
@@ -186,3 +186,27 @@ Clarified that all development branches use Git Flow prefixes with lowercase keb
 ## [2026-09-18] source-sync | Add optional administrator update notification
 
 Added an opt-in, process-local GitHub Release metadata check with SemVer channel filtering, strict response validation, bounded network behavior, cache/ETag handling, and an administrator-only passive interface. No database migration or user backup contract change was required because update state remains process memory only.
+
+## [2026-10-02] source-sync | Resolve rule matching and automatic categorization for issue 7
+
+Added a shared comma-alternative matcher with quoted literal phrases, automatic application to new uncategorized expenses and recurring generation, explicit-category protection including CSV imports, duplicate-safe tag merging, retained validation-error form values, and localized one-time save feedback. Added the native question-mark help control and persistent form guidance, and stopped silently reusing a previous quick-entry category. Published JSON backup schema/starter version 10 and a data migration preserving historical literal matching; version 8 and 9 artifacts remain unchanged, and restore does not rerun categorization rules. Updated canonical automation, transaction, interface, security, backup, product-status, and source pages plus unreleased upgrade notes. Unit tests, application/test typechecks, build, Prisma validation, and wiki lint passed; PostgreSQL integration execution requires an explicit disposable `TEST_DATABASE_URL`.
+
+## [2026-10-02] lint | Verify rule automation and backup compatibility
+
+Validated 206 unit tests across 35 files, both TypeScript checks, production build, Prisma schema, wiki links, and version-10 starter conformance to its published JSON Schema. Targeted rendered Rules fixtures passed desktop/mobile English/Italian light/dark browser checks, keyboard/outside-click dismissal, and native details operation without JavaScript at 320 pixels. Fixed the mobile help panel's keyboard-focusable scroll region after axe identified it. The guarded integration runner refused to start without `TEST_DATABASE_URL`; no configured database was changed. Historical version 8/9 schemas and examples remain untouched, and final branch `feature/issue-7-rule-automation` follows the repository's Git Flow convention.
+
+## [2026-10-02] source-sync | Fix inert-rule backup compatibility and repeated bulk parsing
+
+Preserved historical whitespace-only and quoted whitespace-only rules as inert backup records regardless of active state, while retaining strict rule-form validation. Updated the unpublished version-10 schema description and starter, JSON contract and recovery documentation, automation behavior, and unreleased notes; historical schema/example artifacts and application version remain unchanged. Added regression tests covering active/inactive legacy restore, export, and reimport across spaces, tabs, and quoted line breaks, plus deterministic preparation-count checks for CSV and existing-expense previews. Prepared matching terms once per batch without retaining a cache across requests. All 211 unit tests, application/test TypeScript checks, and the production build passed. The actual CSV-preview benchmark with 1,000 uncategorized rows and 10,000 unmatched rules improved from 7,393 ms to 351–380 ms. Added a PostgreSQL backup regression; integration execution stopped at its safety guard because `TEST_DATABASE_URL` was unset.
+
+## [2026-10-02] lint | Verify rule-review fixes and published backup examples
+
+Wiki lint passed with 22 pages and 21 source IDs. Validated the version-10 starter and representative inert-rule variants against the JSON Schema 2020-12 structure using the existing Ajv runtime. The starter also passes the authoritative importer regression test. Reviewed the final matching and backup paths, documentation references, and diff whitespace checks; superseded version-8/9 artifacts were preserved.
+
+## [2026-10-02] source-sync | Preserve literal labels in transaction notices
+
+Replaced sequential translation substitutions with a single callback-based pass so dollar sequences and placeholder-shaped rule, category, and tag names retain their exact text. Missing or inherited values leave placeholders unchanged. Added English/Italian interpolation regressions and a signed-cookie notice regression; three new cases reproduced the bug before the fix. All 215 unit tests and both application/test TypeScript checks passed. Updated the canonical localization page and unreleased changelog.
+
+## [2026-10-02] source-sync | Localize rule validation errors
+
+Updated Add rule and Edit rule to translate server-side validation messages before HTML-escaped rendering. Added 16 regression cases covering all four matching-parser errors in both forms and both interface languages; the eight Italian cases reproduced the review finding before the fix. All 20 Rules view tests and the test TypeScript check passed. Updated the canonical localization page and unreleased changelog.
