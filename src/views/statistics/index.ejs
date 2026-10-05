@@ -430,7 +430,7 @@
     <div class="list-stack">
       <% for (const account of statistics.accounts) { %>
         <div class="list-row">
-          <div><strong><%= account.name %></strong><span><%= account.type.replaceAll("_", " ") %> · <%= account.currency %></span></div>
+          <div><strong><%= account.name %></strong><span><%= typeLabel(account.type) %> · <%= account.currency %></span></div>
           <strong><%= formatMoney(account.currentBalanceMinor, account.currency) %></strong>
         </div>
       <% } %>

@@ -30,7 +30,7 @@ import { loadConfig } from "./lib/config.js";
 import { getOrCreateCsrfToken, validateCsrfToken } from "./lib/csrf.js";
 import { todayDateInput } from "./lib/dates.js";
 import { prisma } from "./lib/db.js";
-import { createTranslator } from "./lib/i18n.js";
+import { createTranslator, createTypeLabelFormatter } from "./lib/i18n.js";
 import { renderCategoryIcon, renderCategoryLabel, renderColorSwatch, renderIcon } from "./lib/icons.js";
 import { errorPageModel } from "./lib/httpErrors.js";
 import { localizeEjsTemplate } from "./lib/localizedEjs.js";
@@ -200,6 +200,7 @@ export async function buildApp() {
       menuGroups,
       themes,
       t: createTranslator(defaultUserPreferences.language),
+      typeLabel: createTypeLabelFormatter(defaultUserPreferences.language),
       userPreferences: defaultUserPreferences
     };
 
@@ -258,6 +259,7 @@ export async function buildApp() {
       updateAvailable:
         user.role === "admin" ? updateAvailable : undefined,
       t: createTranslator(userPreferences.language),
+      typeLabel: createTypeLabelFormatter(userPreferences.language),
       userPreferences
     };
   });

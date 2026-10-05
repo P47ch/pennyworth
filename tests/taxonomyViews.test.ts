@@ -8,7 +8,7 @@ import {
   renderColorSwatch,
   renderIcon
 } from "../src/lib/icons.js";
-import { createTranslator } from "../src/lib/i18n.js";
+import { createTranslator, createTypeLabelFormatter } from "../src/lib/i18n.js";
 import { localizeEjsTemplate } from "../src/lib/localizedEjs.js";
 
 function compileView(path: string) {
@@ -22,6 +22,7 @@ const sharedLocals = {
   csrfToken: "test-token",
   error: null,
   t: createTranslator("en"),
+  typeLabel: createTypeLabelFormatter("en"),
   icon: renderIcon,
   categoryIcon: renderCategoryIcon,
   categoryLabel: renderCategoryLabel,

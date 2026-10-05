@@ -21,7 +21,7 @@
       Type
       <select name="type" required>
         <% for (const type of categoryTypes) { %>
-          <option value="<%= type %>"><%= type %></option>
+          <option value="<%= type %>"><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
@@ -93,7 +93,7 @@
                 <strong><%= category.name %></strong>
               </span>
             </td>
-            <td data-label="Type"><span class="badge badge-<%= category.type %>"><%= category.type %></span></td>
+            <td data-label="Type"><span class="badge badge-<%= category.type %>"><%= typeLabel(category.type) %></span></td>
             <td data-label="Parent"><%- categoryLabel(category.parent) %></td>
             <td data-label="Actions">
               <div class="row-actions">

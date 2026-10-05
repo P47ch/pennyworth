@@ -22,7 +22,7 @@
       Type
       <select name="type" required>
         <% for (const type of accountTypes) { %>
-          <option value="<%= type %>" <%= account.type === type ? "selected" : "" %>><%= type.replaceAll("_", " ") %></option>
+          <option value="<%= type %>" <%= account.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>

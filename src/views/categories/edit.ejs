@@ -9,7 +9,7 @@
 <section class="panel">
   <div class="panel-heading">
     <h2><%- categoryLabel(category) %></h2>
-    <span class="badge badge-<%= category.type %>"><%= category.type %></span>
+    <span class="badge badge-<%= category.type %>"><%= typeLabel(category.type) %></span>
   </div>
   <% if (error) { %><p class="error"><%= error %></p><% } %>
   <form method="post" action="/categories/<%= category.id %>" class="form-grid">
@@ -22,7 +22,7 @@
       Type
       <select name="type" required>
         <% for (const type of categoryTypes) { %>
-          <option value="<%= type %>" <%= category.type === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= category.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>

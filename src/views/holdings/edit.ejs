@@ -9,7 +9,7 @@
 <section class="panel">
   <div class="panel-heading">
     <h2><%= holding.asset.symbol %> in <%= holding.account.name %></h2>
-    <span class="badge badge-muted"><%= holding.asset.type %></span>
+    <span class="badge badge-muted"><%= typeLabel(holding.asset.type) %></span>
   </div>
   <% if (error) { %><p class="error"><%= error %></p><% } %>
   <form method="post" action="/holdings/<%= holding.id %>" class="form-grid">
@@ -18,7 +18,7 @@
       Account
       <select name="accountId" required>
         <% for (const account of accounts) { %>
-          <option value="<%= account.id %>" <%= holding.accountId === account.id ? "selected" : "" %>><%= account.name %> (<%= account.type %>)</option>
+          <option value="<%= account.id %>" <%= holding.accountId === account.id ? "selected" : "" %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>

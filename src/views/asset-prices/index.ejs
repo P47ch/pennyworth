@@ -70,7 +70,7 @@
                 <strong><%= assetPrice.asset.symbol %></strong>
                 <span class="muted"><%= assetPrice.asset.name %></span>
               </td>
-              <td data-label="Type"><span class="badge badge-muted"><%= assetPrice.asset.type %></span></td>
+              <td data-label="Type"><span class="badge badge-muted"><%= typeLabel(assetPrice.asset.type) %></span></td>
               <td data-label="Price" class="numeric"><%= formatMoney(assetPrice.priceMinor, assetPrice.asset.currency) %></td>
               <td data-label="Actions">
                 <div class="row-actions">

@@ -46,7 +46,7 @@
         <% for (const item of summary.recurringDue) { %>
           <a class="attention-item" href="/recurring">
             <span class="attention-marker attention-marker-recurring" aria-hidden="true"></span>
-            <span><strong><%= item.name %></strong><small>Due <%= item.nextDate.toISOString().slice(0, 10) %> · <%= item.type %></small></span>
+            <span><strong><%= item.name %></strong><small>Due <%= item.nextDate.toISOString().slice(0, 10) %> · <%= typeLabel(item.type) %></small></span>
             <strong><%= formatMoney(item.amountMinor, item.sourceAccount?.currency || primaryCurrency) %></strong>
           </a>
         <% } %>
@@ -63,7 +63,7 @@
         <% for (const transaction of summary.recentTransactions) { %>
           <div class="transaction-item">
             <div>
-              <span class="badge badge-<%= transaction.type %>"><%= transaction.type %></span>
+              <span class="badge badge-<%= transaction.type %>"><%= typeLabel(transaction.type) %></span>
               <strong>
                 <% if (transaction.description) { %>
                   <%= transaction.description %>
@@ -116,7 +116,7 @@
         <div class="list-stack dashboard-account-list">
           <% for (const account of summary.accounts.slice(0, 4)) { %>
             <div class="list-row">
-              <div><strong><%= account.name %></strong><span><%= account.type.replaceAll("_", " ") %> · <%= account.currency %></span></div>
+              <div><strong><%= account.name %></strong><span><%= typeLabel(account.type) %> · <%= account.currency %></span></div>
               <strong><%= formatMoney(account.currentBalanceMinor, account.currency) %></strong>
             </div>
           <% } %>

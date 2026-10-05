@@ -21,7 +21,7 @@
       Type
       <select name="type" required data-transaction-type>
         <% for (const type of transactionTypes) { %>
-          <option value="<%= type %>" <%= form.type === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= form.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
@@ -114,7 +114,7 @@
             <tr>
               <td data-label="Name"><strong><%= item.name %></strong></td>
               <td data-label="Next date"><%= item.nextDate.toISOString().slice(0, 10) %></td>
-              <td data-label="Type"><span class="badge badge-<%= item.type %>"><%= item.type %></span></td>
+              <td data-label="Type"><span class="badge badge-<%= item.type %>"><%= typeLabel(item.type) %></span></td>
               <td data-label="Account">
                 <% if (item.type === "transfer") { %>
                   <%= item.sourceAccount?.name || "-" %> to <%= item.destinationAccount?.name || "-" %>

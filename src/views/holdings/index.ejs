@@ -24,7 +24,7 @@
       <select name="accountId" required>
         <option value="">Choose account</option>
         <% for (const account of accounts) { %>
-          <option value="<%= account.id %>"><%= account.name %> (<%= account.type %>)</option>
+          <option value="<%= account.id %>"><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>
@@ -94,7 +94,7 @@
                 <span class="muted"><%= holding.asset.name %></span>
               </td>
               <td data-label="Source"><span class="badge badge-muted"><%= holding.source === "calculated" ? "activity" : "manual" %></span></td>
-              <td data-label="Type"><span class="badge badge-muted"><%= holding.asset.type %></span></td>
+              <td data-label="Type"><span class="badge badge-muted"><%= typeLabel(holding.asset.type) %></span></td>
               <td data-label="Quantity" class="numeric"><%= formatQuantity(holding.quantity) %></td>
               <td data-label="Average cost" class="numeric"><%= formatMoney(holding.averageCostMinor, holding.asset.currency) %></td>
               <td data-label="Cost basis" class="numeric"><%= formatMoney(holding.costBasisMinor, holding.asset.currency) %></td>

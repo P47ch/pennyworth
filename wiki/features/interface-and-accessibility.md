@@ -2,7 +2,7 @@
 title: Interface, Localization, and Accessibility
 type: feature
 status: current
-updated: 2026-10-02
+updated: 2026-10-05
 source_ids: [project-contract, application-source, interface-source, finance-source, query-source, package-manifest, test-suite]
 tags: [interface, accessibility, localization, themes]
 ---
@@ -52,6 +52,8 @@ Migration `20260716001000_replace_legacy_themes` mapped former theme experiments
 Current interface languages are English and Italian. English is the fallback. Static template text and translatable accessibility attributes are localized before EJS compilation through `src/lib/localizedEjs.ts`; user-authored and calculated values are left intact. Translation data and preference normalization live under `src/lib/`.
 
 Translation placeholders are substituted once, with values inserted literally. Rule, category, and tag names in transaction notices retain dollar sequences and placeholder-shaped text; missing values leave their placeholders unchanged.
+
+Dynamic account, category, transaction, asset, and investment activity types use the shared `createTypeLabelFormatter` in `src/lib/i18n.ts`. Labels are translated, start with a capital letter, replace storage underscores with spaces, and preserve `ETF` as an acronym. Select option values, badge classes, database enums, CSV values, and backup fields retain their original identifiers. User-authored names are displayed unchanged.
 
 Add rule and Edit rule translate server-side validation errors into the selected interface language before HTML-escaped rendering, including malformed matching syntax and missing matching terms.
 

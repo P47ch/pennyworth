@@ -45,7 +45,7 @@
       <h2>Allocation by type</h2>
       <span class="muted"><%= report.allocationByType.length %> groups</span>
     </div>
-    <%- include("../partials/investment-allocation.ejs", { rows: report.allocationByType, formatMoney, formatPercent }) %>
+    <%- include("../partials/investment-allocation.ejs", { rows: report.allocationByType.map((row) => ({ ...row, name: typeLabel(row.name) })), formatMoney, formatPercent }) %>
   </article>
 
   <article class="panel">
@@ -98,7 +98,7 @@
               <td data-label="Account"><%= position.accountName %></td>
               <td data-label="Asset"><strong><%= position.assetSymbol %></strong><span class="muted"><%= position.assetName %></span></td>
               <td data-label="Source"><span class="badge badge-muted"><%= position.source === "calculated" ? "activity" : "manual adjustment" %></span></td>
-              <td data-label="Type"><span class="badge badge-muted"><%= position.assetType %></span></td>
+              <td data-label="Type"><span class="badge badge-muted"><%= typeLabel(position.assetType) %></span></td>
               <td data-label="Quantity" class="numeric"><%= position.quantity %></td>
               <td data-label="Cost basis" class="numeric"><%= formatMoney(position.costBasisMinor, position.currency) %></td>
               <td data-label="Market value" class="numeric"><%= position.marketValueMinor === null ? "-" : formatMoney(position.marketValueMinor, position.currency) %></td>

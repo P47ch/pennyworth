@@ -35,7 +35,7 @@ Read this page first. It catalogs every maintained page and gives agents a bound
 - [`features/transactions.md`](features/transactions.md) — transaction lifecycle, filters, pagination, CSV import/export, and duplicate handling.
 - [`features/automation.md`](features/automation.md) — categories, tags, budgets, automatic categorization rules, quick rule activation, and recurring templates.
 - [`features/investments.md`](features/investments.md) — assets, prices, activity, positions, valuation, and cash impact.
-- [`features/interface-and-accessibility.md`](features/interface-and-accessibility.md) — server-rendered UI, themes, localization, navigation, mobile behavior, and audits.
+- [`features/interface-and-accessibility.md`](features/interface-and-accessibility.md) — server-rendered UI, themes, localized type labels, navigation, mobile behavior, and audits.
 
 ## Operations
 
