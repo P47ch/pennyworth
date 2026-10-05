@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Encrypted-backup tampering tests always change a byte, preventing intermittent CI failures when a random Base64 value already starts with `A`.
 - Docker development reloads server code through file polling, avoiding new form actions pointing at routes absent from a stale process.
 - Historical whitespace-only rules remain inert and can be exported and restored in version 10, including quoted line breaks and active rules.
 - CSV and existing-expense previews parse rule terms once per batch instead of once per transaction.

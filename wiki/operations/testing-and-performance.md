@@ -2,7 +2,7 @@
 title: Testing and Performance
 type: verification
 status: current
-updated: 2026-10-02
+updated: 2026-10-05
 source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema]
 tags: [testing, integration, accessibility, performance, ci]
 ---
@@ -33,6 +33,8 @@ Vitest covers money conversion, account balance effects, transfers, monthly summ
 The dependency-security verification on 2026-09-17 passed 151 tests in 28 files with Vitest 4.1.11. Treat counts as dated evidence; `npm run test` is the current truth.
 
 The 2026-10-02 rule-review fixes passed 211 unit tests across 35 files, both TypeScript checks, and the production build. Regression coverage checks legacy inert-rule restore/export/reimport and verifies that CSV and existing-expense previews prepare rule text once per batch. The corresponding PostgreSQL backup regression was added, but the guarded integration runner could not start because `TEST_DATABASE_URL` was unset.
+
+Encrypted-backup tamper tests decode the selected ciphertext, authentication tag, salt, or nonce, flip a bit, and re-encode it. This guarantees a byte change while retaining valid Base64 and field lengths. A fixed, valid envelope whose ciphertext starts with `A` covers the case where the previous character-replacement test left its randomized input unchanged. The 2026-10-05 correction passed 232 unit tests across 35 files and the test TypeScript check.
 
 ## Dependency audit
 

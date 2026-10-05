@@ -230,3 +230,7 @@ Recreated only the app container with polling enabled. The authenticated live ro
 ## [2026-10-05] source-sync | Explain development file-watcher settings
 
 Expanded the local-development runbook with a dedicated Development file watching section naming `CHOKIDAR_USEPOLLING` and `CHOKIDAR_INTERVAL`, their configured values, the Docker Desktop bind-mount problem they address, interval tradeoffs, and how to edit and apply the settings. Clarified that the current Compose values are fixed in `app.environment`, require no additional `.env` entries, and apply to the development watcher. Added app-only recreation and log verification commands, and updated the wiki index description.
+
+## [2026-10-05] source-sync | Make encrypted-backup tampering tests deterministic
+
+Investigated failed GitHub Actions run `37290967655`: the ciphertext tampering test replaced its first Base64 character with `A`, leaving the encrypted envelope unchanged whenever random ciphertext already began with that character. Added a fixed valid envelope starting with `A` and reproduced the failed rejection deterministically before correcting the shared mutation helper. Ciphertext, tag, salt, and nonce tests now flip a decoded bit and preserve canonical Base64 and field lengths. All 232 unit tests and the test TypeScript check passed. Updated the canonical testing page and unreleased changelog; application encryption and backup contracts retain their existing behavior.
