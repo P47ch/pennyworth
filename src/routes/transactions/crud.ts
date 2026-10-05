@@ -1,10 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import { loadConfig } from "../../lib/config.js";
 import { createTranslator } from "../../lib/i18n.js";
+import { categoryIconOptions } from "../../lib/icons.js";
 import { normalizeUserPreferences } from "../../lib/preferences.js";
 import { consumeTransactionNotice, setTransactionNotice } from "../../lib/transactionNotice.js";
 import { listAccountsWithBalances } from "../../services/accounts.js";
-import { listCategories, listTags } from "../../services/taxonomy.js";
+import { categoryTypes, listCategories, listTags } from "../../services/taxonomy.js";
 import {
   createTransaction,
   deleteTransaction,
@@ -43,6 +44,8 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
       transactionTypes,
       filters,
       form: transactionFormValues(),
+      categoryTypes,
+      categoryIconOptions,
       notice: consumeTransactionNotice(request, reply, user.id),
       error: null,
     });
@@ -78,6 +81,8 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
         transactionTypes,
         filters: parseTransactionFilters({}),
         form: transactionFormValues(body),
+        categoryTypes,
+        categoryIconOptions,
         notice: null,
         error: error instanceof Error ? error.message : "Could not create transaction.",
       });

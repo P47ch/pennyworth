@@ -2,7 +2,7 @@
 title: Pennyworth Source Map
 type: source-map
 status: current
-updated: 2026-10-02
+updated: 2026-10-05
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [sources, provenance]
 ---
@@ -67,6 +67,13 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Authority: current HTTP, service, validation, rendering, configuration, session, and backup behavior
 - Covers: runtime behavior across routes, services, libraries, views, and public assets
 
+## source:issue-6
+
+- Location: [GitHub issue #6: Creazione rapida di categorie e tag](https://github.com/P47ch/pennyworth/issues/6)
+- Kind: user-reported enhancement request, inspected on 2026-10-05
+- Authority: requested transaction-entry workflow; repository code remains authoritative for current behavior
+- Covers: creating a missing category or tag without leaving an in-progress transaction, with a proposed quick-add dialog
+
 ## source:finance-source
 
 - Location: [`../src/finance/`](../src/finance/)
@@ -90,10 +97,10 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 
 ## source:test-suite
 
-- Location: [`../tests/`](../tests/) and [`../scripts/a11y-audit.mjs`](../scripts/a11y-audit.mjs)
+- Location: [`../tests/`](../tests/), [`../scripts/a11y-audit.mjs`](../scripts/a11y-audit.mjs), and [`../scripts/quick-taxonomy-browser.ts`](../scripts/quick-taxonomy-browser.ts)
 - Kind: executable verification
 - Authority: tested behavior and regression coverage; passing status must be dated separately
-- Covers: finance, configuration, CSV, backup, authentication, queries, integration boundaries, and accessibility
+- Covers: finance, configuration, CSV, backup, authentication, queries, integration boundaries, accessibility, and quick-entry dialog behavior including interrupted-response recovery
 
 ## source:ci-workflow
 

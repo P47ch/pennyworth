@@ -1,23 +1,33 @@
 import type { FastifyInstance } from "fastify";
-import { createTag, deleteTag, getTagForUser, listTags, updateTag } from "../services/taxonomy.js";
+import { createTranslator } from "../lib/i18n.js";
+import { normalizeUserPreferences } from "../lib/preferences.js";
+import { createTag, deleteTag, getTagByNameForUser, getTagForUser, listTags, updateTag } from "../services/taxonomy.js";
 import { requireCurrentUser } from "../services/users.js";
-import { parseHexColor } from "./colors.js";
-import { field, formBody } from "./form.js";
-
-function validateTagInput(body: ReturnType<typeof formBody>) {
-  const name = field(body, "name").trim();
-
-  if (!name) {
-    throw new Error("Tag name is required.");
-  }
-
-  return {
-    name,
-    color: parseHexColor(field(body, "color"), "#2563eb")
-  };
-}
+import { formBody } from "./form.js";
+import { quickTaxonomyError, validateTagInput } from "./taxonomyInput.js";
 
 export async function tagRoutes(app: FastifyInstance) {
+  app.post("/tags/quick", async (request, reply) => {
+    const user = await requireCurrentUser(request);
+    const t = createTranslator(normalizeUserPreferences(user).language);
+    try {
+      const input = validateTagInput(formBody(request.body));
+      try {
+        const tag = await createTag({ userId: user.id, ...input });
+        return reply.code(201).send({ tag: { id: tag.id, name: tag.name } });
+      } catch (error) {
+        const failure = quickTaxonomyError(error, "tag");
+        if (failure.statusCode !== 409) throw error;
+        const existing = await getTagByNameForUser(user.id, input.name);
+        return reply.code(409).send({ error: t(failure.message), existing });
+      }
+    } catch (error) {
+      const failure = quickTaxonomyError(error, "tag");
+      if (failure.statusCode === 500) request.log.error("Quick tag creation failed");
+      return reply.code(failure.statusCode).send({ error: t(failure.message) });
+    }
+  });
+
   app.get("/tags", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const tags = await listTags(user.id);

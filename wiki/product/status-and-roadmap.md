@@ -2,8 +2,8 @@
 title: Product Status and Roadmap
 type: status
 status: current
-updated: 2026-10-02
-source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy]
+updated: 2026-10-05
+source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy, issue-6]
 tags: [status, roadmap, verification]
 ---
 
@@ -24,6 +24,7 @@ Pennyworth `0.8.0-alpha.1` is an actively developed public preview, not a stable
 - A focused dashboard with net worth, combined monthly cashflow, conditional budget/recurring attention items, recent activity, and limited spending/account previews.
 - Statistics with 12-month net-worth, per-account balance, monthly cashflow, and category-spending history; category/tag drilldowns; largest expenses; and current account balances.
 - Transaction filters, pagination, CSV export, CSV mapping/import preview, duplicate handling, and formula-safe exported text.
+- Quick category/tag creation in manual transaction entry with draft preservation, immediate selection, localized accessible dialogs, and explicit recovery after interrupted creation responses.
 - Retried and concurrent CSV confirmations are idempotent through user-scoped import receipts.
 - Categorization-rule priority, comma-separated alternatives, optional rule tags, direct list Enable/Disable actions, automatic application to new uncategorized expenses and recurring generation, CSV preview, localized save feedback, and explicit preview against existing expenses.
 - Manual recurring generation for monthly income, expenses, and transfers.
@@ -63,6 +64,8 @@ Follow-up verification on 2026-10-02 passed 231 unit tests across 35 files, both
 
 ## Current focus
 
+Issue #6 quick category/tag creation, including interrupted-response recovery, was verified on 2026-10-05 with 239 unit tests across 36 files, all 18 PostgreSQL/Fastify integration tests against a separate test database, both TypeScript checks, and the production build. Eight expanded English/Italian desktop/mobile light/dark dialog fixtures and a JavaScript-disabled fallback passed. The earlier implementation also passed wiki lint and a full isolated-app accessibility audit across all 17 routes in both desktop/mobile viewports. See [testing and performance](../operations/testing-and-performance.md#quick-entry-dialog-checks).
+
 Operationally validate the intended self-hosted environment rather than adding another architecture layer:
 
 - Run the appropriate managed- or external-PostgreSQL HTTP profile on the target private-LAN server.
@@ -83,6 +86,8 @@ High-value product work not currently implemented:
 6. Manual exchange rates and multi-currency reporting.
 7. Receipt attachments.
 8. User-facing backup/restore drills and operational automation.
+
+Quick category/tag creation from issue #6 is implemented in [manual transaction entry](../features/transactions.md#quick-category-and-tag-creation-issue-6). Extending it to editing, recurring forms, rules, and CSV import remains future work.
 
 ## Removed stale backlog
 
@@ -106,3 +111,4 @@ The former task page listed dashboard budget state, recurring templates, categor
 - [`container-definitions`](../sources.md#sourcecontainer-definitions)
 - [`project-contract`](../sources.md#sourceproject-contract)
 - [`release-policy`](../sources.md#sourcerelease-policy)
+- [`issue-6`](../sources.md#sourceissue-6)

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import ejs from "ejs";
 import { describe, expect, it } from "vitest";
 import {
@@ -12,7 +13,8 @@ import { createTranslator, createTypeLabelFormatter } from "../src/lib/i18n.js";
 import { localizeEjsTemplate } from "../src/lib/localizedEjs.js";
 
 function compileView(path: string) {
-  return ejs.compile(localizeEjsTemplate(readFileSync(new URL(path, import.meta.url), "utf8")));
+  const filename = fileURLToPath(new URL(path, import.meta.url));
+  return ejs.compile(localizeEjsTemplate(readFileSync(filename, "utf8")), { filename });
 }
 
 const renderCategories = compileView("../src/views/categories/index.ejs");
@@ -27,7 +29,9 @@ const sharedLocals = {
   categoryIcon: renderCategoryIcon,
   categoryLabel: renderCategoryLabel,
   colorSwatch: renderColorSwatch,
-  primaryCurrency: "EUR"
+  primaryCurrency: "EUR",
+  categoryTypes: ["income", "expense", "both"],
+  categoryIconOptions
 };
 
 describe("taxonomy list views", () => {
