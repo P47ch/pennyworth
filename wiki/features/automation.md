@@ -42,6 +42,8 @@ Rules automatically apply when a new expense has no category, including manual e
 
 CSV and existing-expense previews prepare each active rule's parsed, lowercase terms once per batch. Matching reuses that snapshot while retaining the original priority order and category/tag references. No rule cache is retained across requests, so later previews see rule edits.
 
+Rules can be enabled or disabled directly from the list with a CSRF-protected form button. The action sets the requested state on a user-owned rule and preserves its name, matching text, category, tags, and priority. Disabled rules remain in the list and are excluded from future automatic matching and previews. Repeated submissions of the same action retain the requested state.
+
 Editing a transaction, changing a rule, or restoring a JSON backup does not reapply rules. The UI previews existing uncategorized expenses before explicit application. A question-mark control on the Rules and Edit rule pages explains matching, ordering, automatic application, and these boundaries without requiring JavaScript.
 
 Migration `20261002000000_preserve_literal_rule_matching` quotes special characters in existing match text so an old comma-containing rule continues to match its complete literal phrase. Users can edit it to opt into alternatives. [JSON backup version 10](../operations/json-backup-format.md) defines the new syntax; historical backups are converted to quoted literal phrases during restore.

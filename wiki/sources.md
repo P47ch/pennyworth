@@ -107,7 +107,7 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Location: [`../Dockerfile`](../Dockerfile), [`../compose.dev.yml`](../compose.dev.yml), and [`../deploy/`](../deploy/)
 - Kind: executable deployment source
 - Authority: images, services, health checks, ports, volumes, and startup commands
-- Covers: Docker, Podman-compatible Compose, development, private-LAN HTTP production, and managed or externally managed PostgreSQL
+- Covers: Docker, Podman-compatible Compose, development with bind-mount file polling, private-LAN HTTP production, and managed or externally managed PostgreSQL
 
 ## source:environment-template
 

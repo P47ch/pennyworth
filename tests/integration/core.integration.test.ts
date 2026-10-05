@@ -1268,6 +1268,65 @@ describe("Password recovery", () => {
 });
 
 describe("Fastify authentication boundary", () => {
+  it("switches user-owned rules from the list without changing settings or saved transactions", async () => {
+    const password = "rule-activation-integration-2026";
+    const [user, otherUser] = await Promise.all([createUser(password), createUser()]);
+    const account = await createAccount(user.id, "rule-activation", 10_000);
+    const [category, otherCategory] = await Promise.all([
+      prisma.category.create({ data: { userId: user.id, name: "Subscriptions", type: "expense" } }),
+      prisma.category.create({ data: { userId: otherUser.id, name: "Other subscriptions", type: "expense" } })
+    ]);
+    const tag = await prisma.tag.create({ data: { userId: user.id, name: "Subscription" } });
+    const rule = await createRule({ userId: user.id, name: "Streaming", matchText: "netflix, spotify", categoryId: category.id, tagIds: [tag.id], isActive: true });
+    const otherRule = await createRule({ userId: otherUser.id, name: "Private", matchText: "netflix", categoryId: otherCategory.id, tagIds: [], isActive: true });
+    const original = await prisma.rule.findUniqueOrThrow({ where: { id: rule.id }, include: { tags: true } });
+
+    const loginPage = await app.inject({ method: "GET", url: "/login" });
+    const csrfCookie = responseCookie(loginPage, "pennyworth_csrf");
+    const csrfToken = loginPage.body.match(/name="csrfToken" value="([^"]+)"/)?.[1] ?? "";
+    const login = await app.inject({ method: "POST", url: "/login", headers: { cookie: csrfCookie, "content-type": "application/x-www-form-urlencoded" }, payload: new URLSearchParams({ csrfToken, email: user.email, password }).toString() });
+    expect(login.statusCode).toBe(302);
+    const cookie = `${csrfCookie}; ${responseCookie(login, sessionCookieName)}`;
+    const postState = (ruleId: string, isActive: string, token = csrfToken) => app.inject({
+      method: "POST", url: `/rules/${ruleId}/active`,
+      headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+      payload: new URLSearchParams({ csrfToken: token, isActive }).toString()
+    });
+
+    expect((await postState(rule.id, "false", "invalid-token")).statusCode).toBe(403);
+    expect((await postState(rule.id, "invalid")).statusCode).toBe(400);
+    expect((await postState(otherRule.id, "false")).statusCode).toBe(404);
+    await expect(prisma.rule.findUnique({ where: { id: otherRule.id } })).resolves.toMatchObject({ isActive: true });
+    await expect(prisma.rule.findUnique({ where: { id: rule.id } })).resolves.toMatchObject({ isActive: true });
+
+    const disabled = await postState(rule.id, "false");
+    expect(disabled.statusCode).toBe(302);
+    expect(disabled.headers.location).toBe("/rules");
+    expect((await postState(rule.id, "false")).statusCode).toBe(302);
+    const afterDisable = await prisma.rule.findUniqueOrThrow({ where: { id: rule.id }, include: { tags: true } });
+    expect({ ...afterDisable, updatedAt: original.updatedAt }).toEqual({ ...original, isActive: false });
+    const disabledList = await app.inject({ method: "GET", url: "/rules", headers: { cookie } });
+    expect(disabledList.body).toContain('aria-label="Enable rule: Streaming"');
+
+    const entry = { userId: user.id, type: "expense" as const, date: new Date("2026-10-02T00:00:00.000Z"), amountMinor: 1000, sourceAccountId: account.id, description: "NETFLIX", tagIds: [] };
+    const unmatched = await createTransaction(entry);
+    expect(unmatched.categoryId).toBeNull();
+    expect(await previewRuleApplications(user.id)).toEqual([]);
+
+    expect((await postState(rule.id, "true")).statusCode).toBe(302);
+    expect((await postState(rule.id, "true")).statusCode).toBe(302);
+    const afterEnable = await prisma.rule.findUniqueOrThrow({ where: { id: rule.id }, include: { tags: true } });
+    expect({ ...afterEnable, updatedAt: original.updatedAt }).toEqual(original);
+    const enabledList = await app.inject({ method: "GET", url: "/rules", headers: { cookie } });
+    expect(enabledList.body).toContain('aria-label="Disable rule: Streaming"');
+    await expect(prisma.transaction.findUnique({ where: { id: unmatched.id } })).resolves.toMatchObject({ categoryId: null });
+    await expect(prisma.transactionTag.count({ where: { transactionId: unmatched.id } })).resolves.toBe(0);
+    const matched = await createTransaction(entry);
+    expect(matched.categoryId).toBe(category.id);
+    await expect(prisma.transactionTag.findMany({ where: { transactionId: matched.id } })).resolves.toMatchObject([{ tagId: tag.id }]);
+    expect((await previewRuleApplications(user.id)).map((application) => application.transaction.id)).toEqual([unmatched.id]);
+  });
+
   it("requires CSRF for login and accepts a signed authenticated session", async () => {
     const password = "integration-password-2026";
     const user = await createUser(password);

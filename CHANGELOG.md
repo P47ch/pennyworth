@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Comma-separated rule alternatives with quoted literal phrases, automatic categorization of new uncategorized expenses, localized save feedback, and an accessible Rules help panel.
+- Enable or disable rules directly from the rule list while retaining their settings and order.
 
 ### Changed
 
@@ -17,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Docker development reloads server code through file polling, avoiding new form actions pointing at routes absent from a stale process.
 - Historical whitespace-only rules remain inert and can be exported and restored in version 10, including quoted line breaks and active rules.
 - CSV and existing-expense previews parse rule terms once per batch instead of once per transaction.
 - Transaction save notices preserve literal rule, category, and tag names containing dollar sequences or translation placeholder text.

@@ -664,10 +664,10 @@ a {
   width: 2.75rem;
   height: 2.75rem;
   place-items: center;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 50%;
-  color: var(--accent-strong);
-  background: var(--panel);
+  color: var(--muted);
+  background: transparent;
   cursor: pointer;
   list-style: none;
 }
@@ -677,9 +677,11 @@ a {
 }
 
 .rules-help > summary:hover,
-.rules-help > summary:focus-visible,
 .rules-help[open] > summary {
-  background: var(--panel-soft);
+  color: var(--accent-strong);
+}
+
+.rules-help > summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

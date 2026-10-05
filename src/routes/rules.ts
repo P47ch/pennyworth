@@ -7,6 +7,7 @@ import {
   listRules,
   moveRule,
   previewRuleApplications,
+  setRuleActiveState,
   updateRule
 } from "../services/rules.js";
 import { listCategories, listTags } from "../services/taxonomy.js";
@@ -136,6 +137,22 @@ export async function ruleRoutes(app: FastifyInstance) {
         error: error instanceof Error ? error.message : "Could not update rule."
       });
     }
+  });
+
+  app.post("/rules/:ruleId/active", async (request, reply) => {
+    const user = await requireCurrentUser(request);
+    const { ruleId } = request.params as { ruleId: string };
+    const activeValue = field(formBody(request.body), "isActive");
+
+    if (activeValue !== "true" && activeValue !== "false") {
+      throw Object.assign(new Error("Choose a valid rule status."), { statusCode: 400 });
+    }
+
+    if (!(await setRuleActiveState(user.id, ruleId, activeValue === "true"))) {
+      throw Object.assign(new Error("Rule not found."), { statusCode: 404 });
+    }
+
+    return reply.redirect("/rules");
   });
 
   app.post("/rules/:ruleId/delete", async (request, reply) => {

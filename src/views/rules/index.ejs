@@ -22,7 +22,7 @@
     </label>
     <label>
       Match text
-      <input name="matchText" value="<%= form.matchText %>" placeholder="lidl, aldi, carrefour" aria-describedby="rule-match-hint" required>
+      <input name="matchText" value="<%= form.matchText %>" placeholder="netflix, spotify, amazon prime" aria-describedby="rule-match-hint" required>
       <small class="muted" id="rule-match-hint">Separate alternatives with commas. Any matching term applies the rule; spaces within a term form a phrase.</small>
     </label>
     <label>
@@ -118,6 +118,11 @@
               <td data-label="Actions">
                 <div class="row-actions">
                   <a class="action-link" href="/rules/<%= rule.id %>/edit">Edit</a>
+                  <form method="post" action="/rules/<%= rule.id %>/active">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <input type="hidden" name="isActive" value="<%= rule.isActive ? 'false' : 'true' %>">
+                    <button class="button-secondary" type="submit" aria-label="<%= t(rule.isActive ? 'Disable rule: {name}' : 'Enable rule: {name}', { name: rule.name }) %>"><%= t(rule.isActive ? "Disable" : "Enable") %></button>
+                  </form>
                   <form method="post" action="/rules/<%= rule.id %>/delete">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-danger" type="submit">Delete</button>

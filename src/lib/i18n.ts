@@ -486,6 +486,10 @@ const italian: Record<string, string> = {
   "Administrator accounts cannot be deactivated here.": "Gli account amministratore non possono essere disattivati qui.",
   "Use the Security page to change your own password.": "Usa la pagina Sicurezza per cambiare la tua password.",
   "How rules work": "Come funzionano le regole",
+  "Enable": "Attiva",
+  "Disable": "Disattiva",
+  "Enable rule: {name}": "Attiva regola: {name}",
+  "Disable rule: {name}": "Disattiva regola: {name}",
   "Separate alternatives with commas. Any matching term applies the rule; spaces within a term form a phrase.":
     "Separa le alternative con virgole. Basta una corrispondenza per applicare la regola; gli spazi all'interno di un termine formano una frase.",
   "Leave empty to apply rules automatically to a new expense.":
@@ -494,8 +498,8 @@ const italian: Record<string, string> = {
     "Le regole attive categorizzano automaticamente le nuove spese senza categoria, comprese le importazioni CSV e le spese ricorrenti generate.",
   "Matching searches description and notes, ignoring capitalization. Commas separate alternatives; any matching word or phrase is enough.":
     "La ricerca avviene nella descrizione e nelle note, senza distinguere maiuscole e minuscole. Le virgole separano alternative; basta una parola o frase corrispondente.",
-  "Spaces stay within a phrase. For example, amazon prime matches that phrase, while lidl, aldi matches either merchant.":
-    "Gli spazi restano all'interno di una frase. Ad esempio, amazon prime cerca quella frase, mentre lidl, aldi cerca uno dei due negozi.",
+  "Spaces stay within a phrase. For example, amazon prime matches that phrase, while netflix, spotify matches either service.":
+    "Gli spazi restano all'interno di una frase. Ad esempio, amazon prime cerca quella frase, mentre netflix, spotify cerca uno dei due servizi.",
   'For a literal comma, quote the phrase: "Smith, Inc". Double quotes inside a quoted phrase must be doubled.':
     'Per una virgola letterale, racchiudi la frase tra virgolette: "Smith, Inc". Le virgolette all\'interno della frase devono essere raddoppiate.',
   "Rules run from top to bottom. The first match supplies the category and adds its tags, preserving existing tags.":

@@ -147,6 +147,14 @@ export async function updateRule(input: {
   });
 }
 
+export async function setRuleActiveState(userId: string, ruleId: string, isActive: boolean) {
+  const result = await prisma.rule.updateMany({
+    where: { id: ruleId, userId },
+    data: { isActive }
+  });
+  return result.count === 1;
+}
+
 export async function deleteRule(userId: string, ruleId: string) {
   await prisma.$transaction(async (tx) => {
     const rule = await tx.rule.findFirst({

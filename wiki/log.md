@@ -210,3 +210,23 @@ Replaced sequential translation substitutions with a single callback-based pass 
 ## [2026-10-02] source-sync | Localize rule validation errors
 
 Updated Add rule and Edit rule to translate server-side validation messages before HTML-escaped rendering. Added 16 regression cases covering all four matching-parser errors in both forms and both interface languages; the eight Italian cases reproduced the review finding before the fix. All 20 Rules view tests and the test TypeScript check passed. Updated the canonical localization page and unreleased changelog.
+
+## [2026-10-02] source-sync | Add quick rule activation and refine help examples
+
+Added localized Enable/Disable form buttons to the rule list with rule-specific accessible names and the existing CSRF protection. State updates are scoped to the current user, set the requested value rather than inverting stale state, and preserve matching settings, tags, and order; saved transactions are not recategorized. Added a PostgreSQL/Fastify regression covering state changes, repeated submissions, access boundaries, unchanged settings, and future matching. Removed the help icon's filled background and outer border while retaining its 44-pixel target and keyboard focus outline. Changed field and localized help examples to Netflix, Spotify, and Amazon Prime. Updated canonical automation, interface, and product status pages alongside the unreleased changelog.
+
+## [2026-10-02] lint | Verify rule-list activation against disposable PostgreSQL
+
+Passed all 231 unit tests, both TypeScript checks, the production build, and all 16 PostgreSQL/Fastify integration tests. Created a separate `pennyworth_rule_test` database in the local Docker PostgreSQL 16 service and used the guarded integration runner; all 25 migrations applied, including the literal-rule migration. The new activation scenario verifies CSRF rejection, malformed state rejection, cross-user denial, repeated requested states, unchanged settings/tags/order, and future matching without changing saved expenses. Eight rendered Rules fixtures passed desktop/mobile English/Italian light/dark checks, including 320-pixel native controls and localized active/inactive actions. Updated product verification evidence to distinguish the earlier unavailable database from this successful run.
+
+## [2026-10-02] source-sync | Repair Docker bind-mount server reload
+
+The live development app served updated Rules templates while its original server process retained the old route table: an authenticated invalid-state POST to the new activation endpoint returned 404 instead of the expected 400. Enabled the installed Chokidar watcher's polling environment settings in the development Compose profile at a 300-millisecond interval and documented app-only recreation. This aligns server module reloads with template updates across Docker Desktop bind mounts. The production profiles and database format are unchanged.
+
+## [2026-10-02] lint | Verify live rule buttons and development reload
+
+Recreated only the app container with polling enabled. The authenticated live route probe now returns the expected 400 for invalid state. Headless Chromium created a temporary rule, clicked Disable and Enable, and verified both actions returned to `/rules` with the correct requested state; the temporary rule was then removed. A source timestamp change produced a confirmed `tsx` restart in Docker logs, followed by successful browser checks. Docker Compose configuration validation and wiki lint passed.
+
+## [2026-10-05] source-sync | Explain development file-watcher settings
+
+Expanded the local-development runbook with a dedicated Development file watching section naming `CHOKIDAR_USEPOLLING` and `CHOKIDAR_INTERVAL`, their configured values, the Docker Desktop bind-mount problem they address, interval tradeoffs, and how to edit and apply the settings. Clarified that the current Compose values are fixed in `app.environment`, require no additional `.env` entries, and apply to the development watcher. Added app-only recreation and log verification commands, and updated the wiki index description.
