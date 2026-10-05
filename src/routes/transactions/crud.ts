@@ -1,4 +1,8 @@
 import type { FastifyInstance } from "fastify";
+import { loadConfig } from "../../lib/config.js";
+import { createTranslator } from "../../lib/i18n.js";
+import { normalizeUserPreferences } from "../../lib/preferences.js";
+import { consumeTransactionNotice, setTransactionNotice } from "../../lib/transactionNotice.js";
 import { listAccountsWithBalances } from "../../services/accounts.js";
 import { listCategories, listTags } from "../../services/taxonomy.js";
 import {
@@ -39,6 +43,7 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
       transactionTypes,
       filters,
       form: transactionFormValues(),
+      notice: consumeTransactionNotice(request, reply, user.id),
       error: null,
     });
   });
@@ -48,11 +53,12 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
     const body = formBody(request.body);
 
     try {
-      await createTransaction({
+      const transaction = await createTransaction({
         userId: user.id,
         ...validateTransactionInput(body)
       });
 
+      setTransactionNotice(reply, user.id, transaction.appliedRule, createTranslator(normalizeUserPreferences(user).language), loadConfig().secureCookies);
       return reply.redirect("/transactions");
     } catch (error) {
       const [transactionPage, accounts, categories, tags] = await Promise.all([
@@ -72,6 +78,7 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
         transactionTypes,
         filters: parseTransactionFilters({}),
         form: transactionFormValues(body),
+        notice: null,
         error: error instanceof Error ? error.message : "Could not create transaction.",
       });
     }

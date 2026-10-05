@@ -2,8 +2,8 @@
 title: Testing and Performance
 type: verification
 status: current
-updated: 2026-09-17
-source_ids: [package-manifest, test-suite, ci-workflow, operational-scripts, database-schema]
+updated: 2026-10-05
+source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema]
 tags: [testing, integration, accessibility, performance, ci]
 ---
 
@@ -32,9 +32,15 @@ Vitest covers money conversion, account balance effects, transfers, monthly summ
 
 The dependency-security verification on 2026-09-17 passed 151 tests in 28 files with Vitest 4.1.11. Treat counts as dated evidence; `npm run test` is the current truth.
 
+The 2026-10-02 rule-review fixes passed 211 unit tests across 35 files, both TypeScript checks, and the production build. Regression coverage checks legacy inert-rule restore/export/reimport and verifies that CSV and existing-expense previews prepare rule text once per batch. The corresponding PostgreSQL backup regression was added, but the guarded integration runner could not start because `TEST_DATABASE_URL` was unset.
+
+Encrypted-backup tamper tests decode the selected ciphertext, authentication tag, salt, or nonce, flip a bit, and re-encode it. This guarantees a byte change while retaining valid Base64 and field lengths. A fixed, valid envelope whose ciphertext starts with `A` covers the case where the previous character-replacement test left its randomized input unchanged. The 2026-10-05 correction passed 232 unit tests across 35 files and the test TypeScript check.
+
 ## Dependency audit
 
 The 2026-09-17 security-maintenance run upgraded Fastify to 5.12.1 and Vitest to 4.1.11, then passed application and test typechecks, the production build, wiki lint, and `npm audit --audit-level=high` with zero reported vulnerabilities. Dependency audit results are time-sensitive; CI and a fresh release-time audit remain authoritative.
+
+The 2026-10-05 CI follow-up raised the Fastify dependency minimum to 5.12.5 and refreshed the lockfile to `fast-uri` 3.1.8/4.2.1 and `brace-expansion` 2.1.7/5.0.12 within their existing major-version ranges. All 232 unit tests, 16 PostgreSQL/Fastify integration tests against the separate `pennyworth_rule_test` database, both TypeScript checks, the production build, and a fresh `npm audit --audit-level=high` passed; the audit reported zero vulnerabilities. The updated packages retain their MIT or BSD-3-Clause licenses and bundled notices, compatible with Pennyworth's MIT distribution.
 
 ## Integration tests
 
@@ -77,6 +83,8 @@ The GitHub Actions workflow first lints the LLM wiki, then starts disposable Pos
 CI configuration is executable truth. When package scripts change, update the workflow and this page together.
 
 ## Performance dataset
+
+An in-memory CSV-preview benchmark on 2026-10-02 used 1,000 uncategorized expense rows and 10,000 unmatched active rules. The original per-transaction parser took 7,393 ms; preparing terms once per preview reduced three subsequent runs to 380, 360, and 351 ms on the same host. This measures the actual CSV-preview function without database access, not the full PostgreSQL bulk workflow. Terms are held only for the current batch, so no cross-request rule cache is required.
 
 Performance tools operate only on the reserved `performance@pennyworth.local` user and refuse production. Generate a dataset on macOS/Linux:
 
@@ -136,6 +144,7 @@ The bulk benchmark requires the seeded `performance@pennyworth.local` user, prev
 ## Sources
 
 - [`package-manifest`](../sources.md#sourcepackage-manifest)
+- [`application-source`](../sources.md#sourceapplication-source)
 - [`test-suite`](../sources.md#sourcetest-suite)
 - [`ci-workflow`](../sources.md#sourceci-workflow)
 - [`operational-scripts`](../sources.md#sourceoperational-scripts)

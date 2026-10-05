@@ -2,7 +2,7 @@
 title: Interface, Localization, and Accessibility
 type: feature
 status: current
-updated: 2026-09-18
+updated: 2026-10-02
 source_ids: [project-contract, application-source, interface-source, finance-source, query-source, package-manifest, test-suite]
 tags: [interface, accessibility, localization, themes]
 ---
@@ -24,6 +24,8 @@ The interface has a grouped sidebar that can collapse to icons on wider screens 
 Authenticated pages also expose an account control in the header. Users may keep up to two initials derived from their name or select one of five bundled Terminal Clerk pixel-art characters: Auditor, Archivist, Operator, Courier, or Custodian. The email local part is a defensive initials fallback. The control opens a native-details account panel containing the signed-in identity, Preferences, Security, and logout; lightweight browser behavior closes it on outside click or Escape. Avatar keys resolve only to registered local assets, and unknown stored values fall back safely to initials.
 
 Forms use accessible labels and native controls. Dense tables gain mobile alternatives or constrained overflow behavior. The visual tone favors calm summaries, clear financial sign/color semantics, and fast transaction entry.
+
+Rules and Edit rule expose a transparent, unframed 44-pixel question-mark control backed by native `details`/`summary`, with an outline for keyboard focus. It opens localized matching and application guidance on tap, click, or keyboard activation, and remains usable without JavaScript. A small enhancement closes it on outside click or Escape and restores focus after Escape. The matching field also has permanent guidance connected with `aria-describedby`; field and help examples use Netflix, Spotify, and Amazon Prime. The rule list offers localized Enable/Disable buttons with rule-specific accessible names alongside its status badges, and works without JavaScript. Transaction creation feedback appears in a server-rendered `role="status"` notice, including applied rule/category and newly added tags when applicable; explicit category choices skip rules.
 
 The login form includes collapsed forgotten-password guidance. Members are directed to another application administrator for a temporary password; the only administrator is directed to the self-hosted console recovery command. The form does not collect an address or imply that Pennyworth can deliver recovery mail.
 
@@ -48,6 +50,10 @@ Migration `20260716001000_replace_legacy_themes` mapped former theme experiments
 ## Localization
 
 Current interface languages are English and Italian. English is the fallback. Static template text and translatable accessibility attributes are localized before EJS compilation through `src/lib/localizedEjs.ts`; user-authored and calculated values are left intact. Translation data and preference normalization live under `src/lib/`.
+
+Translation placeholders are substituted once, with values inserted literally. Rule, category, and tag names in transaction notices retain dollar sequences and placeholder-shaped text; missing values leave their placeholders unchanged.
+
+Add rule and Edit rule translate server-side validation errors into the selected interface language before HTML-escaped rendering, including malformed matching syntax and missing matching terms.
 
 ## Statistics interaction
 

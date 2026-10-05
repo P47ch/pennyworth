@@ -2,7 +2,7 @@
 title: Local Development
 type: runbook
 status: current
-updated: 2026-09-17
+updated: 2026-10-05
 source_ids: [package-manifest, environment-template, container-definitions, operational-scripts, project-contract]
 tags: [development, setup, postgres]
 ---
@@ -80,6 +80,28 @@ docker compose -f compose.dev.yml exec app npm run db:seed
 ```
 
 The source tree is bind-mounted at `/app`; Linux dependencies use the separate `app-node-modules` named volume so Windows host packages are not reused inside the container.
+
+### Development file watching
+
+`npm run dev` uses `tsx watch` to restart the server when watched TypeScript files change. File-change notifications can be missed across Windows/Docker Desktop bind mounts, leaving updated templates and CSS served by a process that still has older routes in memory. The development profile therefore enables periodic file checks through the Chokidar watcher bundled with `tsx`.
+
+Both settings are already configured under `app.environment` in [`compose.dev.yml`](../../compose.dev.yml):
+
+| Variable | Configured value | Purpose |
+| --- | --- | --- |
+| `CHOKIDAR_USEPOLLING` | `"true"` | Check watched files periodically instead of relying on native file-change notifications. |
+| `CHOKIDAR_INTERVAL` | `"300"` | Check watched source files every 300 milliseconds when polling is enabled. |
+
+Developers using this Compose profile do not need additional `.env` entries for these settings. To adjust them, edit the values in `compose.dev.yml`. A shorter interval detects changes sooner but increases filesystem checks and CPU work; a longer interval reduces that work but delays detection. On a system with reliable native file-change notifications, setting `CHOKIDAR_USEPOLLING` to `"false"` switches back to native watching. These settings apply to the development watcher; production runs the compiled application.
+
+After changing the container environment, recreate only the app service:
+
+```bash
+docker compose -f compose.dev.yml up -d --no-deps app
+docker compose -f compose.dev.yml logs -f app
+```
+
+Wait for startup and verify `/readyz`. Editing a watched TypeScript file should produce a `tsx` restart message in the logs. Reload the browser to view the updated page.
 
 ## PostgreSQL on another machine
 

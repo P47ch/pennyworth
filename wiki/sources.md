@@ -2,7 +2,7 @@
 title: Pennyworth Source Map
 type: source-map
 status: current
-updated: 2026-09-17
+updated: 2026-10-02
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [sources, provenance]
 ---
@@ -58,7 +58,7 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Location: [`../prisma/migrations/`](../prisma/migrations/)
 - Kind: executable history
 - Authority: applied PostgreSQL constraints and schema evolution
-- Covers: transaction integrity, tenant integrity, investments, preferences, reporting indexes, and review fixes
+- Covers: transaction integrity, tenant integrity, investments, preferences, reporting indexes, literal-rule matching compatibility, and review fixes
 
 ## source:application-source
 
@@ -107,7 +107,7 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Location: [`../Dockerfile`](../Dockerfile), [`../compose.dev.yml`](../compose.dev.yml), and [`../deploy/`](../deploy/)
 - Kind: executable deployment source
 - Authority: images, services, health checks, ports, volumes, and startup commands
-- Covers: Docker, Podman-compatible Compose, development, private-LAN HTTP production, and managed or externally managed PostgreSQL
+- Covers: Docker, Podman-compatible Compose, development with bind-mount file polling, private-LAN HTTP production, and managed or externally managed PostgreSQL
 
 ## source:environment-template
 

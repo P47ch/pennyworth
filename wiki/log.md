@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Log
 type: log
 status: current
-updated: 2026-09-17
+updated: 2026-10-02
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [log, audit]
 ---
@@ -186,3 +186,55 @@ Clarified that all development branches use Git Flow prefixes with lowercase keb
 ## [2026-09-18] source-sync | Add optional administrator update notification
 
 Added an opt-in, process-local GitHub Release metadata check with SemVer channel filtering, strict response validation, bounded network behavior, cache/ETag handling, and an administrator-only passive interface. No database migration or user backup contract change was required because update state remains process memory only.
+
+## [2026-10-02] source-sync | Resolve rule matching and automatic categorization for issue 7
+
+Added a shared comma-alternative matcher with quoted literal phrases, automatic application to new uncategorized expenses and recurring generation, explicit-category protection including CSV imports, duplicate-safe tag merging, retained validation-error form values, and localized one-time save feedback. Added the native question-mark help control and persistent form guidance, and stopped silently reusing a previous quick-entry category. Published JSON backup schema/starter version 10 and a data migration preserving historical literal matching; version 8 and 9 artifacts remain unchanged, and restore does not rerun categorization rules. Updated canonical automation, transaction, interface, security, backup, product-status, and source pages plus unreleased upgrade notes. Unit tests, application/test typechecks, build, Prisma validation, and wiki lint passed; PostgreSQL integration execution requires an explicit disposable `TEST_DATABASE_URL`.
+
+## [2026-10-02] lint | Verify rule automation and backup compatibility
+
+Validated 206 unit tests across 35 files, both TypeScript checks, production build, Prisma schema, wiki links, and version-10 starter conformance to its published JSON Schema. Targeted rendered Rules fixtures passed desktop/mobile English/Italian light/dark browser checks, keyboard/outside-click dismissal, and native details operation without JavaScript at 320 pixels. Fixed the mobile help panel's keyboard-focusable scroll region after axe identified it. The guarded integration runner refused to start without `TEST_DATABASE_URL`; no configured database was changed. Historical version 8/9 schemas and examples remain untouched, and final branch `feature/issue-7-rule-automation` follows the repository's Git Flow convention.
+
+## [2026-10-02] source-sync | Fix inert-rule backup compatibility and repeated bulk parsing
+
+Preserved historical whitespace-only and quoted whitespace-only rules as inert backup records regardless of active state, while retaining strict rule-form validation. Updated the unpublished version-10 schema description and starter, JSON contract and recovery documentation, automation behavior, and unreleased notes; historical schema/example artifacts and application version remain unchanged. Added regression tests covering active/inactive legacy restore, export, and reimport across spaces, tabs, and quoted line breaks, plus deterministic preparation-count checks for CSV and existing-expense previews. Prepared matching terms once per batch without retaining a cache across requests. All 211 unit tests, application/test TypeScript checks, and the production build passed. The actual CSV-preview benchmark with 1,000 uncategorized rows and 10,000 unmatched rules improved from 7,393 ms to 351–380 ms. Added a PostgreSQL backup regression; integration execution stopped at its safety guard because `TEST_DATABASE_URL` was unset.
+
+## [2026-10-02] lint | Verify rule-review fixes and published backup examples
+
+Wiki lint passed with 22 pages and 21 source IDs. Validated the version-10 starter and representative inert-rule variants against the JSON Schema 2020-12 structure using the existing Ajv runtime. The starter also passes the authoritative importer regression test. Reviewed the final matching and backup paths, documentation references, and diff whitespace checks; superseded version-8/9 artifacts were preserved.
+
+## [2026-10-02] source-sync | Preserve literal labels in transaction notices
+
+Replaced sequential translation substitutions with a single callback-based pass so dollar sequences and placeholder-shaped rule, category, and tag names retain their exact text. Missing or inherited values leave placeholders unchanged. Added English/Italian interpolation regressions and a signed-cookie notice regression; three new cases reproduced the bug before the fix. All 215 unit tests and both application/test TypeScript checks passed. Updated the canonical localization page and unreleased changelog.
+
+## [2026-10-02] source-sync | Localize rule validation errors
+
+Updated Add rule and Edit rule to translate server-side validation messages before HTML-escaped rendering. Added 16 regression cases covering all four matching-parser errors in both forms and both interface languages; the eight Italian cases reproduced the review finding before the fix. All 20 Rules view tests and the test TypeScript check passed. Updated the canonical localization page and unreleased changelog.
+
+## [2026-10-02] source-sync | Add quick rule activation and refine help examples
+
+Added localized Enable/Disable form buttons to the rule list with rule-specific accessible names and the existing CSRF protection. State updates are scoped to the current user, set the requested value rather than inverting stale state, and preserve matching settings, tags, and order; saved transactions are not recategorized. Added a PostgreSQL/Fastify regression covering state changes, repeated submissions, access boundaries, unchanged settings, and future matching. Removed the help icon's filled background and outer border while retaining its 44-pixel target and keyboard focus outline. Changed field and localized help examples to Netflix, Spotify, and Amazon Prime. Updated canonical automation, interface, and product status pages alongside the unreleased changelog.
+
+## [2026-10-02] lint | Verify rule-list activation against disposable PostgreSQL
+
+Passed all 231 unit tests, both TypeScript checks, the production build, and all 16 PostgreSQL/Fastify integration tests. Created a separate `pennyworth_rule_test` database in the local Docker PostgreSQL 16 service and used the guarded integration runner; all 25 migrations applied, including the literal-rule migration. The new activation scenario verifies CSRF rejection, malformed state rejection, cross-user denial, repeated requested states, unchanged settings/tags/order, and future matching without changing saved expenses. Eight rendered Rules fixtures passed desktop/mobile English/Italian light/dark checks, including 320-pixel native controls and localized active/inactive actions. Updated product verification evidence to distinguish the earlier unavailable database from this successful run.
+
+## [2026-10-02] source-sync | Repair Docker bind-mount server reload
+
+The live development app served updated Rules templates while its original server process retained the old route table: an authenticated invalid-state POST to the new activation endpoint returned 404 instead of the expected 400. Enabled the installed Chokidar watcher's polling environment settings in the development Compose profile at a 300-millisecond interval and documented app-only recreation. This aligns server module reloads with template updates across Docker Desktop bind mounts. The production profiles and database format are unchanged.
+
+## [2026-10-02] lint | Verify live rule buttons and development reload
+
+Recreated only the app container with polling enabled. The authenticated live route probe now returns the expected 400 for invalid state. Headless Chromium created a temporary rule, clicked Disable and Enable, and verified both actions returned to `/rules` with the correct requested state; the temporary rule was then removed. A source timestamp change produced a confirmed `tsx` restart in Docker logs, followed by successful browser checks. Docker Compose configuration validation and wiki lint passed.
+
+## [2026-10-05] source-sync | Explain development file-watcher settings
+
+Expanded the local-development runbook with a dedicated Development file watching section naming `CHOKIDAR_USEPOLLING` and `CHOKIDAR_INTERVAL`, their configured values, the Docker Desktop bind-mount problem they address, interval tradeoffs, and how to edit and apply the settings. Clarified that the current Compose values are fixed in `app.environment`, require no additional `.env` entries, and apply to the development watcher. Added app-only recreation and log verification commands, and updated the wiki index description.
+
+## [2026-10-05] source-sync | Make encrypted-backup tampering tests deterministic
+
+Investigated failed GitHub Actions run `37290967655`: the ciphertext tampering test replaced its first Base64 character with `A`, leaving the encrypted envelope unchanged whenever random ciphertext already began with that character. Added a fixed valid envelope starting with `A` and reproduced the failed rejection deterministically before correcting the shared mutation helper. Ciphertext, tag, salt, and nonce tests now flip a decoded bit and preserve canonical Base64 and field lengths. All 232 unit tests and the test TypeScript check passed. Updated the canonical testing page and unreleased changelog; application encryption and backup contracts retain their existing behavior.
+
+## [2026-10-05] source-sync | Patch dependencies exposed by the CI audit
+
+GitHub Actions run `37292247421` passed the corrected encryption tests, PostgreSQL integration tests, typechecks, and build, then failed the high-severity dependency audit. Raised the Fastify minimum to 5.12.5 and refreshed only the affected lockfile packages: Fastify 5.12.5, `fast-uri` 3.1.8/4.2.1, and `brace-expansion` 2.1.7/5.0.12. Verified the updated packages retain compatible MIT or BSD-3-Clause licenses and their bundled notices. All 232 unit tests, 16 PostgreSQL/Fastify integration tests against the disposable `pennyworth_rule_test` database, both TypeScript checks, and the production build passed; a fresh audit reported zero vulnerabilities. Updated the canonical testing page and unreleased changelog. Application and backup schema versions remain unchanged for this development fix.

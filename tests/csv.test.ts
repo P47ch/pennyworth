@@ -274,6 +274,20 @@ describe("transaction csv import preview", () => {
     expect(preview.rows[0].appliedRuleName).toBe("Corner stores");
   });
 
+  it("prepares rule text once for the entire CSV preview", () => {
+    let matchTextReads = 0;
+    const preview = previewTransactionImportCsv(
+      [
+        "date,type,amount,account,description",
+        ...Array.from({ length: 100 }, (_, index) => `2026-07-01,expense,45.20,Checking,ALDI shopping ${index}`)
+      ].join("\n"),
+      { ...refs, rules: [{ ...groceryRule, get matchText() { matchTextReads += 1; return "lidl, ALDI"; } }] }
+    );
+    expect(preview.validCount).toBe(100);
+    expect(preview.rows.every((row) => row.categoryId === "food" && row.appliedRuleName === "Grocery stores")).toBe(true);
+    expect(matchTextReads).toBe(1);
+  });
+
   it("does not override mapped categories with rules", () => {
     const preview = previewTransactionImportCsv(
       [
@@ -284,8 +298,21 @@ describe("transaction csv import preview", () => {
     );
 
     expect(preview.rows[0].categoryId).toBe("food");
+    expect(preview.rows[0].appliedRuleName).toBeNull();
+    expect(preview.rows[0].warnings).not.toContain("Rule applied: Grocery stores.");
+    expect(preview.rows[0].tagIds).toEqual([]);
+  });
+
+  it("matches comma alternatives in notes and merges rule tags with supplied tags", () => {
+    const preview = previewTransactionImportCsv(
+      [
+        "date,type,amount,account,destination_account,category,tags,description,notes",
+        "2026-07-01,expense,45.20,Checking,,,recurring,Card payment,ALDI weekly shopping"
+      ].join("\n"),
+      { ...refs, rules: [{ ...groceryRule, matchText: "lidl, aldi, carrefour" }] }
+    );
+    expect(preview.rows[0].categoryId).toBe("food");
     expect(preview.rows[0].appliedRuleName).toBe("Grocery stores");
-    expect(preview.rows[0].warnings).toContain("Rule applied: Grocery stores.");
     expect(preview.rows[0].tagIds).toEqual(["recurring"]);
   });
 

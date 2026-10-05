@@ -1,5 +1,7 @@
 import type { Prisma, TransactionType } from "@prisma/client";
 import { prisma } from "../lib/db.js";
+import { matchRuleForText, type AppliedRule } from "../lib/ruleMatching.js";
+import { listActiveRules } from "./rules.js";
 import {
   assertCategorySupportsTransaction,
   lockCategoriesForUse,
@@ -210,14 +212,22 @@ export async function createTransaction(input: {
   description?: string;
   notes?: string;
   tagIds: string[];
-}, db: Prisma.TransactionClient | typeof prisma = prisma): Promise<Prisma.TransactionGetPayload<{}>> {
+}, db: Prisma.TransactionClient | typeof prisma = prisma): Promise<Prisma.TransactionGetPayload<{}> & { appliedRule: AppliedRule | null }> {
   if (db === prisma) {
     return prisma.$transaction((tx) => createTransaction(input, tx));
   }
 
-  await assertTransactionReferences(input, db);
+  const rule = input.type === "expense" && !input.categoryId
+    ? matchRuleForText(input, await listActiveRules(input.userId, db))
+    : null;
+  const categoryId = rule?.categoryId ?? input.categoryId;
+  const existingTagIds = new Set(input.tagIds);
+  const addedTags = rule?.tags.map((item) => item.tag).filter((tag) => !existingTagIds.has(tag.id)) ?? [];
+  const tagIds = [...input.tagIds, ...addedTags.map((tag) => tag.id)];
 
-  return db.transaction.create({
+  await assertTransactionReferences({ ...input, categoryId, tagIds }, db);
+
+  const transaction = await db.transaction.create({
     data: {
       userId: input.userId,
       type: input.type,
@@ -225,16 +235,21 @@ export async function createTransaction(input: {
       amountMinor: input.amountMinor,
       sourceAccountId: input.sourceAccountId || null,
       destinationAccountId: input.type === "transfer" ? input.destinationAccountId || null : null,
-      categoryId: input.type === "transfer" ? null : input.categoryId || null,
+      categoryId: input.type === "transfer" ? null : categoryId || null,
       description: input.description || null,
       notes: input.notes || null,
       tags: {
-        create: Array.from(new Set(input.tagIds)).map((tagId) => ({
+        create: Array.from(new Set(tagIds)).map((tagId) => ({
           tag: { connect: { id_userId: { id: tagId, userId: input.userId } } }
         }))
       }
     }
   });
+
+  return {
+    ...transaction,
+    appliedRule: rule ? { name: rule.name, categoryName: rule.category.name, addedTagNames: addedTags.map((tag) => tag.name) } : null
+  };
 }
 
 export async function updateTransaction(input: {

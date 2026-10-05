@@ -20,6 +20,12 @@ function changedEnvelope(envelope: string, mutate: (value: Record<string, unknow
   return JSON.stringify(value);
 }
 
+function changedBase64Byte(value: unknown): string {
+  const bytes = Buffer.from(String(value), "base64");
+  bytes[0] ^= 1;
+  return bytes.toString("base64");
+}
+
 describe("encrypted backup envelope", () => {
   it("round-trips the documented format and keeps repeated exports distinct", async () => {
     const [first, second] = await Promise.all([
@@ -55,12 +61,32 @@ describe("encrypted backup envelope", () => {
     await expect(decryptBackupJson(legacyEnvelope, "a")).resolves.toBe("legacy");
   });
 
+  it("rejects modified ciphertext whose Base64 starts with A", async () => {
+    const envelope = JSON.stringify({
+      format: encryptedBackupFormat,
+      version: encryptedBackupFormatVersion,
+      kdf: { algorithm: "scrypt", N: 131_072, r: 8, p: 1, keyLength: 32 },
+      cipher: { algorithm: "aes-256-gcm" },
+      salt: "TIPtsxSDKlD43YKr18jixg==",
+      nonce: "YJBEAfDL6C3MbQPH",
+      tag: "Q6zgy6lGl4ukZAlOtbiSVQ==",
+      ciphertext: "AMlItQk8Tj6RjnQQ6a3wdKoI7R34"
+    });
+    await expect(decryptBackupJson(envelope, "vector passphrase")).resolves.toBe("Mest vector plaintext");
+
+    const candidate = changedEnvelope(envelope, (value) => {
+      value.ciphertext = changedBase64Byte(value.ciphertext);
+    });
+
+    await expect(decryptBackupJson(candidate, "vector passphrase")).rejects.toBeInstanceOf(EncryptedBackupError);
+  });
+
   it.each([
     ["wrong passphrase", (value: string) => value],
-    ["modified ciphertext", (value: string) => changedEnvelope(value, (envelope) => { envelope.ciphertext = `A${String(envelope.ciphertext).slice(1)}`; })],
-    ["modified tag", (value: string) => changedEnvelope(value, (envelope) => { envelope.tag = `A${String(envelope.tag).slice(1)}`; })],
-    ["modified salt", (value: string) => changedEnvelope(value, (envelope) => { envelope.salt = `A${String(envelope.salt).slice(1)}`; })],
-    ["modified metadata", (value: string) => changedEnvelope(value, (envelope) => { envelope.nonce = "AAAAAAAAAAAAAAAA"; })],
+    ["modified ciphertext", (value: string) => changedEnvelope(value, (envelope) => { envelope.ciphertext = changedBase64Byte(envelope.ciphertext); })],
+    ["modified tag", (value: string) => changedEnvelope(value, (envelope) => { envelope.tag = changedBase64Byte(envelope.tag); })],
+    ["modified salt", (value: string) => changedEnvelope(value, (envelope) => { envelope.salt = changedBase64Byte(envelope.salt); })],
+    ["modified metadata", (value: string) => changedEnvelope(value, (envelope) => { envelope.nonce = changedBase64Byte(envelope.nonce); })],
     ["unsupported KDF", (value: string) => changedEnvelope(value, (envelope) => { (envelope.kdf as Record<string, unknown>).N = 2; })],
     ["truncated envelope", (value: string) => value.slice(0, -5)]
   ])("fails safely for %s", async (label, mutate) => {

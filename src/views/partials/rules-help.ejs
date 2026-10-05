@@ -1,0 +1,18 @@
+<details class="rules-help" data-rules-help>
+  <summary aria-label="<%= t("How rules work") %>" title="<%= t("How rules work") %>">
+    <%- icon("help") %>
+  </summary>
+  <div class="rules-help-content" role="region" aria-labelledby="rules-help-title" tabindex="0">
+    <h2 id="rules-help-title"><%= t("How rules work") %></h2>
+    <ul>
+      <li><%= t("Active rules automatically categorize new expenses without a category, including CSV imports and generated recurring expenses.") %></li>
+      <li><%= t("Matching searches description and notes, ignoring capitalization. Commas separate alternatives; any matching word or phrase is enough.") %></li>
+      <li><%= t("Spaces stay within a phrase. For example, amazon prime matches that phrase, while netflix, spotify matches either service.") %></li>
+      <li><%= t('For a literal comma, quote the phrase: "Smith, Inc". Double quotes inside a quoted phrase must be doubled.') %></li>
+      <li><%= t("Rules run from top to bottom. The first match supplies the category and adds its tags, preserving existing tags.") %></li>
+      <li><%= t("Choosing a category yourself skips rules. Income and transfers are not affected.") %></li>
+      <li><%= t("Editing transactions, changing rules, and restoring backups do not automatically recategorize saved data.") %></li>
+      <li><%= t("Use Apply to existing to preview and confirm changes to uncategorized expenses, in batches of up to 500 candidates.") %></li>
+    </ul>
+  </div>
+</details>

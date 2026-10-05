@@ -2,7 +2,7 @@
 title: Transactions and CSV
 type: feature
 status: current
-updated: 2026-09-15
+updated: 2026-10-02
 source_ids: [project-contract, application-source, finance-source, query-source, database-schema, migrations, test-suite]
 tags: [transactions, csv, ledger]
 ---
@@ -22,6 +22,8 @@ The authenticated UI supports create, edit, delete, filtered browsing, and pagin
 - Delete actions require explicit user interaction; normal records are not soft-deleted.
 
 Browsing supports date, type, account, category, tag, and text filters. Normal pages return at most 50 transactions; CSV export intentionally returns every transaction matching the active filters.
+
+New uncategorized expenses use the [categorization rules](automation.md#categorization-rules), merging rule tags while preserving manually selected tags. An explicitly selected category skips all rule changes. Manual and recurring creation show localized save feedback with the matched rule and resulting category/tags. Quick entry remembers the account but leaves the category empty rather than silently reusing a previous category. Edits keep the user's choices and never rerun rules automatically.
 
 ## CSV export
 

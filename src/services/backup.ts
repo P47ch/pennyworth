@@ -8,9 +8,10 @@ import {
   bulkWorkflowTransactionTimeoutMs
 } from "./bulkWorkflow.js";
 import { validateBackupRelationshipSemantics } from "./relationshipValidation.js";
+import { encodeLegacyRuleMatchText, validateBackupRuleMatchText } from "../lib/ruleMatching.js";
 
 const primaryCurrency = loadConfig().primaryCurrency;
-export const currentBackupSchemaVersion = 9;
+export const currentBackupSchemaVersion = 10;
 
 type BackupRecord = Record<string, unknown>;
 const restoreBatchSize = bulkWorkflowBatchSize;
@@ -375,7 +376,8 @@ function previewParsedBackup(backup: BackupRecord): BackupPreview {
     backup.schemaVersion !== 6 &&
     backup.schemaVersion !== 7 &&
     backup.schemaVersion !== 8 &&
-    backup.schemaVersion !== 9
+    backup.schemaVersion !== 9 &&
+    backup.schemaVersion !== 10
   ) {
     throw new Error("Unsupported backup schema version.");
   }
@@ -387,6 +389,16 @@ function previewParsedBackup(backup: BackupRecord): BackupPreview {
   const transactions = arrayValue(backup.transactions, "transactions");
   const budgets = typeof backup.budgets === "undefined" ? [] : arrayValue(backup.budgets, "budgets");
   const rules = typeof backup.rules === "undefined" ? [] : arrayValue(backup.rules, "rules");
+  for (const [index, rule] of rules.entries()) {
+    const matchText = stringValue(rule.matchText, `rules[${index}].matchText`);
+    if (backup.schemaVersion === 10) {
+      try {
+        validateBackupRuleMatchText(matchText);
+      } catch (error) {
+        throw new Error(`rules[${index}].matchText: ${error instanceof Error ? error.message : "Invalid match text."}`);
+      }
+    }
+  }
   const recurringTransactions =
     typeof backup.recurringTransactions === "undefined" ? [] : arrayValue(backup.recurringTransactions, "recurringTransactions");
   const assets = typeof backup.assets === "undefined" ? [] : arrayValue(backup.assets, "assets");
@@ -785,7 +797,9 @@ export async function restoreUserBackup(userId: string, rawJson: string) {
       userId,
       categoryId: stringValue(rule.categoryId, `rules[${index}].categoryId`),
       name: stringValue(rule.name, `rules[${index}].name`),
-      matchText: stringValue(rule.matchText, `rules[${index}].matchText`),
+      matchText: backup.schemaVersion === 10
+        ? stringValue(rule.matchText, `rules[${index}].matchText`)
+        : encodeLegacyRuleMatchText(stringValue(rule.matchText, `rules[${index}].matchText`)),
       priority: typeof rule.priority === "undefined" ? index * 10 : numberValue(rule.priority, `rules[${index}].priority`),
       isActive: booleanValue(rule.isActive, true),
       createdAt: dateValue(rule.createdAt, `rules[${index}].createdAt`),

@@ -2,7 +2,7 @@
 title: Product Status and Roadmap
 type: status
 status: current
-updated: 2026-09-18
+updated: 2026-10-02
 source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy]
 tags: [status, roadmap, verification]
 ---
@@ -25,7 +25,7 @@ Pennyworth `0.8.0-alpha.1` is an actively developed public preview, not a stable
 - Statistics with 12-month net-worth, per-account balance, monthly cashflow, and category-spending history; category/tag drilldowns; largest expenses; and current account balances.
 - Transaction filters, pagination, CSV export, CSV mapping/import preview, duplicate handling, and formula-safe exported text.
 - Retried and concurrent CSV confirmations are idempotent through user-scoped import receipts.
-- Categorization-rule priority, optional rule tags, import-time rule application, and preview against existing expenses.
+- Categorization-rule priority, comma-separated alternatives, optional rule tags, direct list Enable/Disable actions, automatic application to new uncategorized expenses and recurring generation, CSV preview, localized save feedback, and explicit preview against existing expenses.
 - Manual recurring generation for monthly income, expenses, and transfers.
 - Asset catalog, manual prices, investment activity, cash impact, derived positions, average cost, valuation, and allocation reporting.
 - JSON backup and transactional restore across supported user-owned records; investment projections are rebuilt rather than backed up.
@@ -54,6 +54,12 @@ The guarded integration runner was not executed in that review because `TEST_DAT
 The isolated-user implementation was locally verified on 2026-09-03 with 120 unit tests across 24 files, application and test TypeScript checks, a production build, Prisma schema validation, and wiki lint. Its new PostgreSQL/Fastify provisioning and access-revocation scenario is present in the guarded integration suite but was not executed because `TEST_DATABASE_URL` was unavailable.
 
 A documentation publication audit on 2026-09-04 passed 137 unit tests across 26 files, application and test TypeScript checks, a production build, Prisma schema validation, wiki lint, local Markdown-link checks, and parsing of all three Compose definitions with `.env.example`. It did not rerun the guarded integration suite, live browser accessibility audit, live deployment, or Podman smoke test.
+
+The rule-automation change was initially verified on 2026-10-02 with 206 unit tests across 35 files, application and test TypeScript checks, a production build, Prisma validation, wiki lint, and published version-10 starter validation against its JSON Schema. Targeted Rules-page browser fixtures passed six JavaScript-enabled desktop/mobile English/Italian light/dark scenarios with no WCAG axe violations, plus two native-control scenarios with JavaScript disabled (including a 320-pixel viewport). This was fixture-based UI verification, not a full authenticated application audit. At that stage, the guarded PostgreSQL suite exited before any database operation because `TEST_DATABASE_URL` was absent, and the new data migration remained unapplied locally.
+
+Review fixes on the same date preserved inert legacy rules through version-10 backup export/reimport and removed repeated parsing from bulk rule matching. Verification passed 211 unit tests, both TypeScript checks, and the production build. The actual 1,000-row/10,000-rule CSV-preview benchmark improved from 7.4 seconds to 0.35–0.38 seconds; see [testing and performance](../operations/testing-and-performance.md) for its scope. The PostgreSQL regression was still pending at that stage.
+
+Follow-up verification on 2026-10-02 passed 231 unit tests across 35 files, both TypeScript checks, the production build, and all 16 PostgreSQL/Fastify integration tests against a separate disposable `pennyworth_rule_test` database in Docker PostgreSQL 16. All 25 migrations applied successfully there, including the literal-rule migration. The integration suite verifies the new list Enable/Disable action, CSRF and user ownership, repeated state submissions, unchanged settings and saved transactions, and future matching. Eight Rules browser fixtures also passed desktop/mobile English/Italian light/dark checks, including native controls without JavaScript and both active/inactive buttons.
 
 ## Current focus
 
