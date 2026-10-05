@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Create categories and tags from transaction quick entry in accessible dialogs, preserving the draft and selecting the new record immediately.
 - Comma-separated rule alternatives with quoted literal phrases, automatic categorization of new uncategorized expenses, localized save feedback, and an accessible Rules help panel.
 - Enable or disable rules directly from the rule list while retaining their settings and order.
 
@@ -18,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Quick category/tag creation can recover a saved record after an interrupted response through an explicit Use existing action, preserving the transaction draft and checking category compatibility.
 - Type selectors, badges, and summaries use capitalized, localized labels with readable spaces and the ETF acronym.
 - Update Fastify and the locked `fast-uri` and `brace-expansion` dependencies to compatible versions that clear the high-severity dependency audit.
 - Encrypted-backup tampering tests always change a byte, preventing intermittent CI failures when a random Base64 value already starts with `A`.

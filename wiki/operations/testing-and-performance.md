@@ -76,6 +76,21 @@ The Playwright/axe-core script signs in and checks main authenticated routes in 
 
 The last recorded sweep on 2026-07-18 covered 16 routes across both viewports without failures.
 
+## Quick-entry dialog checks
+
+Install the Chromium browser used by the existing Playwright dependency, then run:
+
+```bash
+npx playwright install chromium
+npm run test:quick-entry
+```
+
+This command serves UTF-8 rendered transaction fixtures on a temporary loopback port and intercepts creation responses, so it needs no database, running app, or real financial data. It checks English/Italian desktop and 320-pixel mobile layouts in light/dark themes, empty/populated category/tag lists, initial focus, Escape/cancel behavior, immediate selection, literal user names, draft preservation, transaction-type compatibility, duplicate/network/session/CSRF/non-JSON failures, and repeated submission. For both categories and tags it also simulates persistence followed by a lost or truncated response, then retries: exactly one record persists, the draft stays unchanged until explicit **Use existing**, and recovery retains existing tags. Incompatible conflicts offer no selection; editing or reopening clears the old candidate. Playwright examines open, conflict, and error dialogs with axe; ordinary controls remain usable in a separate JavaScript-disabled fixture. CI runs this command after installing Chromium and before the full authenticated audit.
+
+The 2026-10-05 issue #6 implementation passed 239 unit tests across 36 files, all 17 PostgreSQL/Fastify integration tests against the separate `pennyworth_issue6_test` database, both TypeScript checks, and the production build. The new integration scenario verifies actual creation, foreign-parent rejection, localized validation, duplicate races, minimal JSON responses, CSRF/session restrictions, escaped names, and persistence of the created references in a saved transaction. Eight browser fixtures passed the dialog checks with no axe violations or horizontal overflow, plus the JavaScript-disabled fallback. A full authenticated accessibility audit against a separately seeded app on port 3001 and the same test database passed all 17 routes in desktop/mobile viewports with zero violations, overflow, or browser failures. Wiki lint also passed. Windows Prisma migration diagnostics were initially empty; the successful integration run used the development container's configured credentials without printing them and changed only the database name to the disposable test database.
+
+The same day's interrupted-response remediation passed 239 unit tests, all 18 PostgreSQL/Fastify integration tests, both TypeScript checks, the production build, and all eight expanded browser fixtures plus the JavaScript-disabled fallback. The additional integration test discards successful category/tag responses, retries with differing details, and verifies recovery of the same user-owned IDs, exactly one record per name, and unchanged stored settings, even when another user owns the same names. Its separate injected client address keeps the login rate-limit bucket independent of other scenarios. Browser regressions verify explicit recovery and preserved draft selections in both languages, themes, and viewports, with no axe violations or horizontal overflow. Live deployment and other browser engines were not exercised for this remediation.
+
 ## CI
 
 The GitHub Actions workflow first lints the LLM wiki, then starts disposable PostgreSQL, applies migrations, prepares the audit user, and runs unit tests, guarded integration tests, application/test typechecks, build, high-severity dependency audit, and browser accessibility audit.

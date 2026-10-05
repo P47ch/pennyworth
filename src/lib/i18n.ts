@@ -1,6 +1,37 @@
 import type { Language } from "./preferences.js";
 
 const italian: Record<string, string> = {
+  "Cancel": "Annulla",
+  "Optional details": "Dettagli facoltativi",
+  "Saved immediately, even if you do not save the transaction.": "Salvata subito, anche se non salvi la transazione.",
+  "Category created and selected.": "Categoria creata e selezionata.",
+  "Tag created and selected.": "Etichetta creata e selezionata.",
+  "Could not save. Check your connection and try again.": "Salvataggio non riuscito. Controlla la connessione e riprova.",
+  "Your session needs attention. Sign in or change your password in another tab, then try again. Your transaction is still here.":
+    "La sessione richiede attenzione. Accedi o cambia la password in un'altra scheda, poi riprova. La transazione è ancora qui.",
+  "The form token was refreshed. Try saving again. Your transaction is still here.":
+    "Il token del modulo è stato aggiornato. Riprova a salvare. La transazione è ancora qui.",
+  "Use existing": "Usa esistente",
+  "Use the saved item with this name. Its existing details will be kept.":
+    "Usa l'elemento salvato con questo nome. I suoi dettagli esistenti saranno mantenuti.",
+  "This category cannot be used for this transaction type. Choose a different name.":
+    "Questa categoria non può essere usata per questo tipo di transazione. Scegli un nome diverso.",
+  "Existing category selected.": "Categoria esistente selezionata.",
+  "Existing tag selected.": "Etichetta esistente selezionata.",
+  "Check the submitted fields.": "Controlla i campi inviati.",
+  "Category name is required.": "Il nome della categoria è obbligatorio.",
+  "Tag name is required.": "Il nome dell'etichetta è obbligatorio.",
+  "Choose a valid category type.": "Scegli un tipo di categoria valido.",
+  "Choose a valid parent category.": "Scegli una categoria principale valida.",
+  "Choose a valid color.": "Scegli un colore valido.",
+  "Choose a valid icon.": "Scegli un'icona valida.",
+  "Category hierarchy contains a cycle.": "La gerarchia delle categorie contiene un ciclo.",
+  "A category cannot be its own parent.": "Una categoria non può essere la propria categoria principale.",
+  "A category cannot use one of its children as parent.": "Una categoria non può usare una propria sottocategoria come categoria principale.",
+  "A category with that name already exists.": "Esiste già una categoria con questo nome.",
+  "A tag with that name already exists.": "Esiste già un'etichetta con questo nome.",
+  "Could not create category. Try again in a moment.": "Creazione della categoria non riuscita. Riprova tra poco.",
+  "Could not create tag. Try again in a moment.": "Creazione dell'etichetta non riuscita. Riprova tra poco.",
   "% used": "% utilizzato",
   "% of budget used": "% del budget utilizzato",
   "Account": "Account",

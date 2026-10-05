@@ -138,6 +138,7 @@ npm run test:typecheck       # type-check tests
 npm run typecheck            # type-check application
 npm run test:integration     # guarded PostgreSQL/Fastify integration suite
 npm run audit:a11y           # live authenticated browser audit
+npm run test:quick-entry     # isolated dialog browser/a11y checks (Chromium required)
 npm run db:generate          # generate Prisma Client
 npm run db:migrate           # create/apply development migration
 npm run db:deploy            # apply existing migrations

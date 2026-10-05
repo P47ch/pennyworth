@@ -1268,6 +1268,136 @@ describe("Password recovery", () => {
 });
 
 describe("Fastify authentication boundary", () => {
+  it("quickly creates user-owned taxonomy with CSRF, localized errors, and duplicate protection", async () => {
+    const password = "quick-taxonomy-integration-2026";
+    const [user, otherUser] = await Promise.all([createUser(password), createUser()]);
+    await prisma.user.update({ where: { id: user.id }, data: { language: "it" } });
+    const account = await createAccount(user.id, "quick-taxonomy", 10_000);
+    const parent = await prisma.category.create({ data: { userId: user.id, name: "Household", type: "expense" } });
+    const foreignParent = await prisma.category.create({ data: { userId: otherUser.id, name: "Household", type: "expense" } });
+
+    const loginPage = await app.inject({ method: "GET", url: "/login" });
+    const csrfCookie = responseCookie(loginPage, "pennyworth_csrf");
+    const csrfToken = loginPage.body.match(/name="csrfToken" value="([^"]+)"/)?.[1] ?? "";
+    const login = await app.inject({ method: "POST", url: "/login", headers: { cookie: csrfCookie, "content-type": "application/x-www-form-urlencoded" }, payload: new URLSearchParams({ csrfToken, email: user.email, password }).toString() });
+    const cookie = `${csrfCookie}; ${responseCookie(login, sessionCookieName)}`;
+    const post = (url: string, values: Record<string, string>, token = csrfToken, cookies = cookie) => app.inject({
+      method: "POST", url, headers: { cookie: cookies, "content-type": "application/x-www-form-urlencoded" },
+      payload: new URLSearchParams({ csrfToken: token, ...values }).toString()
+    });
+
+    for (const url of ["/categories/quick", "/tags/quick"]) {
+      expect((await post(url, { name: "Denied", type: "expense" }, "")).statusCode).toBe(403);
+      expect((await post(url, { name: "Denied", type: "expense" }, "incorrect")).statusCode).toBe(403);
+      const anonymous = await post(url, { name: "Denied", type: "expense" }, csrfToken, csrfCookie);
+      expect(anonymous.statusCode).toBe(302);
+      expect(anonymous.headers.location).toBe("/login");
+    }
+    const invalidParent = await post("/categories/quick", { name: "Food", type: "expense", parentId: foreignParent.id });
+    expect(invalidParent.statusCode).toBe(400);
+    expect(invalidParent.json()).toEqual({ error: "Scegli una categoria principale valida." });
+    expect((await post("/categories/quick", { name: "Food", type: "transfer" })).statusCode).toBe(400);
+    expect((await post("/categories/quick", { name: "Food", type: "expense", color: "red" })).statusCode).toBe(400);
+    expect((await post("/categories/quick", { name: "Food", type: "expense", icon: "<svg>" })).statusCode).toBe(400);
+    const emptyTag = await post("/tags/quick", { name: "  " });
+    expect(emptyTag.statusCode).toBe(400);
+    expect(emptyTag.json()).toEqual({ error: "Il nome dell'etichetta è obbligatorio." });
+
+    const categoryName = "Food <img src=x> $&";
+    const createdCategory = await post("/categories/quick", {
+      name: ` ${categoryName} `, type: "expense", parentId: parent.id, color: "#AABBCC", icon: "food", userId: otherUser.id
+    });
+    expect(createdCategory.statusCode).toBe(201);
+    expect(createdCategory.headers["content-type"]).toContain("application/json");
+    const category = createdCategory.json().category as { id: string; name: string; type: string };
+    expect(Object.keys(category).sort()).toEqual(["id", "name", "type"]);
+    expect(category).toMatchObject({ name: categoryName, type: "expense" });
+    await expect(prisma.category.findUnique({ where: { id: category.id } })).resolves.toMatchObject({
+      userId: user.id, parentId: parent.id, color: "#aabbcc", icon: "food"
+    });
+    const duplicateCategory = await post("/categories/quick", { name: categoryName, type: "expense" });
+    expect(duplicateCategory.statusCode).toBe(409);
+    expect(duplicateCategory.json()).toEqual({ error: "Esiste già una categoria con questo nome.", existing: category });
+
+    const concurrentTags = await Promise.all([
+      post("/tags/quick", { name: "travel", color: "#123456", userId: otherUser.id }),
+      post("/tags/quick", { name: "travel", color: "#123456", userId: otherUser.id })
+    ]);
+    expect(concurrentTags.map((response) => response.statusCode).sort()).toEqual([201, 409]);
+    const tag = concurrentTags.find((response) => response.statusCode === 201)!.json().tag as { id: string; name: string };
+    expect(Object.keys(tag).sort()).toEqual(["id", "name"]);
+    expect(concurrentTags.find((response) => response.statusCode === 409)!.json()).toEqual({
+      error: "Esiste già un'etichetta con questo nome.", existing: tag
+    });
+    await expect(prisma.tag.count({ where: { userId: user.id, name: "travel" } })).resolves.toBe(1);
+    await expect(prisma.tag.count({ where: { userId: otherUser.id } })).resolves.toBe(0);
+    await prisma.tag.create({ data: { userId: otherUser.id, name: "travel" } });
+
+    await createRule({ userId: user.id, name: "Merchant", matchText: "merchant", categoryId: parent.id, tagIds: [], isActive: true });
+    const transactionResponse = await post("/transactions", {
+      type: "expense", date: "2026-10-05", amount: "12.34", sourceAccountId: account.id,
+      categoryId: category.id, tagIds: tag.id, description: "Merchant quick entry"
+    });
+    expect(transactionResponse.statusCode).toBe(302);
+    const transaction = await prisma.transaction.findFirst({ where: { userId: user.id }, include: { tags: true } });
+    expect(transaction).toMatchObject({ categoryId: category.id, amountMinor: 1234 });
+    expect(transaction?.tags.map((item) => item.tagId)).toEqual([tag.id]);
+    const page = await app.inject({ method: "GET", url: "/transactions", headers: { cookie } });
+    expect(page.statusCode).toBe(200);
+    expect(page.body).toContain("Food &lt;img src=x&gt; $&amp;");
+    expect(page.body).toContain("Dettagli facoltativi");
+    expect(page.body).not.toContain("Food <img src=x>");
+
+    await prisma.user.update({ where: { id: user.id }, data: { mustChangePassword: true } });
+    const passwordRequired = await post("/tags/quick", { name: "Denied" });
+    expect(passwordRequired.statusCode).toBe(302);
+    expect(passwordRequired.headers.location).toBe("/settings/security?required=1");
+    await prisma.user.update({ where: { id: user.id }, data: { mustChangePassword: false, sessionVersion: { increment: 1 } } });
+    expect((await post("/tags/quick", { name: "Denied" })).headers.location).toBe("/login");
+    await expect(prisma.tag.count({ where: { name: "Denied", userId: user.id } })).resolves.toBe(0);
+  });
+
+  it("recovers quick taxonomy after a discarded creation response without duplicating or overwriting records", async () => {
+    const password = "lost-response-integration-2026";
+    // Keep this scenario independent of other tests' per-IP login rate limit.
+    const remoteAddress = "127.0.0.2";
+    const [user, otherUser] = await Promise.all([createUser(password), createUser()]);
+    const loginPage = await app.inject({ method: "GET", url: "/login", remoteAddress });
+    const csrfCookie = responseCookie(loginPage, "pennyworth_csrf");
+    const csrfToken = loginPage.body.match(/name="csrfToken" value="([^"]+)"/)?.[1] ?? "";
+    const login = await app.inject({ method: "POST", url: "/login", remoteAddress, headers: { cookie: csrfCookie, "content-type": "application/x-www-form-urlencoded" }, payload: new URLSearchParams({ csrfToken, email: user.email, password }).toString() });
+    expect(login.statusCode).toBe(302);
+    const cookie = `${csrfCookie}; ${responseCookie(login, sessionCookieName)}`;
+    const post = (url: string, values: Record<string, string>) => app.inject({
+      method: "POST", url, remoteAddress, headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+      payload: new URLSearchParams({ csrfToken, ...values }).toString()
+    });
+
+    const name = "Interrupted <literal> creation";
+    const parent = await prisma.category.create({ data: { userId: user.id, name: "Parent", type: "expense" } });
+    const foreignCategory = await prisma.category.create({ data: { userId: otherUser.id, name, type: "income" } });
+    const foreignTag = await prisma.tag.create({ data: { userId: otherUser.id, name } });
+    // Deliberately discard both successful responses: the browser never learns their IDs.
+    expect((await post("/categories/quick", { name, type: "expense", parentId: parent.id, icon: "food", color: "#123456" })).statusCode).toBe(201);
+    expect((await post("/tags/quick", { name, color: "#123456" })).statusCode).toBe(201);
+    const category = await prisma.category.findUniqueOrThrow({ where: { userId_name: { userId: user.id, name } } });
+    const tag = await prisma.tag.findUniqueOrThrow({ where: { userId_name: { userId: user.id, name } } });
+
+    // Retrying with different details offers the saved record, without equating or updating it.
+    const categoryRetry = await post("/categories/quick", { name: ` ${name} `, type: "income", icon: "other", color: "#abcdef", userId: otherUser.id });
+    expect(categoryRetry.statusCode).toBe(409);
+    expect(categoryRetry.json()).toEqual({ error: "A category with that name already exists.", existing: { id: category.id, name, type: "expense" } });
+    expect(categoryRetry.json().existing.id).not.toBe(foreignCategory.id);
+    const tagRetry = await post("/tags/quick", { name: ` ${name} `, color: "#abcdef", userId: otherUser.id });
+    expect(tagRetry.statusCode).toBe(409);
+    expect(tagRetry.json()).toEqual({ error: "A tag with that name already exists.", existing: { id: tag.id, name } });
+    expect(tagRetry.json().existing.id).not.toBe(foreignTag.id);
+    await expect(prisma.category.findUnique({ where: { id: category.id } })).resolves.toEqual(category);
+    await expect(prisma.tag.findUnique({ where: { id: tag.id } })).resolves.toEqual(tag);
+    await expect(prisma.category.count({ where: { userId: user.id, name } })).resolves.toBe(1);
+    await expect(prisma.tag.count({ where: { userId: user.id, name } })).resolves.toBe(1);
+  });
+
   it("switches user-owned rules from the list without changing settings or saved transactions", async () => {
     const password = "rule-activation-integration-2026";
     const [user, otherUser] = await Promise.all([createUser(password), createUser()]);

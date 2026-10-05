@@ -4,6 +4,13 @@ import { assertCategoryTypeChangeCompatible } from "./relationshipValidation.js"
 
 export const categoryTypes: CategoryType[] = ["income", "expense", "both"];
 
+export class TaxonomyValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TaxonomyValidationError";
+  }
+}
+
 export async function listCategories(userId: string) {
   return prisma.category.findMany({
     where: { userId },
@@ -41,6 +48,13 @@ export async function getCategoryForUser(userId: string, categoryId: string) {
   });
 }
 
+export async function getCategoryByNameForUser(userId: string, name: string) {
+  return prisma.category.findUnique({
+    where: { userId_name: { userId, name } },
+    select: { id: true, name: true, type: true }
+  });
+}
+
 async function assertValidCategoryParent(
   userId: string,
   categoryId: string | null,
@@ -52,7 +66,7 @@ async function assertValidCategoryParent(
   }
 
   if (categoryId && parentId === categoryId) {
-    throw new Error("A category cannot be its own parent.");
+    throw new TaxonomyValidationError("A category cannot be its own parent.");
   }
 
   const categories = await db.category.findMany({
@@ -62,7 +76,7 @@ async function assertValidCategoryParent(
   const parentById = new Map(categories.map((category) => [category.id, category.parentId]));
 
   if (!parentById.has(parentId)) {
-    throw new Error("Choose a valid parent category.");
+    throw new TaxonomyValidationError("Choose a valid parent category.");
   }
 
   let currentParentId: string | null | undefined = parentId;
@@ -70,13 +84,13 @@ async function assertValidCategoryParent(
 
   while (currentParentId) {
     if (visited.has(currentParentId)) {
-      throw new Error("Category hierarchy contains a cycle.");
+      throw new TaxonomyValidationError("Category hierarchy contains a cycle.");
     }
 
     visited.add(currentParentId);
 
     if (categoryId && currentParentId === categoryId) {
-      throw new Error("A category cannot use one of its children as parent.");
+      throw new TaxonomyValidationError("A category cannot use one of its children as parent.");
     }
 
     currentParentId = parentById.get(currentParentId);
@@ -158,6 +172,13 @@ export async function createTag(input: { userId: string; name: string; color?: s
 export async function getTagForUser(userId: string, tagId: string) {
   return prisma.tag.findFirst({
     where: { id: tagId, userId }
+  });
+}
+
+export async function getTagByNameForUser(userId: string, name: string) {
+  return prisma.tag.findUnique({
+    where: { userId_name: { userId, name } },
+    select: { id: true, name: true }
   });
 }
 

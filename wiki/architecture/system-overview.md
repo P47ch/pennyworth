@@ -2,7 +2,7 @@
 title: System Overview
 type: architecture
 status: current
-updated: 2026-09-18
+updated: 2026-10-05
 source_ids: [project-contract, package-manifest, application-source, query-source, interface-source]
 tags: [architecture, fastify, server-rendering]
 ---
@@ -66,6 +66,8 @@ Accounting dates are strict date-only values normalized to UTC midnight. Financi
 ## Rendering and preferences
 
 The app renders usable HTML on the server. Browser scripts add targeted behavior such as navigation state, chart controls, file-to-text CSV handling, and immediate theme preview.
+
+Manual transaction [quick category/tag creation](../features/transactions.md#quick-category-and-tag-creation-issue-6) is a small asynchronous exception to full-page form responses: native dialogs send URL-encoded same-origin requests to explicit JSON creation endpoints. Those endpoints share management-form validators and taxonomy services, while the browser updates the current form without navigation. Duplicate responses include a minimal user-owned record for explicit recovery after an uncertain creation outcome; the browser checks category compatibility and never silently updates existing settings. Ordinary transaction saving remains server-rendered.
 
 The `User` record stores language, theme, hidden navigation items, and session/projection versions. English is the translation fallback. Static template content is localized before EJS compilation; user-authored values are not translated. Lucide SVG icons are rendered server-side through an approved icon helper so no browser icon runtime or broader script policy is needed.
 

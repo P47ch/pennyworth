@@ -2,7 +2,7 @@
 title: Categories, Budgets, Rules, and Recurring Templates
 type: feature
 status: current
-updated: 2026-10-02
+updated: 2026-10-05
 source_ids: [project-contract, application-source, finance-source, database-schema, migrations, test-suite]
 tags: [categories, tags, budgets, rules, recurring]
 ---
@@ -18,6 +18,8 @@ Categories are structured reporting groups with name, type, optional parent, col
 Parent categories must belong to the same user. A category cannot parent itself or use a descendant as its parent. Existing cyclic data is rejected during parent validation, and JSON restore rejects a cyclic category graph before replacing records.
 
 Tags are flexible name/color metadata with many-to-many transaction relationships. Category and tag lists present colors as visual identity cues instead of raw hexadecimal text. The same compact category identity appears with transaction, recurring, rule, budget, dashboard, statistics, and CSV preview references; native select options remain text because browsers do not reliably support rich option content. Tag junction rows carry `userId`, so the database can prevent a cross-user link even through direct SQL.
+
+Manual transaction entry supports [quick creation of categories and tags](transactions.md#quick-category-and-tag-creation-issue-6) without leaving its draft. These records use the same validation, ownership, and per-user name uniqueness as the management forms. Selecting the new category counts as an explicit category choice and skips categorization rules.
 
 ## Monthly budgets
 
