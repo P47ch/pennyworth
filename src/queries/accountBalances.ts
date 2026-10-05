@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/db.js";
 import { safeBigIntToNumber } from "./resultValues.js";
 
@@ -19,8 +19,11 @@ export function balanceRowsToMap(rows: readonly AccountBalanceRow[]): Map<string
 
 export async function getAccountBalanceMap(
   userId: string,
-  db: Pick<Prisma.TransactionClient, "$queryRaw"> | typeof prisma = prisma
+  db: Pick<Prisma.TransactionClient, "$queryRaw"> | typeof prisma = prisma,
+  throughDate?: Date
 ): Promise<Map<string, number>> {
+  const cutoff = throughDate ? new Date(Date.UTC(throughDate.getUTCFullYear(), throughDate.getUTCMonth(), throughDate.getUTCDate() + 1)) : null;
+  const dateFilter = cutoff ? Prisma.sql`AND "date" < ${cutoff}` : Prisma.empty;
   const rows = await db.$queryRaw<AccountBalanceRow[]>`
     WITH account_effects AS (
       SELECT
@@ -33,6 +36,7 @@ export async function getAccountBalanceMap(
       FROM "Transaction"
       WHERE "userId" = ${userId}
         AND "sourceAccountId" IS NOT NULL
+        ${dateFilter}
 
       UNION ALL
 
@@ -43,6 +47,7 @@ export async function getAccountBalanceMap(
       WHERE "userId" = ${userId}
         AND "type" = 'transfer'
         AND "destinationAccountId" IS NOT NULL
+        ${dateFilter}
 
       UNION ALL
 
@@ -54,6 +59,7 @@ export async function getAccountBalanceMap(
         END AS "deltaMinor"
       FROM "InvestmentTransaction"
       WHERE "userId" = ${userId}
+        ${dateFilter}
     )
     SELECT
       account."id" AS "accountId",

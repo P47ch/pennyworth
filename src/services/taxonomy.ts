@@ -139,12 +139,13 @@ export async function deleteCategoryIfUnused(userId: string, categoryId: string)
     throw new Error("Category not found.");
   }
 
-  const [transactionCount, childCount] = await Promise.all([
+  const [transactionCount, childCount, recurringCount] = await Promise.all([
     prisma.transaction.count({ where: { userId, categoryId } }),
-    prisma.category.count({ where: { userId, parentId: categoryId } })
+    prisma.category.count({ where: { userId, parentId: categoryId } }),
+    prisma.recurringTransaction.count({ where: { userId, OR: [{ categoryId }, { feeCategoryId: categoryId }] } })
   ]);
 
-  if (transactionCount > 0) {
+  if (transactionCount > 0 || recurringCount > 0) {
     throw new Error("Category is used by transactions and cannot be deleted.");
   }
 

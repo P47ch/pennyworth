@@ -1,0 +1,16 @@
+<details class="rules-help" data-page-help>
+  <summary aria-label="<%= t('How recurring transactions work') %>" title="<%= t('How recurring transactions work') %>"><%- icon('help') %></summary>
+  <div class="rules-help-content" role="region" aria-labelledby="recurring-help-title" tabindex="0">
+    <h2 id="recurring-help-title"><%= t('How recurring transactions work') %></h2>
+    <ul>
+      <li><%= t('Templates create ledger entries only when you preview and confirm them. They do not make bank or wallet payments.') %></li>
+      <li><%= t('Weekly repeats every seven calendar days. Monthly moves to the next month, clamping to its last day when needed. Missed dates are processed one at a time.') %></li>
+      <li><%= t('Fixed amount repeats the same transfer amount. Restore target balance calculates what the destination needs, including recorded refunds and other movements through the occurrence date.') %></li>
+      <li><%= t('Example: a target of EUR 100 and a balance of EUR 35 require a EUR 65 top-up.') %></li>
+      <li><%= t('Choose Source account or Destination account for the fee. A EUR 0.50 source fee means a EUR 65 transfer plus EUR 0.50 expense. A destination fee requires EUR 65.50 transferred to reach the EUR 100 target after the fee.') %></li>
+      <li><%= t('Fees are optional. You can change the fee or choose zero in the preview without changing the template.') %></li>
+      <li><%= t('Review the amounts and balances before confirming. If the ledger or template changes, review the new preview. When no top-up is needed, skip the occurrence without recording a transfer or fee.') %></li>
+      <li><%= t('Transfers do not count as income or expenses. Fees and purchases are expenses. Deleting a linked transfer also deletes its fee; deleting only the fee keeps the transfer.') %></li>
+    </ul>
+  </div>
+</details>

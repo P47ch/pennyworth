@@ -24,7 +24,7 @@ The application runs on infrastructure you control, stores its data in PostgreSQ
 - Supports reusable colored tags with many-to-many transaction assignment.
 - Tracks monthly category budgets and highlights approaching or exceeded limits.
 - Applies user-defined text-matching rules to uncategorized expenses during CSV preview or through an explicit existing-ledger preview.
-- Stores monthly recurring income, expense, and transfer templates. Recurring entries are generated only when the user requests them; there is no background scheduler.
+- Stores weekly/monthly recurring income, expense, and transfer templates, including target-balance top-ups with optional source/destination fees. Preview and confirm each occurrence manually; the Recurring help explains calculations and skipping.
 
 ### Dashboard and reports
 

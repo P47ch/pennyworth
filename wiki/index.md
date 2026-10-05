@@ -33,7 +33,7 @@ Read this page first. It catalogs every maintained page and gives agents a bound
 ## Features
 
 - [`features/transactions.md`](features/transactions.md) — transaction lifecycle, filters, pagination, CSV import/export, duplicate handling, and quick category/tag creation with interrupted-response recovery.
-- [`features/automation.md`](features/automation.md) — categories, tags, budgets, automatic categorization rules, quick rule activation, and recurring templates.
+- [`features/automation.md`](features/automation.md) — categories, tags, budgets, automatic categorization rules, quick rule activation, weekly/monthly fixed or target-balance recurring templates with source/destination fees, safe confirmation, and Rules-style help.
 - [`features/investments.md`](features/investments.md) — assets, prices, activity, positions, valuation, and cash impact.
 - [`features/interface-and-accessibility.md`](features/interface-and-accessibility.md) — server-rendered UI, themes, localized type labels, navigation, mobile behavior, and audits.
 
@@ -44,7 +44,7 @@ Read this page first. It catalogs every maintained page and gives agents a bound
 - [`operations/testing-and-performance.md`](operations/testing-and-performance.md) — unit, integration, accessibility, CI, performance data, and release verification.
 - [`operations/deployment.md`](operations/deployment.md) — LAN production requirements, Compose profiles, updates, and troubleshooting.
 - [`operations/backup-and-restore.md`](operations/backup-and-restore.md) — JSON and PostgreSQL backup/restore boundaries and procedures.
-- [`operations/json-backup-format.md`](operations/json-backup-format.md) — version 10 JSON fields, rule matching syntax, inert legacy rules, historical compatibility, schema, and starter file.
+- [`operations/json-backup-format.md`](operations/json-backup-format.md) — version 11 JSON fields, recurring modes and transfer-fee links, rule matching syntax, historical compatibility, schema, and starter file.
 - [`operations/podman.md`](operations/podman.md) — Podman setup, Compose lifecycle, rootless operation, reboots, and engine migration.
 
 ## Sources

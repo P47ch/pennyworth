@@ -14,6 +14,7 @@
   --income: #0b6b48;
   --expense: #a92f43;
   --transfer: #3977d5;
+  --transfer-text: #2457a3;
   --chart-series-0: #5967e8;
   --chart-series-1: #0b6b48;
   --chart-series-2: #3977d5;
@@ -64,6 +65,7 @@
   --income: #56c99a;
   --expense: #f07b87;
   --transfer: #73a8f3;
+  --transfer-text: #73a8f3;
   --chart-series-0: #a59cf6;
   --chart-series-1: #56c99a;
   --chart-series-2: #73a8f3;
@@ -725,7 +727,8 @@ a {
 }
 
 .rules-form > label,
-.quick-entry > label {
+.quick-entry > label,
+[data-recurring-form] label:not(.checkbox-row) {
   align-self: start;
 }
 
@@ -1769,7 +1772,7 @@ tbody tr:hover {
 
 .badge-transfer {
   background: color-mix(in srgb, var(--transfer) 16%, transparent);
-  color: var(--transfer);
+  color: var(--transfer-text);
 }
 
 .badge-active,
@@ -1875,6 +1878,17 @@ tbody tr:hover {
 .action-link:focus {
   border-color: var(--border-strong);
   background: var(--panel-soft);
+}
+
+.action-link.button-danger {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--expense);
+}
+
+.action-link.button-danger:hover,
+.action-link.button-danger:focus {
+  background: var(--danger-bg-hover);
 }
 
 .quick-link-grid .action-link:first-child {
@@ -2590,3 +2604,7 @@ a.spending-row:focus-visible {
     flex-wrap: wrap;
   }
 }
+
+.recurring-fees { border: 1px solid var(--border); border-radius: 12px; padding: 1rem; min-width: 0; }
+.recurring-breakdown { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.75rem 1rem; overflow-wrap: anywhere; }
+.recurring-breakdown dd { margin: 0; text-align: end; font-weight: 600; }

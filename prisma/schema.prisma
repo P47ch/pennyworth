@@ -99,6 +99,7 @@ model Category {
   budgets               Budget[]
   rules                 Rule[]
   recurringTransactions RecurringTransaction[]
+  recurringFees         RecurringTransaction[] @relation("RecurringFeeCategory")
 
   @@unique([userId, name])
   @@unique([id, userId])
@@ -185,6 +186,7 @@ model Transaction {
   categoryId           String?
   description          String?
   notes                String?
+  feeForTransactionId  String?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -192,8 +194,11 @@ model Transaction {
   destinationAccount   Account?         @relation("DestinationAccount", fields: [destinationAccountId, userId], references: [id, userId], onDelete: NoAction)
   category             Category?        @relation(fields: [categoryId, userId], references: [id, userId], onDelete: NoAction)
   tags                 TransactionTag[]
+  feeForTransaction    Transaction? @relation("TransferFee", fields: [feeForTransactionId, userId], references: [id, userId], onDelete: Cascade)
+  feeTransaction       Transaction? @relation("TransferFee")
 
   @@unique([id, userId])
+  @@unique([feeForTransactionId, userId])
   @@index([userId, date])
   @@index([userId, type, date])
   @@index([userId, sourceAccountId, date])
@@ -206,7 +211,12 @@ model RecurringTransaction {
   userId               String
   name                 String
   type                 TransactionType
-  amountMinor          Int
+  amountMinor          Int?
+  amountMode           RecurringAmountMode @default(fixed)
+  targetBalanceMinor   Int?
+  feeAmountMinor       Int @default(0)
+  feeAccount           RecurringFeeAccount @default(source)
+  feeCategoryId        String?
   sourceAccountId      String?
   destinationAccountId String?
   categoryId           String?
@@ -221,6 +231,7 @@ model RecurringTransaction {
   sourceAccount        Account?           @relation("RecurringSourceAccount", fields: [sourceAccountId, userId], references: [id, userId], onDelete: NoAction)
   destinationAccount   Account?           @relation("RecurringDestinationAccount", fields: [destinationAccountId, userId], references: [id, userId], onDelete: NoAction)
   category             Category?          @relation(fields: [categoryId, userId], references: [id, userId], onDelete: NoAction)
+  feeCategory          Category?          @relation("RecurringFeeCategory", fields: [feeCategoryId, userId], references: [id, userId], onDelete: NoAction)
 
   @@unique([userId, name])
   @@index([userId])
@@ -229,6 +240,7 @@ model RecurringTransaction {
   @@index([sourceAccountId])
   @@index([destinationAccountId])
   @@index([categoryId])
+  @@index([feeCategoryId])
 }
 
 model Asset {
@@ -393,6 +405,17 @@ enum CategoryType {
 
 enum RecurringFrequency {
   monthly
+  weekly
+}
+
+enum RecurringAmountMode {
+  fixed
+  target_balance
+}
+
+enum RecurringFeeAccount {
+  source
+  destination
 }
 
 enum AssetType {

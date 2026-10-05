@@ -153,8 +153,7 @@ if (importMappingForm) {
   }
 }
 
-const rulesHelp = document.querySelector("[data-rules-help]");
-if (rulesHelp) {
+for (const rulesHelp of document.querySelectorAll("[data-rules-help], [data-page-help]")) {
   document.addEventListener("click", (event) => {
     if (!rulesHelp.contains(event.target)) {
       rulesHelp.open = false;
@@ -205,7 +204,7 @@ if (transactionForm) {
     const isTransfer = type === "transfer";
 
     if (sourceAccountText) {
-      sourceAccountText.textContent = isTransfer ? "Source account" : "Account";
+      sourceAccountText.textContent = isTransfer ? sourceAccountText.dataset.sourceLabel || "Source account" : sourceAccountText.dataset.accountLabel || "Account";
     }
 
     if (destinationField && destinationSelect) {
@@ -223,4 +222,30 @@ if (transactionForm) {
     typeSelect.addEventListener("change", syncTransactionForm);
     syncTransactionForm();
   }
+}
+
+const recurringForm = document.querySelector('[data-recurring-form]');
+if (recurringForm) {
+  const type = recurringForm.querySelector('[data-transaction-type]');
+  const mode = recurringForm.querySelector('[data-recurring-mode]');
+  const fixed = recurringForm.querySelector('[data-recurring-fixed]');
+  const target = recurringForm.querySelector('[data-recurring-target]');
+  const fees = recurringForm.querySelector('[data-recurring-fees]');
+  const syncRecurring = () => {
+    const transfer = type.value === 'transfer';
+    if (!transfer) mode.value = 'fixed';
+    mode.disabled = !transfer;
+    const calculated = transfer && mode.value === 'target_balance';
+    fixed.hidden = calculated;
+    fixed.querySelector('input').disabled = calculated;
+    fixed.querySelector('input').required = !calculated;
+    target.hidden = !calculated;
+    target.querySelector('input').disabled = !calculated;
+    target.querySelector('input').required = calculated;
+    fees.hidden = !transfer;
+    fees.disabled = !transfer;
+  };
+  type.addEventListener('change', syncRecurring);
+  mode.addEventListener('change', syncRecurring);
+  syncRecurring();
 }

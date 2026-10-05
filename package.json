@@ -14,6 +14,7 @@
     "audit:a11y": "node scripts/a11y-audit.mjs",
     "test:a11y": "npm run audit:a11y",
     "test:quick-entry": "tsx scripts/quick-taxonomy-browser.ts",
+    "test:recurring": "tsx scripts/recurring-browser.ts",
     "wiki:lint": "node scripts/wiki-lint.mjs",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",

@@ -1,0 +1,46 @@
+<input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+<label><%= t("Name") %><input name="name" value="<%= form.name %>" maxlength="<%= typeof nameMaxLength === 'number' ? nameMaxLength : 100 %>" required></label>
+<label><%= t("Type") %><select name="type" required data-transaction-type>
+  <% for (const type of transactionTypes) { %><option value="<%= type %>" <%= form.type === type ? 'selected' : '' %>><%= typeLabel(type) %></option><% } %>
+</select></label>
+<label><span data-source-account-text data-account-label="<%= t('Account') %>" data-source-label="<%= t('Source account') %>"><%= t("Account") %></span><select name="sourceAccountId" required>
+  <option value=""><%= t("Choose account") %></option>
+  <% for (const account of accounts) { %><option value="<%= account.id %>" <%= form.sourceAccountId === account.id ? 'selected' : '' %>><%= account.name %></option><% } %>
+</select></label>
+<label data-transfer-only><%= t("Destination account") %><select name="destinationAccountId">
+  <option value=""><%= t("Choose account") %></option>
+  <% for (const account of accounts) { %><option value="<%= account.id %>" <%= form.destinationAccountId === account.id ? 'selected' : '' %>><%= account.name %></option><% } %>
+</select></label>
+<label><%= t("Amount mode") %><select name="amountMode" data-recurring-mode aria-describedby="recurring-mode-hint">
+  <option value="fixed" <%= form.amountMode === 'fixed' ? 'selected' : '' %>><%= t("Fixed amount") %></option>
+  <option value="target_balance" <%= form.amountMode === 'target_balance' ? 'selected' : '' %>><%= t("Restore target balance") %></option>
+</select><small id="recurring-mode-hint" class="muted"><%= t("Target balances are only available for transfers. The target is reached after fees.") %></small></label>
+<label data-recurring-fixed><%= t("Amount") %><input name="amount" inputmode="decimal" placeholder="0.00" value="<%= form.amount %>"></label>
+<label data-recurring-target><%= t("Target balance") %><input name="targetBalance" inputmode="decimal" placeholder="100.00" value="<%= form.targetBalance %>"></label>
+<label data-category-field><%= t("Category") %><select name="categoryId">
+  <option value=""><%= t("None") %></option>
+  <% for (const category of categories) { %><option value="<%= category.id %>" <%= form.categoryId === category.id ? 'selected' : '' %>><%= category.name %></option><% } %>
+</select></label>
+<label><%= t("Frequency") %><select name="frequency" required>
+  <% for (const frequency of recurringFrequencies) { %><option value="<%= frequency %>" <%= form.frequency === frequency ? 'selected' : '' %>><%= t(frequency === 'weekly' ? 'Weekly' : 'Monthly') %></option><% } %>
+</select></label>
+<label><%= t("Next date") %><input type="date" name="nextDate" value="<%= form.nextDate %>" required></label>
+<fieldset class="full-width recurring-fees" data-recurring-fees>
+  <legend><%= t("Optional top-up fee") %></legend>
+  <div class="form-grid">
+    <label><%= t("Fee amount") %><input name="feeAmount" inputmode="decimal" value="<%= form.feeAmount %>" placeholder="0.00" aria-describedby="recurring-fee-hint"></label>
+    <label><%= t("Fee account") %><select name="feeAccount" aria-describedby="recurring-fee-hint">
+      <option value="source" <%= form.feeAccount === 'source' ? 'selected' : '' %>><%= t("Source account") %></option>
+      <option value="destination" <%= form.feeAccount === 'destination' ? 'selected' : '' %>><%= t("Destination account") %></option>
+    </select></label>
+    <label><%= t("Fee category") %><select name="feeCategoryId">
+      <option value=""><%= t("None") %></option>
+      <% for (const category of categories.filter(item => item.type !== 'income')) { %><option value="<%= category.id %>" <%= form.feeCategoryId === category.id ? 'selected' : '' %>><%= category.name %></option><% } %>
+    </select></label>
+  </div>
+  <p id="recurring-fee-hint" class="muted"><%= t("Transfers only. The fee is a separate expense on the selected account. Use zero for a free top-up; adjust it in the preview.") %></p>
+</fieldset>
+<label><%= t("Description") %><input name="description" value="<%= form.description %>"></label>
+<label class="full-width"><%= t("Notes") %><textarea name="notes" rows="3"><%= form.notes %></textarea></label>
+<label class="checkbox-row"><input type="checkbox" name="isActive" <%= form.isActive ? 'checked' : '' %>><%= t("Active") %></label>
+<button type="submit"><%= t(submitLabel) %></button>

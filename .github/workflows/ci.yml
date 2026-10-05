@@ -82,6 +82,9 @@ jobs:
       - name: Check quick-entry dialogs
         run: npm run test:quick-entry
 
+      - name: Check recurring forms and help
+        run: npm run test:recurring
+
       - name: Run browser accessibility audit
         run: |
           npm run start > app.log 2>&1 &

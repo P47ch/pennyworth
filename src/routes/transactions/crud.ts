@@ -15,7 +15,7 @@ import {
   updateTransaction
 } from "../../services/transactions.js";
 import { requireCurrentUser } from "../../services/users.js";
-import { formBody } from "../form.js";
+import { field, formBody } from "../form.js";
 import {
   parseTransactionFilters,
   parseTransactionPage,
@@ -155,6 +155,11 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
     const user = await requireCurrentUser(request);
     const { transactionId } = request.params as { transactionId: string };
 
+    const transaction = await getTransactionForUser(user.id, transactionId);
+    if (transaction && (transaction.feeForTransactionId || transaction.feeTransaction)
+      && field(formBody(request.body), "confirmDelete") !== "yes") {
+      return reply.view("transactions/delete.ejs", { title: "Delete transaction", transaction });
+    }
     await deleteTransaction(user.id, transactionId);
     return reply.redirect("/transactions");
   });
