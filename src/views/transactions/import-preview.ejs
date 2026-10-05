@@ -58,7 +58,7 @@
               <% } %>
             </td>
             <td data-label="Date"><%= row.dateValue || "-" %></td>
-            <td data-label="Type"><%= row.type || "-" %></td>
+            <td data-label="Type"><%= row.type ? typeLabel(row.type) : "-" %></td>
             <td data-label="Description"><strong><%= row.description || "-" %></strong></td>
             <td data-label="Account">
               <% if (row.type === "transfer") { %>

@@ -40,7 +40,7 @@
       <select name="defaultType">
         <option value="">Use mapped type</option>
         <% for (const type of transactionTypes) { %>
-          <option value="<%= type %>" <%= mapping.defaultType === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= mapping.defaultType === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>

@@ -22,7 +22,7 @@
       <span>Type</span>
       <select name="type" required data-transaction-type>
         <% for (const type of transactionTypes) { %>
-          <option value="<%= type %>" <%= form.type === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= form.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
@@ -109,7 +109,7 @@
       <select name="type">
         <option value="">All types</option>
         <% for (const type of transactionTypes) { %>
-          <option value="<%= type %>" <%= filters.typeValue === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= filters.typeValue === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
@@ -185,7 +185,7 @@
           <% for (const transaction of transactions) { %>
             <tr>
               <td data-label="Date"><%= transaction.date.toISOString().slice(0, 10) %></td>
-              <td data-label="Type"><span class="badge badge-<%= transaction.type %>"><%= transaction.type %></span></td>
+              <td data-label="Type"><span class="badge badge-<%= transaction.type %>"><%= typeLabel(transaction.type) %></span></td>
               <td data-label="Description"><strong><%= transaction.description || "-" %></strong></td>
               <td data-label="Account">
                 <% if (transaction.type === "transfer") { %>

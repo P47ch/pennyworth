@@ -406,11 +406,17 @@ const italian: Record<string, string> = {
   "bank": "conto bancario",
   "cash": "contanti",
   "credit card": "carta di credito",
+  "savings": "risparmio",
   "investment": "investimento",
   "crypto wallet": "portafoglio crypto",
   "other": "altro",
+  "income": "entrata",
   "both": "entrambi",
   "transfer": "trasferimento",
+  "stock": "azione",
+  "fund": "fondo",
+  "bond": "obbligazione",
+  "crypto": "crypto",
   "buy": "acquisto",
   "sell": "vendita",
   "dividend": "dividendo",
@@ -556,5 +562,14 @@ export function createTranslator(language: Language): Translator {
     return translation.replace(/\{([^{}]+)\}/g, (placeholder, key: string) =>
       Object.hasOwn(values, key) ? String(values[key]) : placeholder
     );
+  };
+}
+
+export function createTypeLabelFormatter(language: Language): (type: string) => string {
+  const t = createTranslator(language);
+
+  return (type) => {
+    const label = t(type.replaceAll("_", " "));
+    return type === "etf" ? "ETF" : label.charAt(0).toUpperCase() + label.slice(1);
   };
 }

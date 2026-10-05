@@ -22,7 +22,7 @@
       Type
       <select name="type" required data-transaction-type>
         <% for (const type of transactionTypes) { %>
-          <option value="<%= type %>" <%= recurring.type === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= recurring.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>

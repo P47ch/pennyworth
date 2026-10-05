@@ -21,7 +21,7 @@
       Type
       <select name="type" required>
         <% for (const type of accountTypes) { %>
-          <option value="<%= type %>"><%= type.replaceAll("_", " ") %></option>
+          <option value="<%= type %>"><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
@@ -68,7 +68,7 @@
           <% for (const account of accounts) { %>
             <tr>
               <td data-label="Name"><strong><%= account.name %></strong></td>
-              <td data-label="Type"><%= account.type.replaceAll("_", " ") %></td>
+              <td data-label="Type"><%= typeLabel(account.type) %></td>
               <td data-label="Institution"><%= account.institution || "-" %></td>
               <td data-label="Balance" class="numeric"><%= formatMoney(account.currentBalanceMinor, account.currency) %></td>
               <td data-label="Status"><span class="badge <%= account.isActive ? "badge-active" : "badge-muted" %>"><%= account.isActive ? "Active" : "Inactive" %></span></td>

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import ejs from "ejs";
 import { describe, expect, it } from "vitest";
-import { createTranslator } from "../src/lib/i18n.js";
+import { createTranslator, createTypeLabelFormatter } from "../src/lib/i18n.js";
 import { renderCategoryLabel } from "../src/lib/icons.js";
 import { localizeEjsTemplate } from "../src/lib/localizedEjs.js";
 import { createMoneyFormatter } from "../src/finance/money.js";
@@ -33,7 +33,8 @@ function render(overrides: Record<string, unknown> = {}, currency = "EUR") {
     formatMoney: createMoneyFormatter(currency),
     categoryLabel: renderCategoryLabel,
     icon: () => "",
-    t: createTranslator("en")
+    t: createTranslator("en"),
+    typeLabel: createTypeLabelFormatter("en")
   });
 }
 

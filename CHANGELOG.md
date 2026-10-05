@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Type selectors, badges, and summaries use capitalized, localized labels with readable spaces and the ETF acronym.
 - Update Fastify and the locked `fast-uri` and `brace-expansion` dependencies to compatible versions that clear the high-severity dependency audit.
 - Encrypted-backup tampering tests always change a byte, preventing intermittent CI failures when a random Base64 value already starts with `A`.
 - Docker development reloads server code through file polling, avoiding new form actions pointing at routes absent from a stale process.

@@ -9,7 +9,7 @@
 <section class="panel">
   <div class="panel-heading">
     <h2><%= transaction.description || "Transaction" %></h2>
-    <span class="badge badge-<%= transaction.type %>"><%= transaction.type %></span>
+    <span class="badge badge-<%= transaction.type %>"><%= typeLabel(transaction.type) %></span>
   </div>
   <% if (error) { %><p class="error"><%= error %></p><% } %>
   <form method="post" action="/transactions/<%= transaction.id %>" class="form-grid transaction-form" data-transaction-form>
@@ -18,7 +18,7 @@
       <span>Type</span>
       <select name="type" required data-transaction-type>
         <% for (const type of transactionTypes) { %>
-          <option value="<%= type %>" <%= transaction.type === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= transaction.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
