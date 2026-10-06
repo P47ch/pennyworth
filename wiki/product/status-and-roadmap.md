@@ -91,6 +91,8 @@ High-value product work not currently implemented:
 
 Quick category/tag creation from issue #6 is implemented in [manual transaction entry](../features/transactions.md#quick-category-and-tag-creation-issue-6). Extending it to editing, recurring forms, rules, and CSV import remains future work.
 
+After the recurring PR merges, add dependency maintenance in a separate PR: weekly Dependabot version updates for npm/GitHub Actions, small compatible-update groups, security alerts and fixes for maintained branches, required CI/review, and a scheduled audit. No update automation is configured yet; the [maintenance plan](../operations/testing-and-performance.md#dependency-maintenance-follow-up) records scope and Dependabot's default-branch security behavior.
+
 ## Removed stale backlog
 
 The former task page listed dashboard budget state, recurring templates, categorization tags, rule previews, and the investment skeleton as future work even though the repository already implements them. They are now documented as current behavior on canonical feature pages rather than retained as misleading tasks.

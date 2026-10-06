@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Update the locked development dependency `source-map-js` to 1.2.2, clearing the high-severity dependency audit failure (GHSA-68fv-2mgg-jv7q).
 - Recurring help-label dotted underlines align consistently beneath Name, Description, and Fee account.
 - Transfer-fee validation uses separate indexed fee and parent lookups, avoiding full-ledger scans during imports and restores.
 - Recurring generation and skipping preserve complete imported occurrence timestamps, including milliseconds, through confirmation.

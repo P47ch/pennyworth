@@ -41,7 +41,7 @@ Read this page first. It catalogs every maintained page and gives agents a bound
 
 - [`operations/releases.md`](operations/releases.md) — Semantic Versioning, prerelease stages, release checks, tags, and version-system boundaries.
 - [`operations/local-development.md`](operations/local-development.md) — prerequisites, environment, local database topologies, initialization, Docker file watching, and scripts.
-- [`operations/testing-and-performance.md`](operations/testing-and-performance.md) — unit, integration, accessibility, CI, performance data, and release verification.
+- [`operations/testing-and-performance.md`](operations/testing-and-performance.md) — unit, integration, accessibility, CI, dependency audit and planned maintenance, performance data, and release verification.
 - [`operations/deployment.md`](operations/deployment.md) — LAN production requirements, Compose profiles, updates, and troubleshooting.
 - [`operations/backup-and-restore.md`](operations/backup-and-restore.md) — JSON and PostgreSQL backup/restore boundaries and procedures.
 - [`operations/json-backup-format.md`](operations/json-backup-format.md) — version 12 JSON fields, recurring modes and transfer-fee links, rule matching syntax, historical compatibility, schema, and starter file.

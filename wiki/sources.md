@@ -2,7 +2,7 @@
 title: Pennyworth Source Map
 type: source-map
 status: current
-updated: 2026-10-05
+updated: 2026-10-06
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [sources, provenance]
 ---
@@ -34,7 +34,7 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 
 ## source:package-manifest
 
-- Location: [`../package.json`](../package.json)
+- Location: [`../package.json`](../package.json) and [`../package-lock.json`](../package-lock.json)
 - Kind: executable manifest
 - Authority: current scripts and installed application/tooling dependencies
 - Covers: authoritative application version, Node commands, Fastify/EJS/Prisma stack, tests, accessibility tools, and Chart.js
@@ -185,6 +185,20 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Kind: external primary documentation
 - Authority: public Releases endpoint, conditional request, and rate-limit response behavior
 - Covers: optional Pennyworth update-check request and release metadata boundary
+
+## source:source-map-js-advisory
+
+- Location: [GitHub advisory GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)
+- Kind: reviewed security advisory
+- Authority: affected source-map-js versions and patched version
+- Covers: indexed source-map denial of service through 1.2.1 and the 1.2.2 correction
+
+## source:dependabot-docs
+
+- Location: [Configuring Dependabot version updates](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates), [Optimizing update pull requests](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates), and [Customizing Dependabot pull requests](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/customizing-dependabot-prs)
+- Kind: external primary documentation
+- Authority: Dependabot scheduling, grouping, and branch behavior
+- Covers: weekly version checks, compatible-update groups, and security updates targeting only the default branch
 
 ## Sources
 

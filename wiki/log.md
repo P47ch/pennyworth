@@ -328,3 +328,9 @@ Validation passed 279 unit tests across 37 files, all 42 isolated PostgreSQL/Fas
 ## [2026-10-06] source-sync | Align recurring help-label underlines
 
 Replaced the font-dependent dotted text decoration on Name, Description, and Fee account with a one-pixel dotted border positioned at the label's bottom edge. Shared styling covers create/edit and preview without moving controls or changing tooltip interactions. All 30 existing recurring browser configurations passed, including accessibility and no-JavaScript behavior; inspected English desktop and Italian mobile underline screenshots. Synchronized canonical interface guidance and the unreleased changelog. No accounting, database, backup, or version changes.
+
+## [2026-10-06] source-sync | Fix dependency-audit CI failure and plan maintenance
+
+Inspected both failed GitHub Actions runs for commit `07b5a35`: migrations, unit/integration tests, both TypeScript checks, and build passed before the dependency audit reported GHSA-68fv-2mgg-jv7q in source-map-js 1.2.1. Updated only that transitive lockfile entry to the compatible patched 1.2.2 release; its BSD-3-Clause license and bundled notice remain intact. A fresh high-severity audit reported zero vulnerabilities and all 279 unit tests passed. Preserved the audit threshold, application version, and published data contracts. Updated unreleased notes and verification/source provenance.
+
+At the user's request, recorded dependency maintenance as a separate follow-up after this PR merges: weekly npm/GitHub Actions version PRs, compatible-update grouping and paired Prisma packages, security alerts/fixes, required CI/review, and a scheduled audit. Documented that Dependabot security updates target only the default branch even when version PRs target develop. The plan is not yet implemented; no repository automation or security settings were changed.

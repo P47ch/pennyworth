@@ -3,7 +3,7 @@ title: Testing and Performance
 type: verification
 status: current
 updated: 2026-10-06
-source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema]
+source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema, source-map-js-advisory, dependabot-docs]
 tags: [testing, integration, accessibility, performance, ci]
 ---
 
@@ -61,6 +61,19 @@ Draft 2020-12 JSON Schema validation accepted the version-12 starter and an actu
 The 2026-09-17 security-maintenance run upgraded Fastify to 5.12.1 and Vitest to 4.1.11, then passed application and test typechecks, the production build, wiki lint, and `npm audit --audit-level=high` with zero reported vulnerabilities. Dependency audit results are time-sensitive; CI and a fresh release-time audit remain authoritative.
 
 The 2026-10-05 CI follow-up raised the Fastify dependency minimum to 5.12.5 and refreshed the lockfile to `fast-uri` 3.1.8/4.2.1 and `brace-expansion` 2.1.7/5.0.12 within their existing major-version ranges. All 232 unit tests, 16 PostgreSQL/Fastify integration tests against the separate `pennyworth_rule_test` database, both TypeScript checks, the production build, and a fresh `npm audit --audit-level=high` passed; the audit reported zero vulnerabilities. The updated packages retain their MIT or BSD-3-Clause licenses and bundled notices, compatible with Pennyworth's MIT distribution.
+
+The 2026-10-06 recurring-branch CI failure occurred at `npm audit --audit-level=high` after migrations, 279 unit tests, 42 integration tests, both TypeScript checks, and build had passed. [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q) affects the locked `source-map-js` 1.2.1 used through PostCSS/Vite/Vitest. Updating that single transitive dependency to the compatible 1.2.2 patch cleared the audit with zero vulnerabilities; all 279 unit tests passed locally after the update. The package retains its BSD-3-Clause license and bundled notice, compatible with Pennyworth's MIT distribution. No manifest dependency ranges, application version, data contract, or CI audit threshold changed.
+
+### Dependency maintenance follow-up
+
+Planned for a separate change after the recurring PR merges; repository automation is not configured yet:
+
+- Add weekly Dependabot version-update PRs for npm and GitHub Actions, targeting `develop` for normal development updates.
+- Group compatible patch/minor updates into small runtime and development-tool groups; keep paired Prisma packages aligned and major upgrades separate for review.
+- Enable repository Dependabot alerts and security-update PRs. GitHub sends security fixes only to the default branch, so a `develop` target for version updates does not cover security maintenance of the default branch. Carry each accepted security correction to both maintained branches through the normal PR/release flow.
+- Require passing CI and human review before merging dependency updates. Keep `npm audit --audit-level=high` enabled and add a scheduled audit of `develop` to detect new advisories even when no application change is pushed.
+
+See [Dependabot version-update configuration](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates), [grouping](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates), and [branch behavior](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/customizing-dependabot-prs). This is a maintenance plan, not a promise that future vulnerability reports cannot make CI fail.
 
 ## Integration tests
 
@@ -184,3 +197,5 @@ The bulk benchmark requires the seeded `performance@pennyworth.local` user, prev
 - [`ci-workflow`](../sources.md#sourceci-workflow)
 - [`operational-scripts`](../sources.md#sourceoperational-scripts)
 - [`database-schema`](../sources.md#sourcedatabase-schema)
+- [`source-map-js-advisory`](../sources.md#sourcesource-map-js-advisory)
+- [`dependabot-docs`](../sources.md#sourcedependabot-docs)
