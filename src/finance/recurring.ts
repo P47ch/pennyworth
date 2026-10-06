@@ -3,14 +3,21 @@ import { maximumMoneyMinor } from "./money.js";
 export type RecurringAmountMode = "fixed" | "target_balance";
 export type RecurringFeeAccount = "source" | "destination";
 
-export function nextRecurringDate(date: Date, frequency: "monthly" | "weekly"): Date {
-  if (frequency === "weekly") {
+export const recurringFrequencies = ["daily", "weekly", "monthly", "every_3_months", "every_6_months"] as const;
+export type RecurringFrequency = typeof recurringFrequencies[number];
+export const recurringFrequencyLabels: Record<RecurringFrequency, string> = {
+  daily: "Daily", weekly: "Weekly", monthly: "Monthly", every_3_months: "Quarterly", every_6_months: "Semiannual"
+};
+
+export function nextRecurringDate(date: Date, frequency: RecurringFrequency): Date {
+  if (frequency === "daily" || frequency === "weekly") {
     const next = new Date(date);
-    next.setUTCDate(next.getUTCDate() + 7);
+    next.setUTCDate(next.getUTCDate() + (frequency === "daily" ? 1 : 7));
     return next;
   }
   const year = date.getUTCFullYear();
-  const month = date.getUTCMonth() + 1;
+  const monthIntervals = { monthly: 1, every_3_months: 3, every_6_months: 6 };
+  const month = date.getUTCMonth() + monthIntervals[frequency];
   const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   return new Date(Date.UTC(year, month, Math.min(date.getUTCDate(), lastDay),
     date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(), date.getUTCMilliseconds()));

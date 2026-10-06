@@ -2,7 +2,7 @@
 title: Categories, Budgets, Rules, and Recurring Templates
 type: feature
 status: current
-updated: 2026-10-05
+updated: 2026-10-06
 source_ids: [project-contract, application-source, finance-source, query-source, database-schema, migrations, test-suite, issue-8, issue-8-fees, issue-8-help]
 tags: [categories, tags, budgets, rules, recurring]
 ---
@@ -54,7 +54,7 @@ Existing-ledger preview and application are capped at 500 candidate expenses per
 
 ## Recurring templates
 
-Templates support weekly and monthly income, expense, and transfer entries. Generation remains manual: select **Preview**, review the accounting date and amounts, then **Confirm and generate**. These actions record the ledger; they do not initiate bank or wallet payments. Weekly advances seven UTC calendar days. Monthly advances one month, clamping to the next month's last valid day. Missed occurrences are processed one at a time at their stored dates.
+Templates support Daily, Weekly, Monthly, Quarterly, and Semiannual income, expense, and transfer entries (Italian: Giornaliera, Settimanale, Mensile, Trimestrale, Semestrale). Generation remains manual: select **Preview**, review the accounting date and amounts, then **Confirm and generate**. These actions record the ledger; they do not initiate bank or wallet payments. Daily and weekly advance one and seven UTC calendar days. Monthly, quarterly, and semiannual advance one, three, and six calendar months from the stored occurrence. Invalid days clamp to that month's last day: January 31 plus three months becomes April 30; the following quarterly occurrence is July 30. All intervals retain the stored time and milliseconds. Missed occurrences are processed one at a time at their stored dates.
 
 New or renamed templates require a name of 1–100 characters. Existing and restored longer names remain usable for preview, generation, and skipping. Other settings can be edited while keeping such a name unchanged; backup import/export does not impose the new-write limit.
 
@@ -98,9 +98,11 @@ Each transfer has at most one linked fee expense. PostgreSQL enforces same-user 
 
 Recurring, Edit recurring, and the preview expose a question-mark **How recurring transactions work** control using the shared Rules-style native `details`/`summary` pattern. English/Italian guidance covers scheduling, fixed/target modes, refunds, both fee examples, overrides, confirmation, skipping, reporting, and deletion. Opening help preserves the draft and creates no ledger entries. It has a 44-pixel target, keyboard focus, mobile scrolling, native no-JavaScript operation, and Escape/outside-click dismissal with JavaScript. Amount-mode and fee hints remain next to their controls.
 
+Create/edit forms also explain **Name**, **Description**, and **Fee account** directly on label hover, field focus, or label tap. Name identifies the recurring operation; Description is used for generated transactions, with Name used when Description is blank. Fee account explains which account pays: source fees add to the transfer debit, and destination fees reduce the money received. The same Fee account hint appears in the preview override form. The explanations are localized, linked to their controls for screen readers, and preserve the draft. See [interface guidance](interface-and-accessibility.md).
+
 #### Migration and public backup contract
 
-Migration `20261005000000_add_recurring_top_ups` adds weekly scheduling, amount mode, nullable fixed amount, target and fee settings, conditional checks, and the transfer/fee relationship. Existing rows retain fixed monthly amounts and no fee. [JSON backup version 11](../operations/json-backup-format.md) exports and restores these fields and links; versions 1–10 remain importable as fixed monthly templates with their original amount and no fee preset. Historical schemas/examples remain published. Application versioning is independent and this implementation does not prepare a release.
+Migration `20261005000000_add_recurring_top_ups` adds weekly scheduling, amount mode, nullable fixed amount, target and fee settings, conditional checks, and the transfer/fee relationship. Existing rows retain fixed monthly amounts and no fee. Migration `20261006000000_add_recurring_frequencies` adds daily, three-month, and six-month frequency values without rewriting existing schedules. [JSON backup version 12](../operations/json-backup-format.md) exports and restores all five schedules, recurring fields, and fee links; versions 1–10 remain importable as fixed monthly templates with their original amount and no fee preset, and version 11 keeps its monthly/weekly settings. Historical schemas/examples remain published. Application versioning is independent and this implementation does not prepare a release.
 
 Follow-up migration `20261005001000_optimize_transfer_fee_validation` replaces the deferred validation function with separate indexed lookups for the changed fee and any fee linked to the changed parent. Apply it also to databases that already applied the top-up migration. It preserves relationship checks and changes neither ledger data nor the backup schema.
 

@@ -8,7 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Daily, Quarterly, and Semiannual recurring schedules with calendar-aware date advancement and localized labels.
 - Weekly/monthly recurring previews, target-balance top-ups, optional source/destination fee expenses, per-occurrence fee overrides, safe confirmation/skipping, and localized Rules-style help.
+- Localized hover, focus, and touch explanations for recurring Name, Description, and Fee account labels.
 
 - Create categories and tags from transaction quick entry in accessible dialogs, preserving the draft and selecting the new record immediately.
 - Comma-separated rule alternatives with quoted literal phrases, automatic categorization of new uncategorized expenses, localized save feedback, and an accessible Rules help panel.
@@ -16,12 +18,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- JSON backup schema version 12 adds daily, three-month, and six-month frequencies. Versions 1–11 remain importable; historical schemas and examples stay unchanged.
 - Choosing a category skips rule categorization and rule tags, including during CSV import. New quick entries remember the account but start with an empty category.
 - JSON backup schema version 11 adds recurring amount modes, weekly schedules, optional fee settings, nullable target-mode amounts, and transfer-fee links. Versions 1–10 remain importable as fixed monthly templates without fees; all published historical artifacts remain available.
 - JSON backup schema version 10 introduced the rule matching syntax. Historical versions 1–9 restore their match text as one literal phrase; published version 8 and 9 artifacts remain available. Restored transactions retain their saved categories and tags.
 
 ### Fixed
 
+- Recurring help-label dotted underlines align consistently beneath Name, Description, and Fee account.
 - Transfer-fee validation uses separate indexed fee and parent lookups, avoiding full-ledger scans during imports and restores.
 - Recurring generation and skipping preserve complete imported occurrence timestamps, including milliseconds, through confirmation.
 - Existing and restored recurring names longer than 100 characters remain usable, including unchanged-name settings edits; the limit applies to new and renamed templates.
@@ -37,6 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Upgrade notes
 
+- Apply migration `20261006000000_add_recurring_frequencies` and regenerate Prisma Client. Existing schedules remain unchanged. New exports use version 12, which earlier builds cannot import; keep pre-upgrade JSON and PostgreSQL backups for rollback.
 - Apply migration `20261005000000_add_recurring_top_ups`. Existing templates keep their fixed monthly amounts without fees. Earlier builds cannot import version 11 backups or represent target-balance templates; keep pre-upgrade JSON and PostgreSQL backups for rollback.
 - Apply follow-up migration `20261005001000_optimize_transfer_fee_validation` even if the top-up migration was already applied. It replaces the validation function without changing ledger data or the backup format.
 

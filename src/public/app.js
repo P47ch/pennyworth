@@ -169,6 +169,27 @@ for (const rulesHelp of document.querySelectorAll("[data-rules-help], [data-page
 
 const transactionForm = document.querySelector("[data-transaction-form]");
 
+const fieldHints = document.querySelectorAll("[data-field-hint]");
+for (const fieldHint of fieldHints) {
+  const resetHint = () => fieldHint.removeAttribute("data-hint-dismissed");
+  const label = fieldHint.querySelector("label");
+  label?.addEventListener("pointerenter", resetHint);
+  label?.addEventListener("click", resetHint);
+  fieldHint.addEventListener("focusin", resetHint);
+}
+if (fieldHints.length > 0) {
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      for (const fieldHint of fieldHints) fieldHint.setAttribute("data-hint-dismissed", "");
+    }
+  });
+  document.addEventListener("click", (event) => {
+    for (const fieldHint of fieldHints) {
+      if (!fieldHint.contains(event.target)) fieldHint.setAttribute("data-hint-dismissed", "");
+    }
+  });
+}
+
 if (transactionForm) {
   const typeSelect = transactionForm.querySelector("[data-transaction-type]");
   const sourceAccountText = transactionForm.querySelector("[data-source-account-text]");

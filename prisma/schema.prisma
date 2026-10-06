@@ -406,6 +406,9 @@ enum CategoryType {
 enum RecurringFrequency {
   monthly
   weekly
+  daily
+  every_3_months
+  every_6_months
 }
 
 enum RecurringAmountMode {

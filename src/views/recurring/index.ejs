@@ -1,6 +1,6 @@
 <section class="page-heading"><div><p class="eyebrow">Templates</p><div class="rules-title-row"><h1>Recurring</h1><%- include('../partials/recurring-help.ejs') %></div></div></section>
 <section class="panel">
-  <div class="panel-heading"><h2>Add recurring transaction</h2><span class="muted">Weekly or monthly templates, confirmed manually</span></div>
+  <div class="panel-heading"><h2>Add recurring transaction</h2><span class="muted">Scheduled templates, confirmed manually</span></div>
   <% if (error) { %><p class="error" role="alert"><%= t(error) %></p><% } %>
   <form method="post" action="/recurring" class="form-grid transaction-form" data-transaction-form data-recurring-form>
     <%- include('form.ejs', { submitLabel: 'Add recurring' }) %>
@@ -13,7 +13,7 @@
     <div class="table-wrap"><table>
       <thead><tr><th>Name</th><th>Next date</th><th>Type</th><th>Account</th><th>Amount</th><th>Fee</th><th>Status</th><th>Actions</th></tr></thead>
       <tbody><% for (const item of recurringTransactions) { %><tr>
-        <td data-label="Name"><strong><%= item.name %></strong><br><small class="muted"><%= t(item.frequency === 'weekly' ? 'Weekly' : 'Monthly') %></small></td>
+        <td data-label="Name"><strong><%= item.name %></strong><br><small class="muted"><%= t(recurringFrequencyLabels[item.frequency]) %></small></td>
         <td data-label="Next date"><%= item.nextDate.toISOString().slice(0, 10) %></td>
         <td data-label="Type"><span class="badge badge-<%= item.type %>"><%= typeLabel(item.type) %></span></td>
         <td data-label="Account"><%= item.sourceAccount?.name || '-' %><% if (item.type === 'transfer') { %> → <%= item.destinationAccount?.name || '-' %><% } %><% if (item.category) { %><br><%- categoryLabel(item.category) %><% } %></td>

@@ -4,7 +4,7 @@ import { createTranslator } from "../lib/i18n.js";
 import { normalizeUserPreferences } from "../lib/preferences.js";
 import { setTransactionNotice } from "../lib/transactionNotice.js";
 import { parseMoneyToMinorUnits } from "../finance/money.js";
-import type { RecurringFeeAccount } from "../finance/recurring.js";
+import { recurringFrequencyLabels, type RecurringFeeAccount } from "../finance/recurring.js";
 import { loadConfig } from "../lib/config.js";
 import { listAccountsWithBalances } from "../services/accounts.js";
 import { createRecurringTransaction, deleteRecurringTransaction, generateRecurringTransaction, getRecurringForUser,
@@ -29,7 +29,7 @@ async function pageData(userId: string) {
   const [recurringTransactions, accounts, categories] = await Promise.all([
     listRecurringTransactions(userId), listAccountsWithBalances(userId), listCategories(userId)
   ]);
-  return { recurringTransactions, accounts, categories, transactionTypes, recurringFrequencies };
+  return { recurringTransactions, accounts, categories, transactionTypes, recurringFrequencies, recurringFrequencyLabels };
 }
 function feeOverride(body: ReturnType<typeof formBody>) {
   return { feeAmountMinor: parseMoneyToMinorUnits(field(body, "feeAmount") || "0"),

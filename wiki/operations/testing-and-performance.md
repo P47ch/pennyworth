@@ -2,7 +2,7 @@
 title: Testing and Performance
 type: verification
 status: current
-updated: 2026-10-05
+updated: 2026-10-06
 source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema]
 tags: [testing, integration, accessibility, performance, ci]
 ---
@@ -38,7 +38,7 @@ Encrypted-backup tamper tests decode the selected ciphertext, authentication tag
 
 ## Recurring form and help checks
 
-Run `npm run test:recurring` after installing Chromium with `npx playwright install chromium`. The existing Playwright/axe dependencies serve temporary rendered fixtures without a database or real financial data. Thirty page configurations cover Recurring, Edit recurring, and preview across desktop/320-pixel mobile, English/Italian, light/dark, and native no-JavaScript controls. Checks cover keyboard help, Escape/outside-click dismissal, preserved drafts, exactly source/destination fee options, fixed/target field switching, localized breakdowns, zero unintended POST requests, horizontal overflow, and axe violations. CI runs it after Chromium installation.
+Run `npm run test:recurring` after installing Chromium with `npx playwright install chromium`. The existing Playwright/axe dependencies serve temporary rendered fixtures without a database or real financial data. Thirty page configurations cover Recurring, Edit recurring, and preview across desktop/320-pixel mobile, English/Italian, light/dark, and native no-JavaScript controls. Checks cover keyboard help, Escape/outside-click dismissal, preserved drafts, all five localized frequency options, exactly source/destination fee options, fixed/target field switching, localized breakdowns, zero unintended POST requests, horizontal overflow, and axe violations. CI runs it after Chromium installation.
 
 The guarded integration suite additionally covers source/destination fee accounting, per-occurrence zero overrides, explicit skipping, dated balance calculations, stale and duplicate confirmations, competing replenishment templates, injected fee-creation rollback, category/account ownership, conditional database checks, correction/deletion semantics, and out-of-order version-11 backup round-trips.
 
@@ -47,6 +47,14 @@ The 2026-10-05 issue #8 implementation passed 253 unit tests across 37 files, al
 The 2026-10-05 recurring-review remediation passed 261 unit tests, all 35 PostgreSQL/Fastify integration tests in the isolated `pennyworth_issue8_review_test` database, both TypeScript checks, the production build, and all 30 recurring browser configurations. All 27 migrations applied. New rendered-form regressions cover imported intraday timestamps with milliseconds for both generation and skipping, repeat-submission rejection, and version-10/version-11 restored 101-character names that still generate and allow unchanged-name edits while rejecting new long names. Published backup fields, schemas, and starter files retain their compatibility behavior; no schema or application version changed.
 
 The trigger regression seeds 51,000 rows inside a rolled-back transaction, then validates 100 updates with the fee trigger enabled and a two-second statement budget. The original trigger exceeded that budget; separate indexed lookups completed in 41.7 ms during the full integration run (44.2 ms in the focused run). These timings measure trigger validation, not an entire import or restore. The fixture and test users are removed afterward.
+
+The 2026-10-06 recurring label explanations passed all 30 existing browser configurations and the application TypeScript check. Create/edit checks now cover localized Name/Description text, label hover, persistence while hovering the popup, keyboard focus, Escape without focus loss, click/touch opening, outside dismissal, unchanged drafts, accessible input descriptions, and no-JavaScript touch fallback. Open-tooltip desktop/mobile screenshots were inspected; accessibility and horizontal-overflow checks passed. No form-control action sent a POST request.
+
+The same day's Fee account follow-up also passed all 30 configurations and the application TypeScript check. Create/edit checks include the fee selector's hover, focus, touch, dismissal, preserved draft and shared guidance, plus no-JavaScript fallback; preview checks cover the localized fee explanation and Escape dismissal. Open-tooltip desktop/mobile screenshots were inspected.
+
+The 2026-10-06 frequency extension passed 279 unit tests across 37 files, all 42 PostgreSQL/Fastify integration tests against the isolated `pennyworth_issue8_review_test` database, both TypeScript checks, the production build, and all 30 recurring browser configurations. All 28 migrations applied. Regressions cover daily UTC calendar boundaries, quarterly/semiannual month-end clamping and leap years, exact occurrence timestamps, generated and skipped occurrences, and version-12 export/restore for each new frequency. Version-11 target/fee settings and published artifacts retain their behavior; versions 1–11 remain importable. The expanded fixtures use independent client addresses for login so they exercise authentication without exhausting a shared rate-limit bucket; production throttling is unchanged.
+
+Draft 2020-12 JSON Schema validation accepted the version-12 starter and an actual PostgreSQL-backed export containing all five frequencies; the temporary export user was removed afterward. The existing Docker test app applied `20261006000000_add_recurring_frequencies`, then passed live readiness, login, recurring-selector label/value checks, and current schema/starter download-link checks. No normal-user financial records, dependencies, or application release version changed.
 
 ## Dependency audit
 

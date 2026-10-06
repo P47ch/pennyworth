@@ -12,7 +12,7 @@ import { validateRecurringSettings, type RecurringSettings } from "../lib/recurr
 import { encodeLegacyRuleMatchText, validateBackupRuleMatchText } from "../lib/ruleMatching.js";
 
 const primaryCurrency = loadConfig().primaryCurrency;
-export const currentBackupSchemaVersion = 11;
+export const currentBackupSchemaVersion = 12;
 
 type BackupRecord = Record<string, unknown>;
 const restoreBatchSize = bulkWorkflowBatchSize;
@@ -366,9 +366,10 @@ function parseBackupJson(rawJson: string): BackupRecord {
 
 function recurringBackupSettings(recurring: BackupRecord, index: number, version: unknown) {
   const label = `recurringTransactions[${index}]`;
-  const legacy = version !== 11;
+  const legacy = Number(version) < 11;
   const frequency = optionalStringValue(recurring.frequency, `${label}.frequency`) ?? "monthly";
   if (legacy && frequency !== "monthly") throw new Error(`${label}.frequency must be monthly in historical backups.`);
+  if (version === 11 && !["monthly", "weekly"].includes(frequency)) throw new Error(`${label}.frequency must be monthly or weekly in version 11 backups.`);
   const settings = {
     amountMode: (legacy ? "fixed" : optionalStringValue(recurring.amountMode, `${label}.amountMode`) ?? "fixed") as RecurringSettings["amountMode"],
     amountMinor: recurring.amountMinor === null ? null : numberValue(recurring.amountMinor, `${label}.amountMinor`),
@@ -391,7 +392,7 @@ function validateTransferFeeLinks(transactions: BackupRecord[], version: unknown
     const label = `transactions[${index}].feeForTransactionId`;
     const parentId = optionalStringValue(fee.feeForTransactionId, label);
     if (!parentId) continue;
-    if (version !== 11) throw new Error(`${label} requires backup version 11.`);
+    if (Number(version) < 11) throw new Error(`${label} requires backup version 11 or later.`);
     const parent = byId.get(parentId);
     if (!parent || parent.type !== "transfer" || fee.type !== "expense" || parent.id === fee.id
       || ![parent.sourceAccountId, parent.destinationAccountId].includes(fee.sourceAccountId)
@@ -419,7 +420,8 @@ function previewParsedBackup(backup: BackupRecord): BackupPreview {
     backup.schemaVersion !== 8 &&
     backup.schemaVersion !== 9 &&
     backup.schemaVersion !== 10 &&
-    backup.schemaVersion !== 11
+    backup.schemaVersion !== 11 &&
+    backup.schemaVersion !== 12
   ) {
     throw new Error("Unsupported backup schema version.");
   }
@@ -433,7 +435,7 @@ function previewParsedBackup(backup: BackupRecord): BackupPreview {
   const rules = typeof backup.rules === "undefined" ? [] : arrayValue(backup.rules, "rules");
   for (const [index, rule] of rules.entries()) {
     const matchText = stringValue(rule.matchText, `rules[${index}].matchText`);
-    if (backup.schemaVersion === 10 || backup.schemaVersion === 11) {
+    if (Number(backup.schemaVersion) >= 10) {
       try {
         validateBackupRuleMatchText(matchText);
       } catch (error) {
@@ -847,7 +849,7 @@ export async function restoreUserBackup(userId: string, rawJson: string) {
       userId,
       categoryId: stringValue(rule.categoryId, `rules[${index}].categoryId`),
       name: stringValue(rule.name, `rules[${index}].name`),
-      matchText: backup.schemaVersion === 10 || backup.schemaVersion === 11
+      matchText: Number(backup.schemaVersion) >= 10
         ? stringValue(rule.matchText, `rules[${index}].matchText`)
         : encodeLegacyRuleMatchText(stringValue(rule.matchText, `rules[${index}].matchText`)),
       priority: typeof rule.priority === "undefined" ? index * 10 : numberValue(rule.priority, `rules[${index}].priority`),

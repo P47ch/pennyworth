@@ -7,6 +7,7 @@ import { chromium, type Page } from "@playwright/test";
 import axe from "axe-core";
 import ejs from "ejs";
 import { createMoneyFormatter } from "../src/finance/money.js";
+import { recurringFrequencies, recurringFrequencyLabels } from "../src/finance/recurring.js";
 import { createTranslator, createTypeLabelFormatter } from "../src/lib/i18n.js";
 import { renderCategoryLabel, renderIcon } from "../src/lib/icons.js";
 import { localizeEjsTemplate } from "../src/lib/localizedEjs.js";
@@ -38,7 +39,7 @@ const server = createServer((request, response) => {
     csrfToken: "fixture-token", error: null, t: createTranslator(language), typeLabel: createTypeLabelFormatter(language),
     formatMoney: createMoneyFormatter("EUR"), icon: renderIcon, categoryLabel: renderCategoryLabel,
     recurring, recurringTransactions: [recurring], transactionTypes: ["income", "expense", "transfer"],
-    recurringFrequencies: ["monthly", "weekly"], accounts: [{ id: "bank", name: "Bank" }, { id: "wallet", name: "Wallet" }],
+    recurringFrequencies, recurringFrequencyLabels, accounts: [{ id: "bank", name: "Bank" }, { id: "wallet", name: "Wallet" }],
     categories: [{ id: "fees", name: "Fees", type: "expense" }, { id: "salary", name: "Salary", type: "income" }],
     form: { ...recurring, amount: "65.00", targetBalance: "100.00", feeAmount: "0.50", nextDate: "2026-10-05", description: "", notes: "" },
     preview: { recurring, transferAmountMinor: 6550, feeAmountMinor: 50, requestedFeeAmountMinor: 50, feeAccount: "destination",
@@ -67,7 +68,7 @@ let checked = 0;
 try {
   browser = await chromium.launch({ headless: true });
   for (const width of [1440, 320]) for (const language of ["en", "it"] as const) for (const theme of ["light", "dark"]) {
-    const context = await browser.newContext({ viewport: { width, height: 900 } });
+    const context = await browser.newContext({ viewport: { width, height: 900 }, hasTouch: width === 320 });
     const page = await context.newPage();
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -81,6 +82,47 @@ try {
       await form.locator('[name="name"]').fill("Keep <literal> $& draft");
       await form.locator('[name="notes"]').fill("Notes\nSecond line");
       const initialDraft = await draft(page);
+      const frequencySelect = form.locator('[name="frequency"]');
+      assert.deepEqual(await frequencySelect.locator("option").allTextContents(), [t("Daily"), t("Weekly"), t("Monthly"), t("Quarterly"), t("Semiannual")]);
+      for (const frequency of ["daily", "every_3_months", "every_6_months"]) {
+        await frequencySelect.selectOption(frequency);
+        assert.equal(await frequencySelect.inputValue(), frequency);
+      }
+      await frequencySelect.selectOption("weekly");
+      for (const [field, message] of [
+        ["name", "Name of the recurring operation, used to identify it in the recurring list."],
+        ["description", "Description used for the generated transaction. Leave it blank to use the recurring operation's name."],
+        ["fee-account", "Choose which account pays the fee. Source account: added to the transfer debit. Destination account: deducted from the money received."]
+      ]) {
+        const hint = form.locator(`[data-field-hint="${field}"]`);
+        const label = hint.locator("label");
+        const tooltip = hint.locator('[role="tooltip"]');
+        const input = hint.locator("input, select");
+        assert((await input.getAttribute("aria-describedby"))?.split(/\s+/).includes((await tooltip.getAttribute("id"))!));
+        assert.equal(await tooltip.textContent(), t(message));
+        assert(await tooltip.isHidden());
+        await label.hover();
+        assert(await tooltip.isVisible(), "Hovering the field label opens its explanation");
+        await tooltip.hover();
+        assert(await tooltip.isVisible(), "The explanation stays open while hovered");
+        await page.locator("h1").hover();
+        assert(await tooltip.isHidden());
+        await input.focus();
+        assert(await tooltip.isVisible(), "Keyboard focus opens the explanation");
+        if (field === "name") await assertAccessible(page);
+        if (name === "edit" && theme === "dark" && ((width === 1440 && language === "en") || (width === 320 && language === "it"))) {
+          await page.screenshot({ path: path.join(tmpdir(), `pennyworth-recurring-${field}-hint-${width}.png`) });
+        }
+        await page.keyboard.press("Escape");
+        assert(await tooltip.isHidden());
+        assert(await input.evaluate((item) => item === document.activeElement));
+        if (width === 320) await label.tap();
+        else await label.click();
+        assert(await tooltip.isVisible(), "Clicking or tapping the label opens its explanation");
+        await page.locator("h1").click();
+        assert(await tooltip.isHidden(), "Clicking outside dismisses the explanation");
+      }
+      assert.deepEqual(await draft(page), initialDraft);
       assert.equal(await form.locator('[data-source-account-text]').textContent(), t("Source account"));
       assert.deepEqual(await form.locator('[name="feeAccount"] option').evaluateAll((options) => options.map((item) => (item as HTMLOptionElement).value)), ["source", "destination"]);
       assert(await form.locator('[name="amount"]').isDisabled());
@@ -126,6 +168,14 @@ try {
       checked += 1;
     }
     await page.goto(`${baseUrl}/preview?language=${language}&theme=${theme}`);
+    const feeHint = page.locator('[data-field-hint="fee-account"]');
+    const feeTooltip = feeHint.locator('[role="tooltip"]');
+    assert.equal(await feeTooltip.textContent(), t("Choose which account pays the fee. Source account: added to the transfer debit. Destination account: deducted from the money received."));
+    await feeHint.locator("label").hover();
+    assert(await feeTooltip.isVisible());
+    await feeHint.locator("select").focus();
+    await page.keyboard.press("Escape");
+    assert(await feeTooltip.isHidden());
     assert((await page.locator("dl").textContent())?.includes(t("Destination net credit")));
     assert.equal(await page.locator('button[type="submit"]').last().textContent(), t("Confirm and generate"));
     await page.locator('[data-page-help] summary').click();
@@ -135,7 +185,7 @@ try {
     checked += 1;
   }
   for (const language of ["en", "it"] as const) {
-    const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 900 } });
+    const context = await browser.newContext({ javaScriptEnabled: false, hasTouch: true, viewport: { width: 320, height: 900 } });
     const page = await context.newPage();
     for (const name of ["index", "edit", "preview"]) {
       await page.goto(`${baseUrl}/${name}?language=${language}`);
@@ -144,6 +194,11 @@ try {
       await page.locator('[data-page-help] summary').click();
       assert(await page.locator('[data-page-help] h2').isHidden());
       if (name !== "preview") {
+        for (const field of ["name", "description", "fee-account"]) {
+          await page.locator(`[data-field-hint="${field}"] label`).tap();
+          assert(await page.locator(`#recurring-${field}-hint`).isVisible(), "Field explanations work without JavaScript");
+        }
+        await page.locator('[name="notes"]').focus();
         await page.locator('[name="amountMode"]').selectOption("fixed");
         await page.locator('[name="feeAccount"]').selectOption("source");
         assert.equal(await page.locator('[name="amount"]').inputValue(), "65.00");

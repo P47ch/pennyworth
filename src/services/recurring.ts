@@ -9,7 +9,7 @@ import { getAccountBalanceMap } from "../queries/accountBalances.js";
 import { createTransaction, transactionTypes } from "./transactions.js";
 import { assertCategorySupportsTransaction, lockCategoriesForUse, lockCategoryForUse } from "./relationshipValidation.js";
 
-export const recurringFrequencies: RecurringFrequency[] = ["monthly", "weekly"];
+export { recurringFrequencies } from "../finance/recurring.js";
 const recurringInclude = { sourceAccount: true, destinationAccount: true, category: true, feeCategory: true };
 export function addOneMonth(date: Date): Date { return nextRecurringDate(date, "monthly"); }
 

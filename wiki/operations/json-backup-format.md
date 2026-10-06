@@ -2,24 +2,24 @@
 title: JSON Backup Format
 type: runbook
 status: current
-updated: 2026-10-05
+updated: 2026-10-06
 source_ids: [application-source, database-schema, migrations, test-suite, project-contract, owasp-password-storage, node-crypto]
 tags: [backup, restore, json, schema, migration, excel, encryption]
 ---
 
 # JSON Backup Format
 
-Pennyworth publishes its current user-backup format so data from spreadsheets or other finance systems can be transformed into an importable file. Use schema version `11` for newly generated files.
+Pennyworth publishes its current user-backup format so data from spreadsheets or other finance systems can be transformed into an importable file. Use schema version `12` for newly generated files.
 
-- [`pennyworth-backup-v11.schema.json`](../../src/public/schemas/pennyworth-backup-v11.schema.json) is the machine-readable JSON Schema 2020-12 definition.
-- [`pennyworth-backup-v11-starter.json`](../../src/public/examples/pennyworth-backup-v11-starter.json) is a small importable example with two accounts, two categories, one tag, a grocery expense, a transfer with its destination-paid fee, two rules, and a weekly target-balance template.
+- [`pennyworth-backup-v12.schema.json`](../../src/public/schemas/pennyworth-backup-v12.schema.json) is the machine-readable JSON Schema 2020-12 definition.
+- [`pennyworth-backup-v12-starter.json`](../../src/public/examples/pennyworth-backup-v12-starter.json) is a small importable example with two accounts, two categories, one tag, a grocery expense, a transfer with its destination-paid fee, two rules, a weekly target-balance template, and daily, quarterly, and semiannual fixed expenses.
 - Both files are also downloadable from **Settings → Security** in a running Pennyworth installation.
 
 The application restore preview remains authoritative. JSON Schema checks field shapes and enum values, while Pennyworth additionally checks references, duplicate IDs, category cycles, configured currency, money bounds, and database constraints.
 
 ## Encrypted envelope wrapper
 
-An encrypted `.pwb` backup wraps, but does not alter, a complete JSON document in this contract. Its independent format identifier is `pennyworth-encrypted-backup` and its independent format version is `1`; it is not a JSON schema version. The wrapper remains version 1 when its contained JSON uses schema version 11.
+An encrypted `.pwb` backup wraps, but does not alter, a complete JSON document in this contract. Its independent format identifier is `pennyworth-encrypted-backup` and its independent format version is `1`; it is not a JSON schema version. The wrapper remains version 1 when its contained JSON uses schema version 12.
 
 Envelope version 1 is UTF-8 JSON with exactly these properties, serialized with ordinary padded Base64 (not Base64url):
 
@@ -75,9 +75,9 @@ For Excel, semicolon-separated tag cells must be converted to JSON arrays of tag
 
 ```json
 {
-  "$schema": "/public/schemas/pennyworth-backup-v11.schema.json",
+  "$schema": "/public/schemas/pennyworth-backup-v12.schema.json",
   "app": "Pennyworth",
-  "schemaVersion": 11,
+  "schemaVersion": 12,
   "exportedAt": "2026-09-04T12:00:00.000Z",
   "user": { "email": "import@example.com" },
   "accounts": [],
@@ -94,7 +94,7 @@ For Excel, semicolon-separated tag cells must be converted to JSON arrays of tag
 }
 ```
 
-`app`, `schemaVersion`, `exportedAt`, `user`, `accounts`, `categories`, `tags`, and `transactions` are required. The remaining arrays may be omitted and then restore as empty arrays, although normal version 11 exports always include them.
+`app`, `schemaVersion`, `exportedAt`, `user`, `accounts`, `categories`, `tags`, and `transactions` are required. The remaining arrays may be omitted and then restore as empty arrays, although normal version 12 exports always include them.
 
 Every record inside an array requires:
 
@@ -131,7 +131,7 @@ Investment `quantity` values are decimal **strings**, not JSON numbers, with at 
 | Account `type` | `bank`, `cash`, `credit_card`, `savings`, `investment`, `crypto_wallet`, `other` |
 | Category `type` | `income`, `expense`, `both` |
 | Transaction and recurring `type` | `income`, `expense`, `transfer` |
-| Recurring `frequency` | `monthly`, `weekly` |
+| Recurring `frequency` | `daily`, `weekly`, `monthly`, `every_3_months`, `every_6_months` |
 | Recurring `amountMode` | `fixed`, `target_balance` |
 | Recurring `feeAccount` | `source`, `destination` |
 | Asset `type` | `stock`, `etf`, `fund`, `bond`, `crypto`, `other` |
@@ -155,9 +155,9 @@ These cross-record rules cannot all be represented by JSON Schema. The restore p
 
 ## Recurring and transfer-fee fields
 
-Version 11 fixed mode requires a positive integer `amountMinor` and null/omitted `targetBalanceMinor`. Target-balance mode requires `type: "transfer"`, `amountMinor: null`, and a nonnegative integer target. Targets and fee amounts must fit PostgreSQL's signed 32-bit range. The target is reached after fees; fixed amounts remain the transfer principal. See [recurring templates](../features/automation.md#optional-top-up-fees) for examples.
+Versions 11 and 12 fixed mode require a positive integer `amountMinor` and null/omitted `targetBalanceMinor`. Target-balance mode requires `type: "transfer"`, `amountMinor: null`, and a nonnegative integer target. Targets and fee amounts must fit PostgreSQL's signed 32-bit range. The target is reached after fees; fixed amounts remain the transfer principal. See [recurring templates](../features/automation.md#optional-top-up-fees) for examples.
 
-Only transfers can have fee settings: non-transfer templates require fee amount zero, fee account source, and fee category null/omitted. Fee categories must reference an expense-compatible category in the same backup. The fee role is relative to the stored transfer accounts; there is no third-account option. Weekly schedules advance seven calendar days; monthly schedules clamp dates. Restore preserves the next date and active state without generating an occurrence.
+Only transfers can have fee settings: non-transfer templates require fee amount zero, fee account source, and fee category null/omitted. Fee categories must reference an expense-compatible category in the same backup. The fee role is relative to the stored transfer accounts; there is no third-account option. Daily and weekly schedules advance one and seven UTC calendar days. Monthly, quarterly (`every_3_months`), and semiannual (`every_6_months`) schedules advance one, three, and six calendar months from the stored occurrence, clamping the day to the destination month when necessary. Restore preserves the next date and active state without generating an occurrence.
 
 Recurring `nextDate` accepts a complete timestamp, including an intraday time and milliseconds. Generate and skip confirmation preserve that exact stored occurrence, and schedule advancement retains its time. Existing and restored names longer than 100 characters remain valid for preview and generation, and can remain unchanged while editing other settings. The 100-character limit applies to new or renamed templates in the application, not backup preview, restore, or export. These compatibility fixes do not change the format or schema version.
 
@@ -165,7 +165,7 @@ Recurring `nextDate` accepts a complete timestamp, including an intraday time an
 
 ## Rule matching syntax
 
-In versions 10 and 11, `rules[].matchText` is a comma-separated list of case-insensitive substring alternatives. For example, `lidl, aldi, carrefour` matches any of those terms anywhere in description or notes. Spaces stay inside a phrase: `amazon prime` remains one alternative. Empty alternatives and case-insensitive duplicates are ignored, but at least one non-empty term is required.
+In versions 10–12, `rules[].matchText` is a comma-separated list of case-insensitive substring alternatives. For example, `lidl, aldi, carrefour` matches any of those terms anywhere in description or notes. Spaces stay inside a phrase: `amazon prime` remains one alternative. Empty alternatives and case-insensitive duplicates are ignored, but at least one non-empty term is required.
 
 For compatibility with historical imports, backup validation also accepts a non-empty string consisting only of whitespace, or a single quoted whitespace-only literal (including `""`). These rules never match a transaction, regardless of `isActive`, and their text and active state survive restore, export, and reimport. This also covers whitespace line breaks quoted by the data migration. Rule creation/edit forms still require a non-empty matching term. Empty strings, malformed quoting, and lists containing only empty alternatives such as `, ,` remain invalid backup input.
 
@@ -179,7 +179,9 @@ Malformed quoting is rejected during preview, before restore can replace any dat
 
 ## Version compatibility
 
-Pennyworth imports schema versions `1` through `11`, defaulting record families that did not exist in earlier versions. Version `9` introduced stricter service-level relationship validation. Version `10` changes `rules[].matchText` from one literal phrase to comma-separated alternatives. Versions `1`–`9` are upgraded during restore by quoting literal commas and quotes, preserving their old matching behavior. Restoring versions 10 and 11 retains the saved matching text. Version 11 introduces weekly and target-balance recurring templates, fee settings, nullable fixed amounts, and transfer-fee links. Versions 1–10 restore recurring records as fixed monthly templates using their original positive amount, with no fee preset. Missing version-11 settings default to fixed mode, null target, zero fee, source role, and null fee category; ordinary transactions default to no fee link. The [version 10 schema](../../src/public/schemas/pennyworth-backup-v10.schema.json) and [version 10 starter](../../src/public/examples/pennyworth-backup-v10-starter.json) remain published unchanged, along with the [version 9 schema](../../src/public/schemas/pennyworth-backup-v9.schema.json), [version 9 starter](../../src/public/examples/pennyworth-backup-v9-starter.json), and version 8 artifacts remain published without modification.
+Version 12 adds `daily`, `every_3_months` (Quarterly), and `every_6_months` (Semiannual). Version 11 still accepts only monthly and weekly schedules, including its original target/fee settings; new frequency values require version 12. Its [published schema](../../src/public/schemas/pennyworth-backup-v11.schema.json) and [starter](../../src/public/examples/pennyworth-backup-v11-starter.json) remain unchanged. Migration `20261006000000_add_recurring_frequencies` adds the three enum values without modifying saved occurrences. Application builds predating this change cannot import version-12 backups or represent its new frequencies; retain pre-upgrade JSON and PostgreSQL backups for rollback.
+
+Pennyworth imports schema versions `1` through `12`, defaulting record families that did not exist in earlier versions. Version `9` introduced stricter service-level relationship validation. Version `10` changes `rules[].matchText` from one literal phrase to comma-separated alternatives. Versions `1`–`9` are upgraded during restore by quoting literal commas and quotes, preserving their old matching behavior. Restoring versions 10–12 retains the saved matching text. Version 11 introduces weekly and target-balance recurring templates, fee settings, nullable fixed amounts, and transfer-fee links. Versions 1–10 restore recurring records as fixed monthly templates using their original positive amount, with no fee preset. Missing version-11/version-12 settings default to fixed mode, null target, zero fee, source role, and null fee category; ordinary transactions default to no fee link. The [version 10 schema](../../src/public/schemas/pennyworth-backup-v10.schema.json) and [version 10 starter](../../src/public/examples/pennyworth-backup-v10-starter.json) remain published unchanged, along with the [version 9 schema](../../src/public/schemas/pennyworth-backup-v9.schema.json), [version 9 starter](../../src/public/examples/pennyworth-backup-v9-starter.json), and version 8 artifacts remain published without modification.
 
 Migration `20261002000000_preserve_literal_rule_matching` performs the equivalent quoting for existing database rules. Editing an old comma-containing rule is required to opt it into alternatives. Migration `20261005000000_add_recurring_top_ups` adds the recurring and fee database fields without altering existing fixed monthly rows. Earlier application builds cannot import version 11 backups or interpret its nullable target-mode amounts; keep pre-upgrade PostgreSQL and JSON backups for rollback. Builds predating the rule change also cannot import version 10 backups and do not understand the migrated quoted matching syntax; retain pre-upgrade PostgreSQL and JSON backups for rollback. External conversion tools should generate only the current version and treat the filename and `schemaVersion` as versioned contracts.
 

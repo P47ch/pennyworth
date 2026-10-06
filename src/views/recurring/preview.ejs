@@ -7,7 +7,14 @@
     <form method="post" action="/recurring/<%= preview.recurring.id %>/preview" class="form-grid">
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
       <label>Fee amount<input name="feeAmount" inputmode="decimal" value="<%= (preview.requestedFeeAmountMinor / 100).toFixed(2) %>" required></label>
-      <label>Fee account<select name="feeAccount"><option value="source" <%= preview.feeAccount === 'source' ? 'selected' : '' %>>Source account</option><option value="destination" <%= preview.feeAccount === 'destination' ? 'selected' : '' %>>Destination account</option></select></label>
+      <div class="field-hint" data-field-hint="fee-account">
+        <label for="recurring-fee-account" class="field-hint-label"><%= t("Fee account") %></label>
+        <span id="recurring-fee-account-hint" class="field-hint-content" role="tooltip"><%= t("Choose which account pays the fee. Source account: added to the transfer debit. Destination account: deducted from the money received.") %></span>
+        <select id="recurring-fee-account" name="feeAccount" aria-describedby="recurring-fee-account-hint">
+          <option value="source" <%= preview.feeAccount === 'source' ? 'selected' : '' %>><%= t("Source account") %></option>
+          <option value="destination" <%= preview.feeAccount === 'destination' ? 'selected' : '' %>><%= t("Destination account") %></option>
+        </select>
+      </div>
       <button type="submit">Update preview</button>
     </form>
   <% } %>

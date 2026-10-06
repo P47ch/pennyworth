@@ -1,11 +1,11 @@
-import { assertMinorAmount, type RecurringAmountMode, type RecurringFeeAccount } from "../finance/recurring.js";
+import { assertMinorAmount, recurringFrequencies, type RecurringAmountMode, type RecurringFeeAccount } from "../finance/recurring.js";
 
 export type RecurringSettings = {
   type: string; amountMode: RecurringAmountMode; amountMinor: number | null; targetBalanceMinor: number | null;
   feeAmountMinor: number; feeAccount: RecurringFeeAccount; feeCategoryId?: string | null; frequency: string;
 };
 export function validateRecurringSettings(input: RecurringSettings): void {
-  if (!["monthly", "weekly"].includes(input.frequency)) throw new Error("Choose a valid frequency.");
+  if (!recurringFrequencies.some(frequency => frequency === input.frequency)) throw new Error("Choose a valid frequency.");
   if (!["fixed", "target_balance"].includes(input.amountMode)) throw new Error("Choose a valid amount mode.");
   if (!["source", "destination"].includes(input.feeAccount)) throw new Error("Choose source or destination for the fee.");
   assertMinorAmount(input.feeAmountMinor, true);

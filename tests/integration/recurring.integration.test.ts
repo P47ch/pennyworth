@@ -13,6 +13,7 @@ import { buildUserBackup, previewBackupJson, restoreUserBackup } from "../../src
 
 const ids: string[] = [];
 let app: FastifyInstance;
+let loginSequence = 0;
 beforeAll(async () => { app = await buildApp(); });
 afterAll(async () => { await app.close(); });
 afterEach(async () => {
@@ -42,7 +43,8 @@ async function login(user: Awaited<ReturnType<typeof fixture>>['user']) {
   const headers = page.headers['set-cookie'];
   const csrfCookie = (Array.isArray(headers) ? headers : [String(headers)]).find(value => value.startsWith('pennyworth_csrf='))!.split(';')[0];
   const csrfToken = page.body.match(/name="csrfToken" value="([^"]+)"/)![1];
-  const response = await app.inject({ method: 'POST', url: '/login', remoteAddress: '127.8.0.2',
+  // Each fixture has its own client rather than sharing the login rate-limit bucket.
+  const response = await app.inject({ method: 'POST', url: '/login', remoteAddress: `127.8.1.${++loginSequence}`,
     headers: { cookie: csrfCookie, 'content-type': 'application/x-www-form-urlencoded' },
     payload: new URLSearchParams({ csrfToken, email: user.email, password: 'recurring-test-2026' }).toString() });
   expect(response.statusCode).toBe(302);
@@ -56,6 +58,34 @@ function confirmationFields(html: string) {
     .map(match => [match[1], match[2]]));
 }
 describe('recurring transfers with fees', () => {
+  it.each([
+    ['daily', 'generate', '2026-09-01T12:34:56.789Z'],
+    ['daily', 'skip', '2026-09-01T12:34:56.789Z'],
+    ['every_3_months', 'generate', '2026-11-30T12:34:56.789Z'],
+    ['every_3_months', 'skip', '2026-11-30T12:34:56.789Z'],
+    ['every_6_months', 'generate', '2027-02-28T12:34:56.789Z'],
+    ['every_6_months', 'skip', '2027-02-28T12:34:56.789Z']
+  ] as const)('round-trips %s and advances its %s confirmation', async (frequency, action, nextDate) => {
+    const f = await fixture();
+    if (action === 'skip') await prisma.account.update({ where: { id: f.destination.id }, data: { openingBalanceMinor: 10_000 } });
+    const template = await createRecurringTransaction({ ...f.input, frequency, nextDate: new Date('2026-08-31T12:34:56.789Z') });
+    const backup = await buildUserBackup(f.user.id);
+    expect(backup.schemaVersion).toBe(12);
+    expect(backup.recurringTransactions[0].frequency).toBe(frequency);
+    expect(previewBackupJson(JSON.stringify(backup)).recurringCount).toBe(1);
+    await restoreUserBackup(f.user.id, JSON.stringify(backup));
+    const cookie = await login(f.user);
+    const preview = await app.inject({ method: 'GET', url: `/recurring/${template.id}/preview`, headers: { cookie } });
+    expect(preview.statusCode).toBe(200);
+    const response = await app.inject({ method: 'POST', url: `/recurring/${template.id}/${action}`,
+      headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' }, payload: confirmationFields(preview.body).toString() });
+    expect(response.statusCode).toBe(302);
+    expect((await prisma.recurringTransaction.findUniqueOrThrow({ where: { id: template.id } })).nextDate).toEqual(new Date(nextDate));
+    expect(await prisma.transaction.count({ where: { userId: f.user.id } })).toBe(action === 'generate' ? 2 : 0);
+    const generatedBackup = await buildUserBackup(f.user.id);
+    await restoreUserBackup(f.user.id, JSON.stringify(generatedBackup));
+    expect((await prisma.recurringTransaction.findUniqueOrThrow({ where: { id: template.id } })).frequency).toBe(frequency);
+  });
   it.each(['generate', 'skip'] as const)('confirms an imported intraday occurrence through the rendered %s form', async (action) => {
     const f = await fixture();
     const template = await createRecurringTransaction(f.input);
@@ -79,7 +109,7 @@ describe('recurring transfers with fees', () => {
     expect(entries).toHaveLength(action === 'generate' ? 2 : 0);
     for (const entry of entries) expect(entry.date).toEqual(new Date('2026-10-05T12:34:56.789Z'));
   });
-  it.each([10, 11])('keeps a restored long-name version %s template usable without accepting new long names', async (version) => {
+  it.each([10, 11, 12])('keeps a restored long-name version %s template usable without accepting new long names', async (version) => {
     const f = await fixture();
     const input = { ...f.input, amountMode: 'fixed' as const, amountMinor: 500, targetBalanceMinor: null,
       feeAmountMinor: 0, frequency: 'monthly' as const };

@@ -43,3 +43,29 @@ describe("recurring amounts", () => {
     }
   });
 });
+
+describe("calendar-month recurring schedules", () => {
+  it.each([
+    ["every_3_months", "2026-01-31T12:34:56.789Z", "2026-04-30T12:34:56.789Z"],
+    ["every_3_months", "2026-04-30T12:34:56.789Z", "2026-07-30T12:34:56.789Z"],
+    ["every_3_months", "2026-11-30T12:34:56.789Z", "2027-02-28T12:34:56.789Z"],
+    ["every_3_months", "2027-11-30T12:34:56.789Z", "2028-02-29T12:34:56.789Z"],
+    ["every_6_months", "2026-08-31T12:34:56.789Z", "2027-02-28T12:34:56.789Z"],
+    ["every_6_months", "2027-08-31T12:34:56.789Z", "2028-02-29T12:34:56.789Z"],
+    ["every_6_months", "2026-05-31T12:34:56.789Z", "2026-11-30T12:34:56.789Z"]
+  ] as const)("advances %s from %s to %s", (frequency, from, to) => {
+    expect(nextRecurringDate(new Date(from), frequency).toISOString()).toBe(to);
+  });
+});
+
+describe("daily recurring schedules", () => {
+  it.each([
+    ["2026-01-31T12:34:56.789Z", "2026-02-01T12:34:56.789Z"],
+    ["2028-02-28T12:34:56.789Z", "2028-02-29T12:34:56.789Z"],
+    ["2028-02-29T12:34:56.789Z", "2028-03-01T12:34:56.789Z"],
+    ["2026-12-31T12:34:56.789Z", "2027-01-01T12:34:56.789Z"],
+    ["2026-03-28T12:34:56.789Z", "2026-03-29T12:34:56.789Z"]
+  ])("advances one UTC calendar day from %s", (from, to) => {
+    expect(nextRecurringDate(new Date(from), "daily").toISOString()).toBe(to);
+  });
+});

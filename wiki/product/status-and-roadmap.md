@@ -2,7 +2,7 @@
 title: Product Status and Roadmap
 type: status
 status: current
-updated: 2026-10-05
+updated: 2026-10-06
 source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy, issue-6, issue-8, issue-8-fees, issue-8-help]
 tags: [status, roadmap, verification]
 ---
@@ -27,7 +27,7 @@ Pennyworth `0.8.0-alpha.1` is an actively developed public preview, not a stable
 - Quick category/tag creation in manual transaction entry with draft preservation, immediate selection, localized accessible dialogs, and explicit recovery after interrupted creation responses.
 - Retried and concurrent CSV confirmations are idempotent through user-scoped import receipts.
 - Categorization-rule priority, comma-separated alternatives, optional rule tags, direct list Enable/Disable actions, automatic application to new uncategorized expenses and recurring generation, CSV preview, localized save feedback, and explicit preview against existing expenses.
-- Manual weekly/monthly recurring generation with signed preview, fixed amounts or target-balance transfers, optional source/destination fee expenses, safe confirmation/skipping, and localized Rules-style help.
+- Manual daily/weekly/monthly/quarterly/semiannual recurring generation with signed preview, fixed amounts or target-balance transfers, optional source/destination fee expenses, safe confirmation/skipping, and localized Rules-style help.
 - Asset catalog, manual prices, investment activity, cash impact, derived positions, average cost, valuation, and allocation reporting.
 - JSON backup and transactional restore across supported user-owned records; investment projections are rebuilt rather than backed up.
 - Password-protected `.pwb` backup export and file-based restore using bounded scrypt and AES-256-GCM envelopes, metadata authentication, generic decrypt failures, and preview-bound confirmation; ordinary JSON remains supported.

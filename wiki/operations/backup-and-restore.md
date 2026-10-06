@@ -2,7 +2,7 @@
 title: Backup and Restore
 type: runbook
 status: current
-updated: 2026-10-05
+updated: 2026-10-06
 source_ids: [application-source, database-schema, test-suite, container-definitions, project-contract, owasp-password-storage, node-crypto, fastify-multipart]
 tags: [backup, restore, recovery, encryption]
 ---
@@ -13,10 +13,10 @@ Pennyworth has two complementary recovery layers: user-scoped JSON for portable 
 
 ## User-scoped backups
 
-Authenticated users export JSON from Security. Current schema version `11` includes:
+Authenticated users export JSON from Security. Current schema version `12` includes:
 
 - accounts, categories, tags, transactions, and transaction-tag links;
-- budgets, rules, rule tags, weekly/monthly fixed or target-balance recurring templates and fee presets;
+- budgets, rules, rule tags, daily/weekly/monthly/quarterly/semiannual fixed or target-balance recurring templates and fee presets;
 - transfer-fee links preserving the separate expense and source/destination accounting;
 - assets, manual prices, holdings, and investment activity including cash impact.
 
@@ -24,11 +24,11 @@ Derived `InvestmentPosition` and `InvestmentTransactionResult` rows are excluded
 
 Account credentials, roles, and interface preferences such as language, theme, menu visibility, and avatar choice are not replaced by JSON restore. Use a PostgreSQL dump when full installation recovery, including those settings, is required.
 
-Restore accepts schema version `1` without budgets and versions `2` through `11` with later record families defaulted when absent. Preview validates app identity, schema version, unique IDs, references, category cycles, the configured primary currency, integer money bounds, supported values, rule matching syntax, and service-level relationship semantics. Restore independently parses and validates the exact submitted payload immediately before opening its replacement transaction, then writes the captured validated graph without reparsing it inside the transaction. Saved categories and tags are restored exactly; categorization rules are never rerun during restore.
+Restore accepts schema version `1` without budgets and versions `2` through `12` with later record families defaulted when absent. Preview validates app identity, schema version, unique IDs, references, category cycles, the configured primary currency, integer money bounds, supported values, rule matching syntax, and service-level relationship semantics. Restore independently parses and validates the exact submitted payload immediately before opening its replacement transaction, then writes the captured validated graph without reparsing it inside the transaction. Saved categories and tags are restored exactly; categorization rules are never rerun during restore.
 
-The current version 11 structure is documented in the [JSON backup format](json-backup-format.md). A machine-readable schema and an importable starter example are available there and from the Security page for conversions from Excel or another application. Version 8, 9, and 10 schemas and starters remain published for historical exports. Historical recurring records restore as fixed monthly amounts without fee presets. Transfer-fee graphs are validated before replacement and linked after all transactions are created. Older rule match text is converted to a quoted literal phrase when necessary, preserving its meaning under the new comma-separated matcher.
+The current version 12 structure is documented in the [JSON backup format](json-backup-format.md). A machine-readable schema and an importable starter example are available there and from the Security page for conversions from Excel or another application. Version 8, 9, 10, and 11 schemas and starters remain published for historical exports. Versions 1–10 restore recurring records as fixed monthly amounts without fee presets; version 11 retains its monthly/weekly schedules, targets, and fees. Transfer-fee graphs are validated before replacement and linked after all transactions are created. Older rule match text is converted to a quoted literal phrase when necessary, preserving its meaning under the new comma-separated matcher.
 
-Historical whitespace-only rules remain inert and survive version 11 export and reimport, whether active or inactive. Backup validation accepts their original or quoted whitespace text; rule forms continue to require a non-empty matching term.
+Historical whitespace-only rules remain inert and survive version 12 export and reimport, whether active or inactive. Backup validation accepts their original or quoted whitespace text; rule forms continue to require a non-empty matching term.
 
 The user must review the preview and confirm with `RESTORE`. Replacement is user-scoped and transactional: a failure rolls back rather than leaving a partial ledger. A successful restore rebuilds derived investment state.
 
@@ -36,7 +36,7 @@ The user must review the preview and confirm with `RESTORE`. Replacement is user
 
 Security also offers a password-protected download named `pennyworth-backup-YYYY-MM-DD.pwb`. New exports require a passphrase of at least 12 characters; existing encrypted backups with shorter passphrases remain restorable for compatibility. The passphrase is never stored, placed in a URL, or included in the filename. Pennyworth cannot recover a backup when its passphrase is lost, so keep a separate recovery copy and use a unique, memorable passphrase.
 
-The `.pwb` file is an encrypted envelope around the exact same JSON export, currently schema version `11`. Its envelope version remains `1`, and ordinary `.json` export and restore remain available for interoperability. The envelope is parsed from content rather than relying on a filename or MIME type. Restore accepts one `.pwb` or `.json` file, or pasted JSON; it shows the ordinary record-count preview and requires a second passphrase entry plus `RESTORE` before replacing data. A 15-minute server-signed token binds the confirmation to the exact payload shown in the preview, and decryption plus JSON validation run again immediately before the existing transactional restore.
+The `.pwb` file is an encrypted envelope around the exact same JSON export, currently schema version `12`. Its envelope version remains `1`, and ordinary `.json` export and restore remain available for interoperability. The envelope is parsed from content rather than relying on a filename or MIME type. Restore accepts one `.pwb` or `.json` file, or pasted JSON; it shows the ordinary record-count preview and requires a second passphrase entry plus `RESTORE` before replacing data. A 15-minute server-signed token binds the confirmation to the exact payload shown in the preview, and decryption plus JSON validation run again immediately before the existing transactional restore.
 
 Pennyworth limits encrypted JSON plaintext to 10 MiB and the UTF-8 envelope to 14 MiB. Multipart accepts only one file and four non-file fields, with the same resource bounds; uploaded files are held only in request memory and are never written to disk. The confirmation preserves the exact UTF-8 payload using bounded Base64url transport (the confirmation route is limited to 20 MiB). A 15-minute server-signed token binds it to the preview. Passphrase attempts are limited to three per 15 minutes per Fastify rate-limit key; across export, preview, and confirmation, the service runs at most one scrypt operation at a time and queues at most two more. Wrong passphrases, malformed envelopes, and modified encrypted metadata or ciphertext all report the same safe failure message.
 

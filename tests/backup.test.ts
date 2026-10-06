@@ -192,10 +192,10 @@ function sampleBackup() {
 describe("backup restore preview", () => {
   it("keeps the published schema and starter example aligned with the current importer", () => {
     const schema = JSON.parse(
-      readFileSync(new URL("../src/public/schemas/pennyworth-backup-v11.schema.json", import.meta.url), "utf8")
+      readFileSync(new URL("../src/public/schemas/pennyworth-backup-v12.schema.json", import.meta.url), "utf8")
     ) as { properties: { schemaVersion: { const: number } } };
     const starter = readFileSync(
-      new URL("../src/public/examples/pennyworth-backup-v11-starter.json", import.meta.url),
+      new URL("../src/public/examples/pennyworth-backup-v12-starter.json", import.meta.url),
       "utf8"
     );
 
@@ -205,7 +205,8 @@ describe("backup restore preview", () => {
       categoryCount: 2,
       tagCount: 1,
       transactionCount: 3,
-      ruleCount: 2
+      ruleCount: 2,
+      recurringCount: 4
     });
   });
 
@@ -225,6 +226,45 @@ describe("backup restore preview", () => {
       holdingCount: 1,
       investmentTransactionCount: 1
     });
+  });
+
+  it.each(["daily", "every_3_months", "every_6_months"])("accepts %s only in version 12 backups", (frequency) => {
+    const backup = sampleBackup();
+    backup.recurringTransactions[0].frequency = frequency;
+    backup.schemaVersion = 12;
+    expect(previewBackupJson(JSON.stringify(backup)).recurringCount).toBe(1);
+    for (const version of [1, 10, 11]) {
+      backup.schemaVersion = version;
+      expect(() => previewBackupJson(JSON.stringify(backup))).toThrow("frequency");
+    }
+  });
+
+  it("keeps published version 11 scheduling and transfer-fee backups importable", () => {
+    const schema = JSON.parse(readFileSync(new URL("../src/public/schemas/pennyworth-backup-v11.schema.json", import.meta.url), "utf8"));
+    expect(schema.properties.schemaVersion.const).toBe(11);
+    expect(schema.$defs.recurringTransaction.allOf[1].properties.frequency.enum).toEqual(["monthly", "weekly"]);
+    const starter = readFileSync(new URL("../src/public/examples/pennyworth-backup-v11-starter.json", import.meta.url), "utf8");
+    expect(previewBackupJson(starter)).toMatchObject({ recurringCount: 1, transactionCount: 3 });
+  });
+
+  it.each([11, 12])("preserves alternative matching text during version %i restore", async (version) => {
+    const backup = sampleBackup();
+    backup.schemaVersion = version;
+    backup.rules[0].matchText = "netflix, spotify";
+    const models = ["investmentTransactionResult", "investmentPosition", "investmentTransaction", "holding", "assetPrice", "asset",
+      "recurringTransaction", "rule", "transaction", "budget", "tag", "category", "account", "user", "transactionTag", "ruleTag"];
+    const tx = Object.fromEntries(models.map(model => [model, {
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }), updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      update: vi.fn().mockResolvedValue({}), createMany: vi.fn().mockResolvedValue({ count: 1 })
+    }]));
+    vi.spyOn(prisma, "$transaction").mockImplementation(async (callback) => {
+      if (typeof callback === "function") return callback(tx as unknown as Prisma.TransactionClient);
+      throw new Error("Expected a transaction callback.");
+    });
+    await restoreUserBackup("target-user", JSON.stringify(backup));
+    expect(tx.rule.createMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.arrayContaining([
+      expect.objectContaining({ matchText: "netflix, spotify" })
+    ]) }));
   });
 
   it("accepts valid version 10 alternatives and literal quoted phrases", () => {
