@@ -2,8 +2,8 @@
 title: Product Status and Roadmap
 type: status
 status: current
-updated: 2026-10-05
-source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy, issue-6]
+updated: 2026-10-06
+source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy, issue-6, issue-8, issue-8-fees, issue-8-help]
 tags: [status, roadmap, verification]
 ---
 
@@ -27,7 +27,7 @@ Pennyworth `0.8.0-alpha.1` is an actively developed public preview, not a stable
 - Quick category/tag creation in manual transaction entry with draft preservation, immediate selection, localized accessible dialogs, and explicit recovery after interrupted creation responses.
 - Retried and concurrent CSV confirmations are idempotent through user-scoped import receipts.
 - Categorization-rule priority, comma-separated alternatives, optional rule tags, direct list Enable/Disable actions, automatic application to new uncategorized expenses and recurring generation, CSV preview, localized save feedback, and explicit preview against existing expenses.
-- Manual recurring generation for monthly income, expenses, and transfers.
+- Manual daily/weekly/monthly/quarterly/semiannual recurring generation with signed preview, fixed amounts or target-balance transfers, optional source/destination fee expenses, safe confirmation/skipping, and localized Rules-style help.
 - Asset catalog, manual prices, investment activity, cash impact, derived positions, average cost, valuation, and allocation reporting.
 - JSON backup and transactional restore across supported user-owned records; investment projections are rebuilt rather than backed up.
 - Password-protected `.pwb` backup export and file-based restore using bounded scrypt and AES-256-GCM envelopes, metadata authentication, generic decrypt failures, and preview-bound confirmation; ordinary JSON remains supported.
@@ -64,6 +64,8 @@ Follow-up verification on 2026-10-02 passed 231 unit tests across 35 files, both
 
 ## Current focus
 
+Issue #8 recurring top-ups was verified on 2026-10-05 with 253 unit tests, 30 PostgreSQL/Fastify integration tests in a disposable database, 30 recurring browser configurations, both TypeScript checks, production build, Prisma validation, backup schema/export compatibility checks, and wiki lint. The running test container passed an authenticated 17-route desktop/mobile accessibility sweep and live preview/help checks using a temporary isolated user. Its migration is applied and update checking is enabled at the user's request. Fixed/target-balance transfers and source/destination fee choices are current behavior; generation remains manual. See [testing and performance](../operations/testing-and-performance.md#recurring-form-and-help-checks).
+
 Issue #6 quick category/tag creation, including interrupted-response recovery, was verified on 2026-10-05 with 239 unit tests across 36 files, all 18 PostgreSQL/Fastify integration tests against a separate test database, both TypeScript checks, and the production build. Eight expanded English/Italian desktop/mobile light/dark dialog fixtures and a JavaScript-disabled fallback passed. The earlier implementation also passed wiki lint and a full isolated-app accessibility audit across all 17 routes in both desktop/mobile viewports. See [testing and performance](../operations/testing-and-performance.md#quick-entry-dialog-checks).
 
 Operationally validate the intended self-hosted environment rather than adding another architecture layer:
@@ -82,12 +84,14 @@ High-value product work not currently implemented:
 2. Investment-return performance, longer historical ranges, and benchmark comparison.
 3. Crypto-specific transfers, staking rewards, mining rewards, and wallet flows on the shared asset model.
 4. CSV create-missing-tags behavior if real imports demonstrate the need.
-5. Recurring-transaction preview and confirmation refinements; background scheduling remains intentionally deferred.
+5. Background recurring scheduling and dedicated monthly per-account cashflow summaries; manual weekly fixed/target-balance transfers from [issue #8](../features/automation.md#fixed-and-variable-recurring-transfers-issue-8) are implemented.
 6. Manual exchange rates and multi-currency reporting.
 7. Receipt attachments.
 8. User-facing backup/restore drills and operational automation.
 
 Quick category/tag creation from issue #6 is implemented in [manual transaction entry](../features/transactions.md#quick-category-and-tag-creation-issue-6). Extending it to editing, recurring forms, rules, and CSV import remains future work.
+
+After the recurring PR merges, add dependency maintenance in a separate PR: weekly Dependabot version updates for npm/GitHub Actions, small compatible-update groups, security alerts and fixes for maintained branches, required CI/review, and a scheduled audit. No update automation is configured yet; the [maintenance plan](../operations/testing-and-performance.md#dependency-maintenance-follow-up) records scope and Dependabot's default-branch security behavior.
 
 ## Removed stale backlog
 
@@ -112,3 +116,6 @@ The former task page listed dashboard budget state, recurring templates, categor
 - [`project-contract`](../sources.md#sourceproject-contract)
 - [`release-policy`](../sources.md#sourcerelease-policy)
 - [`issue-6`](../sources.md#sourceissue-6)
+- [`issue-8`](../sources.md#sourceissue-8)
+- [`issue-8-fees`](../sources.md#sourceissue-8-fees)
+- [`issue-8-help`](../sources.md#sourceissue-8-help)

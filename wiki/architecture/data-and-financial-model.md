@@ -2,7 +2,7 @@
 title: Data and Financial Model
 type: architecture
 status: current
-updated: 2026-09-15
+updated: 2026-10-06
 source_ids: [project-contract, database-schema, migrations, finance-source, query-source]
 tags: [data-model, accounting, money, investments]
 ---
@@ -35,13 +35,13 @@ Normal transaction types are `income`, `expense`, and `transfer`:
 - Expense subtracts one positive amount from its source account and contributes to expense reports.
 - Transfer subtracts one amount from the source and adds it to a different destination account. It never contributes to income or expense reporting.
 
-Current balances are opening balance plus normal-transaction effects plus investment cash effects. They are not stored as a mutable cached account field.
+Current balances are opening balance plus normal-transaction effects plus investment cash effects. They are not stored as a mutable cached account field. Recurring previews use the same query with an exclusive next-UTC-day cutoff; opening balances apply at every historical cutoff because they have no effective date.
 
 ## Categories, tags, and automation
 
 A transaction has at most one category and many tags. Category types are `income`, `expense`, and `both`. Categories may be nested, but service validation and backup validation reject cycles; the category parent relation also includes `userId` so a parent cannot belong to another user.
 
-Budgets are unique per user/category/month. Rules point to a user-owned category, may add user-owned tags, and use integer priority plus active state. Recurring templates currently support only `monthly` frequency and reuse normal transaction shapes.
+Budgets are unique per user/category/month. Rules point to a user-owned category, may add user-owned tags, and use integer priority plus active state. Recurring templates support `daily`, `weekly`, `monthly`, `every_3_months` (Quarterly), and `every_6_months` (Semiannual). Daily/weekly schedules advance one/seven UTC calendar days; monthly intervals advance one/three/six calendar months with day clamping. All retain the occurrence time and milliseconds. Fixed mode stores a positive amount and null target; target-balance mode requires a transfer, null amount, and nonnegative target. Optional fee amount defaults to zero, its role to source, and its expense-compatible category to null. A generated fee is a normal expense linked by `Transaction.feeForTransactionId` to one same-user transfer on the same date; it debits that transfer's source or destination. A unique composite index permits at most one fee per transfer; parent deletion cascades to the fee. PostgreSQL conditional checks and a deferred trigger enforce these relationships. See [recurring templates](../features/automation.md#fixed-and-variable-recurring-transfers-issue-8) for post-fee target calculations and confirmation.
 
 ## Money and numeric boundaries
 
@@ -58,7 +58,7 @@ Application-facing money formatting binds its default currency to `PRIMARY_CURRE
 
 ## Dates and reporting
 
-Accounting dates are stored at UTC midnight and compared using UTC calendar operations. Month reports use inclusive start and exclusive end. `APP_TIME_ZONE` determines which date/month is “current” for the user but does not change stored accounting dates.
+Date-entry forms store accounting dates at UTC midnight. JSON backups can contain complete timestamps; recurring confirmation, generated entries, and schedule advancement preserve their time and milliseconds. Reports use UTC calendar boundaries, with inclusive start and exclusive end for months. `APP_TIME_ZONE` determines which date/month is “current” for the user but does not change stored accounting dates.
 
 Transaction indexes begin with `userId` and then date, type, account, or category fields used by filters and reports. Monthly cashflow, category spending, and per-account historical balances execute in PostgreSQL, while pure functions fill missing months, derive savings rates, rank category series, replay investment positions, and combine account and investment series into net worth.
 

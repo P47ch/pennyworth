@@ -1,0 +1,9 @@
+<section class="page-heading"><h1>Delete transaction</h1></section>
+<section class="panel">
+  <p><%= transaction.description || typeLabel(transaction.type) %> · <%= formatMoney(transaction.amountMinor) %></p>
+  <p><%= t(transaction.feeTransaction ? 'Deleting this transfer also deletes its linked fee expense.' : 'Deleting this fee keeps the linked transfer.') %></p>
+  <div class="row-actions"><form method="post" action="/transactions/<%= transaction.id %>/delete">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>"><input type="hidden" name="confirmDelete" value="yes">
+    <button type="submit" class="button-danger">Confirm deletion</button>
+  </form><a class="button-link" href="/transactions">Cancel</a></div>
+</section>

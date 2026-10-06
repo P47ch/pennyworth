@@ -2,7 +2,7 @@
 title: Security and Privacy
 type: security
 status: current
-updated: 2026-10-02
+updated: 2026-10-05
 source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite, owasp-password-storage, node-crypto, fastify-multipart, github-rest-releases]
 tags: [security, privacy, authentication, integrity, encryption]
 ---
@@ -48,6 +48,8 @@ Services check that referenced accounts, categories, tags, assets, budgets, rule
 Family-user support retains `User` as the tenant boundary: authenticated users cannot read or modify another user's financial records, and there is no household-wide shared ledger. Application administrators manage authentication access but receive no application-level view into another user's ledger. The home-lab operator remains a trusted infrastructure administrator with container and database access, including the ability to reset a user's password.
 
 Database constraints reject malformed transaction shapes, non-positive financial values, same-account transfers, categorized transfers, invalid investment combinations, cross-user references, and invalid derived position values. Category parent ownership is database-enforced, while services and restore validation reject hierarchy cycles.
+
+Recurring confirmation additionally uses a session-secret HMAC bound to the user, occurrence date, template revision, fee override, and calculated amounts/balance. The server recomputes within serializable isolation, so a client cannot alter a fee or reuse an old occurrence confirmation to process the next one. CSRF remains required for confirmation and skip. Deferred PostgreSQL constraints independently enforce linked transfer/fee ownership, date, parent type, and source/destination account.
 
 This defense in depth protects normal forms, imports, maintenance scripts, restore operations, and direct database writes.
 

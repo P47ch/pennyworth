@@ -8,10 +8,11 @@ import {
   bulkWorkflowTransactionTimeoutMs
 } from "./bulkWorkflow.js";
 import { validateBackupRelationshipSemantics } from "./relationshipValidation.js";
+import { validateRecurringSettings, type RecurringSettings } from "../lib/recurringSettings.js";
 import { encodeLegacyRuleMatchText, validateBackupRuleMatchText } from "../lib/ruleMatching.js";
 
 const primaryCurrency = loadConfig().primaryCurrency;
-export const currentBackupSchemaVersion = 10;
+export const currentBackupSchemaVersion = 12;
 
 type BackupRecord = Record<string, unknown>;
 const restoreBatchSize = bulkWorkflowBatchSize;
@@ -164,6 +165,7 @@ export async function buildUserBackup(userId: string) {
       categoryId: transaction.categoryId,
       description: transaction.description,
       notes: transaction.notes,
+      feeForTransactionId: transaction.feeForTransactionId,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
       tagIds: transactionTagIds.get(transaction.id) ?? []
@@ -362,6 +364,46 @@ function parseBackupJson(rawJson: string): BackupRecord {
   }
 }
 
+function recurringBackupSettings(recurring: BackupRecord, index: number, version: unknown) {
+  const label = `recurringTransactions[${index}]`;
+  const legacy = Number(version) < 11;
+  const frequency = optionalStringValue(recurring.frequency, `${label}.frequency`) ?? "monthly";
+  if (legacy && frequency !== "monthly") throw new Error(`${label}.frequency must be monthly in historical backups.`);
+  if (version === 11 && !["monthly", "weekly"].includes(frequency)) throw new Error(`${label}.frequency must be monthly or weekly in version 11 backups.`);
+  const settings = {
+    amountMode: (legacy ? "fixed" : optionalStringValue(recurring.amountMode, `${label}.amountMode`) ?? "fixed") as RecurringSettings["amountMode"],
+    amountMinor: recurring.amountMinor === null ? null : numberValue(recurring.amountMinor, `${label}.amountMinor`),
+    targetBalanceMinor: legacy || recurring.targetBalanceMinor === null || recurring.targetBalanceMinor === undefined
+      ? null : numberValue(recurring.targetBalanceMinor, `${label}.targetBalanceMinor`),
+    feeAmountMinor: legacy || recurring.feeAmountMinor === undefined ? 0 : numberValue(recurring.feeAmountMinor, `${label}.feeAmountMinor`),
+    feeAccount: (legacy ? "source" : optionalStringValue(recurring.feeAccount, `${label}.feeAccount`) ?? "source") as RecurringSettings["feeAccount"],
+    feeCategoryId: legacy ? null : optionalStringValue(recurring.feeCategoryId, `${label}.feeCategoryId`)
+  };
+  try { validateRecurringSettings({ ...settings, type: stringValue(recurring.type, `${label}.type`), frequency }); }
+  catch (error) { throw new Error(`${label}: ${error instanceof Error ? error.message : "Invalid recurring settings."}`); }
+  dateValue(recurring.nextDate, `${label}.nextDate`);
+  return settings;
+}
+
+function validateTransferFeeLinks(transactions: BackupRecord[], version: unknown) {
+  const byId = new Map(transactions.map((record, index) => [stringValue(record.id, `transactions[${index}].id`), record]));
+  const feeParents = new Set<string>();
+  for (const [index, fee] of transactions.entries()) {
+    const label = `transactions[${index}].feeForTransactionId`;
+    const parentId = optionalStringValue(fee.feeForTransactionId, label);
+    if (!parentId) continue;
+    if (Number(version) < 11) throw new Error(`${label} requires backup version 11 or later.`);
+    const parent = byId.get(parentId);
+    if (!parent || parent.type !== "transfer" || fee.type !== "expense" || parent.id === fee.id
+      || ![parent.sourceAccountId, parent.destinationAccountId].includes(fee.sourceAccountId)
+      || dateValue(parent.date, label).getTime() !== dateValue(fee.date, label).getTime()) {
+      throw new Error(`${label} must reference a transfer on the same date and debit its source or destination.`);
+    }
+    if (feeParents.has(parentId)) throw new Error(`${label} duplicates a transfer fee.`);
+    feeParents.add(parentId);
+  }
+}
+
 function previewParsedBackup(backup: BackupRecord): BackupPreview {
   if (backup.app !== "Pennyworth") {
     throw new Error("Backup was not created by Pennyworth.");
@@ -377,7 +419,9 @@ function previewParsedBackup(backup: BackupRecord): BackupPreview {
     backup.schemaVersion !== 7 &&
     backup.schemaVersion !== 8 &&
     backup.schemaVersion !== 9 &&
-    backup.schemaVersion !== 10
+    backup.schemaVersion !== 10 &&
+    backup.schemaVersion !== 11 &&
+    backup.schemaVersion !== 12
   ) {
     throw new Error("Unsupported backup schema version.");
   }
@@ -391,7 +435,7 @@ function previewParsedBackup(backup: BackupRecord): BackupPreview {
   const rules = typeof backup.rules === "undefined" ? [] : arrayValue(backup.rules, "rules");
   for (const [index, rule] of rules.entries()) {
     const matchText = stringValue(rule.matchText, `rules[${index}].matchText`);
-    if (backup.schemaVersion === 10) {
+    if (Number(backup.schemaVersion) >= 10) {
       try {
         validateBackupRuleMatchText(matchText);
       } catch (error) {
@@ -401,6 +445,8 @@ function previewParsedBackup(backup: BackupRecord): BackupPreview {
   }
   const recurringTransactions =
     typeof backup.recurringTransactions === "undefined" ? [] : arrayValue(backup.recurringTransactions, "recurringTransactions");
+  for (const [index, recurring] of recurringTransactions.entries()) recurringBackupSettings(recurring, index, backup.schemaVersion);
+  validateTransferFeeLinks(transactions, backup.schemaVersion);
   const assets = typeof backup.assets === "undefined" ? [] : arrayValue(backup.assets, "assets");
   const assetPrices = typeof backup.assetPrices === "undefined" ? [] : arrayValue(backup.assetPrices, "assetPrices");
   const holdings = typeof backup.holdings === "undefined" ? [] : arrayValue(backup.holdings, "holdings");
@@ -462,7 +508,8 @@ function previewParsedBackup(backup: BackupRecord): BackupPreview {
         recurring.destinationAccountId,
         `recurringTransactions[${index}].destinationAccountId`
       ),
-      categoryId: optionalStringValue(recurring.categoryId, `recurringTransactions[${index}].categoryId`)
+      categoryId: optionalStringValue(recurring.categoryId, `recurringTransactions[${index}].categoryId`),
+      feeCategoryId: recurringBackupSettings(recurring, index, backup.schemaVersion).feeCategoryId
     })),
     holdings: holdings.map((holding, index) => ({
       accountId: stringValue(holding.accountId, `holdings[${index}].accountId`)
@@ -532,9 +579,6 @@ function validateBackupReferences(
     positiveNumberValue(budget.amountMinor, `budgets[${index}].amountMinor`);
   }
 
-  for (const [index, recurring] of recurringTransactions.entries()) {
-    positiveNumberValue(recurring.amountMinor, `recurringTransactions[${index}].amountMinor`);
-  }
 
   for (const [index, assetPrice] of assetPrices.entries()) {
     positiveNumberValue(assetPrice.priceMinor, `assetPrices[${index}].priceMinor`);
@@ -769,6 +813,14 @@ export async function restoreUserBackup(userId: string, rawJson: string) {
       updatedAt: dateValue(transaction.updatedAt, `transactions[${index}].updatedAt`)
     }));
     await createManyInBatches(transactionRows, (batch) => tx.transaction.createMany({ data: batch }));
+    // Restore links after all principal records exist, regardless of array or batch order.
+    for (const [index, transaction] of transactions.entries()) {
+      const feeForTransactionId = optionalStringValue(transaction.feeForTransactionId, `transactions[${index}].feeForTransactionId`);
+      if (feeForTransactionId) await tx.transaction.update({
+        where: { id_userId: { id: stringValue(transaction.id, `transactions[${index}].id`), userId } },
+        data: { feeForTransactionId }
+      });
+    }
 
     const transactionTagRows = transactions.flatMap((transaction, index) =>
       (Array.isArray(transaction.tagIds) ? Array.from(new Set(transaction.tagIds)) : []).map((tagId) => ({
@@ -797,7 +849,7 @@ export async function restoreUserBackup(userId: string, rawJson: string) {
       userId,
       categoryId: stringValue(rule.categoryId, `rules[${index}].categoryId`),
       name: stringValue(rule.name, `rules[${index}].name`),
-      matchText: backup.schemaVersion === 10
+      matchText: Number(backup.schemaVersion) >= 10
         ? stringValue(rule.matchText, `rules[${index}].matchText`)
         : encodeLegacyRuleMatchText(stringValue(rule.matchText, `rules[${index}].matchText`)),
       priority: typeof rule.priority === "undefined" ? index * 10 : numberValue(rule.priority, `rules[${index}].priority`),
@@ -822,7 +874,7 @@ export async function restoreUserBackup(userId: string, rawJson: string) {
         userId,
         name: stringValue(recurring.name, `recurringTransactions[${index}].name`),
         type: stringValue(recurring.type, `recurringTransactions[${index}].type`) as never,
-        amountMinor: numberValue(recurring.amountMinor, `recurringTransactions[${index}].amountMinor`),
+        ...recurringBackupSettings(recurring, index, backup.schemaVersion),
         sourceAccountId: optionalStringValue(recurring.sourceAccountId, `recurringTransactions[${index}].sourceAccountId`),
         destinationAccountId: optionalStringValue(
           recurring.destinationAccountId,

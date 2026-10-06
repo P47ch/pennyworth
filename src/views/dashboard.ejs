@@ -47,7 +47,7 @@
           <a class="attention-item" href="/recurring">
             <span class="attention-marker attention-marker-recurring" aria-hidden="true"></span>
             <span><strong><%= item.name %></strong><small>Due <%= item.nextDate.toISOString().slice(0, 10) %> · <%= typeLabel(item.type) %></small></span>
-            <strong><%= formatMoney(item.amountMinor, item.sourceAccount?.currency || primaryCurrency) %></strong>
+            <strong><%= item.amountMode === 'target_balance' ? t('Target balance') + ': ' + formatMoney(item.targetBalanceMinor) : formatMoney(item.amountMinor, item.sourceAccount?.currency || primaryCurrency) %></strong>
           </a>
         <% } %>
       </div>

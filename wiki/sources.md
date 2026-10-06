@@ -2,7 +2,7 @@
 title: Pennyworth Source Map
 type: source-map
 status: current
-updated: 2026-10-05
+updated: 2026-10-06
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [sources, provenance]
 ---
@@ -34,7 +34,7 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 
 ## source:package-manifest
 
-- Location: [`../package.json`](../package.json)
+- Location: [`../package.json`](../package.json) and [`../package-lock.json`](../package-lock.json)
 - Kind: executable manifest
 - Authority: current scripts and installed application/tooling dependencies
 - Covers: authoritative application version, Node commands, Fastify/EJS/Prisma stack, tests, accessibility tools, and Chart.js
@@ -74,6 +74,27 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Authority: requested transaction-entry workflow; repository code remains authoritative for current behavior
 - Covers: creating a missing category or tag without leaving an in-progress transaction, with a proposed quick-add dialog
 
+## source:issue-8
+
+- Location: [GitHub issue #8: Giroconti ricorrenti fissi e variabili](https://github.com/P47ch/pennyworth/issues/8)
+- Kind: user-reported enhancement request, inspected on 2026-10-05
+- Authority: requested recurring-transfer workflow; repository code remains authoritative for current behavior, the approved implementation uses target-balance replenishment
+- Covers: fixed and variable recurring transfers, weekly account replenishment using a Satispay example, and monthly account activity visibility
+
+## source:issue-8-fees
+
+- Location: direct user clarification in the current Codex chat on 2026-10-05, recorded in [`log.md`](log.md)
+- Kind: primary user requirement
+- Authority: optional top-up fees and choosing source or destination as the fee-paying account are requested scope; repository code defines implemented accounting and workflow
+- Covers: optional costs of replenishing an account, occasions where a top-up is free, and a fee-account selector limited to the transfer's source or destination
+
+## source:issue-8-help
+
+- Location: direct user clarification in the current Codex chat on 2026-10-05, recorded in [`log.md`](log.md); interaction reference is [`../src/views/partials/rules-help.ejs`](../src/views/partials/rules-help.ejs)
+- Kind: primary user requirement with an existing application UI reference
+- Authority: Rules-style help for the expanded Recurring page is requested scope; repository code remains authoritative for what is implemented
+- Covers: accessible localized in-page recurring help, explanation of amount modes and fee-account choices, and keeping forms understandable as the feature grows
+
 ## source:finance-source
 
 - Location: [`../src/finance/`](../src/finance/)
@@ -97,10 +118,10 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 
 ## source:test-suite
 
-- Location: [`../tests/`](../tests/), [`../scripts/a11y-audit.mjs`](../scripts/a11y-audit.mjs), and [`../scripts/quick-taxonomy-browser.ts`](../scripts/quick-taxonomy-browser.ts)
+- Location: [`../tests/`](../tests/), [`../scripts/a11y-audit.mjs`](../scripts/a11y-audit.mjs), [`../scripts/quick-taxonomy-browser.ts`](../scripts/quick-taxonomy-browser.ts), and [`../scripts/recurring-browser.ts`](../scripts/recurring-browser.ts)
 - Kind: executable verification
 - Authority: tested behavior and regression coverage; passing status must be dated separately
-- Covers: finance, configuration, CSV, backup, authentication, queries, integration boundaries, accessibility, and quick-entry dialog behavior including interrupted-response recovery
+- Covers: finance, configuration, CSV, backup, authentication, queries, integration boundaries, accessibility, and quick-entry dialog behavior including interrupted-response recovery, and recurring form/help behavior
 
 ## source:ci-workflow
 
@@ -164,6 +185,20 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Kind: external primary documentation
 - Authority: public Releases endpoint, conditional request, and rate-limit response behavior
 - Covers: optional Pennyworth update-check request and release metadata boundary
+
+## source:source-map-js-advisory
+
+- Location: [GitHub advisory GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)
+- Kind: reviewed security advisory
+- Authority: affected source-map-js versions and patched version
+- Covers: indexed source-map denial of service through 1.2.1 and the 1.2.2 correction
+
+## source:dependabot-docs
+
+- Location: [Configuring Dependabot version updates](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates), [Optimizing update pull requests](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates), and [Customizing Dependabot pull requests](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/customizing-dependabot-prs)
+- Kind: external primary documentation
+- Authority: Dependabot scheduling, grouping, and branch behavior
+- Covers: weekly version checks, compatible-update groups, and security updates targeting only the default branch
 
 ## Sources
 

@@ -34,7 +34,7 @@ UPDATE_CHECK_INTERVAL_HOURS="24"
 
 `DATABASE_URL` uses `localhost` when Node runs on the host, `postgres` when the app and database share a Compose project, and an SSH-tunnel endpoint when PostgreSQL runs on another machine.
 
-Update checks are opt-in. Set `UPDATE_CHECK_ENABLED=true` only when the development server may make an ordinary HTTPS request for public Pennyworth GitHub Release metadata. `UPDATE_CHANNEL` is `prerelease` by default (includes alpha/beta/RC and stable releases) or `stable` (full releases only); `UPDATE_CHECK_INTERVAL_HOURS` accepts integers from 1 through 168.
+Update checks are opt-in. Changing the Compose environment file requires recreating the app service (a process restart keeps its old environment): `docker compose --env-file PATH -f compose.dev.yml up -d --no-deps --force-recreate app`. Include the same project name and override files used to start a test stack. Verify the running value with `docker compose -f compose.dev.yml exec app printenv UPDATE_CHECK_ENABLED`; this prints only that flag. Set `UPDATE_CHECK_ENABLED=true` only when the development server may make an ordinary HTTPS request for public Pennyworth GitHub Release metadata. `UPDATE_CHANNEL` is `prerelease` by default (includes alpha/beta/RC and stable releases) or `stable` (full releases only); `UPDATE_CHECK_INTERVAL_HOURS` accepts integers from 1 through 168.
 
 ## Host Node with container PostgreSQL
 
@@ -139,6 +139,7 @@ npm run typecheck            # type-check application
 npm run test:integration     # guarded PostgreSQL/Fastify integration suite
 npm run audit:a11y           # live authenticated browser audit
 npm run test:quick-entry     # isolated dialog browser/a11y checks (Chromium required)
+npm run test:recurring       # recurring forms/help browser/a11y checks (Chromium required)
 npm run db:generate          # generate Prisma Client
 npm run db:migrate           # create/apply development migration
 npm run db:deploy            # apply existing migrations

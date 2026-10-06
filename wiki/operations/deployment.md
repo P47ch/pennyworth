@@ -2,7 +2,7 @@
 title: Production Deployment
 type: runbook
 status: current
-updated: 2026-10-02
+updated: 2026-10-06
 source_ids: [container-definitions, environment-template, package-manifest, operational-scripts, application-source, project-contract]
 tags: [deployment, docker, podman, http, production]
 ---
@@ -126,7 +126,9 @@ Before first startup, test the `DATABASE_URL` from a container or other client o
 
 ## Updates
 
-The rule-automation change requires migration `20261002000000_preserve_literal_rule_matching` before the new application handles requests. It quotes existing literal commas and quotes to preserve rule behavior. New exports use [JSON schema version 10](json-backup-format.md); earlier builds cannot import them and do not understand migrated quoted matching text. Keep pre-upgrade JSON and PostgreSQL backups and use the pre-upgrade database snapshot for rollback.
+Apply follow-up migration `20261005001000_optimize_transfer_fee_validation` as well as the top-up migration below. It replaces full-ledger trigger scans with indexed fee and parent lookups, including on installations where the original top-up migration is already applied. The normal migration deployment applies this automatically; no ledger data or backup format changes.
+
+The rule-automation change requires migration `20261002000000_preserve_literal_rule_matching` before the new application handles requests. It quotes existing literal commas and quotes to preserve rule behavior. Recurring top-ups additionally require `20261005000000_add_recurring_top_ups`; existing templates retain fixed monthly amounts without fees. Migration `20261006000000_add_recurring_frequencies` adds Daily, Quarterly, and Semiannual without changing saved schedules. New exports use [JSON schema version 12](json-backup-format.md), including the new frequency values, target-balance templates, and transfer-fee links. Versions 1–11 remain importable. Earlier builds cannot import them or represent nullable target-mode amounts; builds predating the rule change also do not understand migrated quoted matching text. Keep pre-upgrade JSON and PostgreSQL backups and use the pre-upgrade database snapshot for rollback.
 
 Create JSON and SQL backups first. The default application image is built locally, so update the managed-PostgreSQL profile without trying to pull `pennyworth-app:latest` from a registry:
 

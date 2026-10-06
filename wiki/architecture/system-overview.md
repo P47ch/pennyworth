@@ -57,6 +57,8 @@ Read-heavy summaries avoid replaying complete ledgers in Node:
 - `src/queries/latestAssetPrices.ts` selects one latest price per asset.
 - Query adapters convert PostgreSQL `bigint` only after checking JavaScript safe-integer bounds.
 
+Recurring generation uses a server-rendered signed preview and serializable transaction. It reads the dated ledger, checks the occurrence and template revision, conditionally advances the date, and creates a principal plus optional linked fee atomically. Bounded retries recompute after serialization conflicts; changed amounts require new confirmation. Skipping a zero top-up shares the same controls.
+
 Investment positions and per-entry realized gains are rebuildable database projections. They bound dashboard, holdings, and activity reads while keeping investment activity authoritative.
 
 ## Dates and time zones

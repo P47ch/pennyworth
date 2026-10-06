@@ -14,6 +14,7 @@
   --income: #0b6b48;
   --expense: #a92f43;
   --transfer: #3977d5;
+  --transfer-text: #2457a3;
   --chart-series-0: #5967e8;
   --chart-series-1: #0b6b48;
   --chart-series-2: #3977d5;
@@ -64,6 +65,7 @@
   --income: #56c99a;
   --expense: #f07b87;
   --transfer: #73a8f3;
+  --transfer-text: #73a8f3;
   --chart-series-0: #a59cf6;
   --chart-series-1: #56c99a;
   --chart-series-2: #73a8f3;
@@ -725,8 +727,65 @@ a {
 }
 
 .rules-form > label,
-.quick-entry > label {
+.quick-entry > label,
+[data-recurring-form] label:not(.checkbox-row) {
   align-self: start;
+}
+
+.field-hint {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-self: start;
+  min-width: 0;
+}
+
+.field-hint-label {
+  position: relative;
+  width: fit-content;
+  cursor: help;
+}
+
+.field-hint-label::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  border-bottom: 1px dotted currentColor;
+  pointer-events: none;
+}
+
+.field-hint-content {
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: calc(100% + 0.4rem);
+  z-index: 10;
+  width: min(20rem, 100%);
+  padding: 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow-elevated);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  visibility: hidden;
+}
+
+.field-hint-content::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 0.4rem;
+}
+
+.field-hint:not([data-hint-dismissed]) > .field-hint-label:hover + .field-hint-content,
+.field-hint:not([data-hint-dismissed]) > .field-hint-content:hover,
+.field-hint:not([data-hint-dismissed]):focus-within > .field-hint-content {
+  visibility: visible;
 }
 
 .panel-heading {
@@ -1769,7 +1828,7 @@ tbody tr:hover {
 
 .badge-transfer {
   background: color-mix(in srgb, var(--transfer) 16%, transparent);
-  color: var(--transfer);
+  color: var(--transfer-text);
 }
 
 .badge-active,
@@ -1875,6 +1934,17 @@ tbody tr:hover {
 .action-link:focus {
   border-color: var(--border-strong);
   background: var(--panel-soft);
+}
+
+.action-link.button-danger {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--expense);
+}
+
+.action-link.button-danger:hover,
+.action-link.button-danger:focus {
+  background: var(--danger-bg-hover);
 }
 
 .quick-link-grid .action-link:first-child {
@@ -2590,3 +2660,7 @@ a.spending-row:focus-visible {
     flex-wrap: wrap;
   }
 }
+
+.recurring-fees { border: 1px solid var(--border); border-radius: 12px; padding: 1rem; min-width: 0; }
+.recurring-breakdown { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.75rem 1rem; overflow-wrap: anywhere; }
+.recurring-breakdown dd { margin: 0; text-align: end; font-weight: 600; }

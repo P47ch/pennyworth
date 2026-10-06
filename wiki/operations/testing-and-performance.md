@@ -2,8 +2,8 @@
 title: Testing and Performance
 type: verification
 status: current
-updated: 2026-10-05
-source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema]
+updated: 2026-10-06
+source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema, source-map-js-advisory, dependabot-docs]
 tags: [testing, integration, accessibility, performance, ci]
 ---
 
@@ -36,11 +36,44 @@ The 2026-10-02 rule-review fixes passed 211 unit tests across 35 files, both Typ
 
 Encrypted-backup tamper tests decode the selected ciphertext, authentication tag, salt, or nonce, flip a bit, and re-encode it. This guarantees a byte change while retaining valid Base64 and field lengths. A fixed, valid envelope whose ciphertext starts with `A` covers the case where the previous character-replacement test left its randomized input unchanged. The 2026-10-05 correction passed 232 unit tests across 35 files and the test TypeScript check.
 
+## Recurring form and help checks
+
+Run `npm run test:recurring` after installing Chromium with `npx playwright install chromium`. The existing Playwright/axe dependencies serve temporary rendered fixtures without a database or real financial data. Thirty page configurations cover Recurring, Edit recurring, and preview across desktop/320-pixel mobile, English/Italian, light/dark, and native no-JavaScript controls. Checks cover keyboard help, Escape/outside-click dismissal, preserved drafts, all five localized frequency options, exactly source/destination fee options, fixed/target field switching, localized breakdowns, zero unintended POST requests, horizontal overflow, and axe violations. CI runs it after Chromium installation.
+
+The guarded integration suite additionally covers source/destination fee accounting, per-occurrence zero overrides, explicit skipping, dated balance calculations, stale and duplicate confirmations, competing replenishment templates, injected fee-creation rollback, category/account ownership, conditional database checks, correction/deletion semantics, and out-of-order version-11 backup round-trips.
+
+The 2026-10-05 issue #8 implementation passed 253 unit tests across 37 files, all 30 PostgreSQL/Fastify integration tests in the separate `pennyworth_issue8_test` database, both TypeScript checks, the production build, Prisma validation, and wiki lint. All 26 migrations applied there. Thirty recurring browser configurations passed with no accessibility violations or page overflow; mobile screenshots were inspected. Version-11 JSON Schema validation accepted the starter, an actual PostgreSQL-backed export, and an export normalized from version 10; legacy fixed/monthly/no-fee defaults were verified. A full authenticated audit of the running test container passed all 17 routes in desktop/mobile viewports, plus a live recurring preview/help/zero-top-up check, using a temporary isolated user removed afterward. Its migration applied, `/readyz` and `/login` returned 200, and `UPDATE_CHECK_ENABLED=true` was verified in the running app container. No release version or dependencies changed.
+
+The 2026-10-05 recurring-review remediation passed 261 unit tests, all 35 PostgreSQL/Fastify integration tests in the isolated `pennyworth_issue8_review_test` database, both TypeScript checks, the production build, and all 30 recurring browser configurations. All 27 migrations applied. New rendered-form regressions cover imported intraday timestamps with milliseconds for both generation and skipping, repeat-submission rejection, and version-10/version-11 restored 101-character names that still generate and allow unchanged-name edits while rejecting new long names. Published backup fields, schemas, and starter files retain their compatibility behavior; no schema or application version changed.
+
+The trigger regression seeds 51,000 rows inside a rolled-back transaction, then validates 100 updates with the fee trigger enabled and a two-second statement budget. The original trigger exceeded that budget; separate indexed lookups completed in 41.7 ms during the full integration run (44.2 ms in the focused run). These timings measure trigger validation, not an entire import or restore. The fixture and test users are removed afterward.
+
+The 2026-10-06 recurring label explanations passed all 30 existing browser configurations and the application TypeScript check. Create/edit checks now cover localized Name/Description text, label hover, persistence while hovering the popup, keyboard focus, Escape without focus loss, click/touch opening, outside dismissal, unchanged drafts, accessible input descriptions, and no-JavaScript touch fallback. Open-tooltip desktop/mobile screenshots were inspected; accessibility and horizontal-overflow checks passed. No form-control action sent a POST request.
+
+The same day's Fee account follow-up also passed all 30 configurations and the application TypeScript check. Create/edit checks include the fee selector's hover, focus, touch, dismissal, preserved draft and shared guidance, plus no-JavaScript fallback; preview checks cover the localized fee explanation and Escape dismissal. Open-tooltip desktop/mobile screenshots were inspected.
+
+The 2026-10-06 frequency extension passed 279 unit tests across 37 files, all 42 PostgreSQL/Fastify integration tests against the isolated `pennyworth_issue8_review_test` database, both TypeScript checks, the production build, and all 30 recurring browser configurations. All 28 migrations applied. Regressions cover daily UTC calendar boundaries, quarterly/semiannual month-end clamping and leap years, exact occurrence timestamps, generated and skipped occurrences, and version-12 export/restore for each new frequency. Version-11 target/fee settings and published artifacts retain their behavior; versions 1–11 remain importable. The expanded fixtures use independent client addresses for login so they exercise authentication without exhausting a shared rate-limit bucket; production throttling is unchanged.
+
+Draft 2020-12 JSON Schema validation accepted the version-12 starter and an actual PostgreSQL-backed export containing all five frequencies; the temporary export user was removed afterward. The existing Docker test app applied `20261006000000_add_recurring_frequencies`, then passed live readiness, login, recurring-selector label/value checks, and current schema/starter download-link checks. No normal-user financial records, dependencies, or application release version changed.
+
 ## Dependency audit
 
 The 2026-09-17 security-maintenance run upgraded Fastify to 5.12.1 and Vitest to 4.1.11, then passed application and test typechecks, the production build, wiki lint, and `npm audit --audit-level=high` with zero reported vulnerabilities. Dependency audit results are time-sensitive; CI and a fresh release-time audit remain authoritative.
 
 The 2026-10-05 CI follow-up raised the Fastify dependency minimum to 5.12.5 and refreshed the lockfile to `fast-uri` 3.1.8/4.2.1 and `brace-expansion` 2.1.7/5.0.12 within their existing major-version ranges. All 232 unit tests, 16 PostgreSQL/Fastify integration tests against the separate `pennyworth_rule_test` database, both TypeScript checks, the production build, and a fresh `npm audit --audit-level=high` passed; the audit reported zero vulnerabilities. The updated packages retain their MIT or BSD-3-Clause licenses and bundled notices, compatible with Pennyworth's MIT distribution.
+
+The 2026-10-06 recurring-branch CI failure occurred at `npm audit --audit-level=high` after migrations, 279 unit tests, 42 integration tests, both TypeScript checks, and build had passed. [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q) affects the locked `source-map-js` 1.2.1 used through PostCSS/Vite/Vitest. Updating that single transitive dependency to the compatible 1.2.2 patch cleared the audit with zero vulnerabilities; all 279 unit tests passed locally after the update. The package retains its BSD-3-Clause license and bundled notice, compatible with Pennyworth's MIT distribution. No manifest dependency ranges, application version, data contract, or CI audit threshold changed.
+
+### Dependency maintenance follow-up
+
+Planned for a separate change after the recurring PR merges; repository automation is not configured yet:
+
+- Add weekly Dependabot version-update PRs for npm and GitHub Actions, targeting `develop` for normal development updates.
+- Group compatible patch/minor updates into small runtime and development-tool groups; keep paired Prisma packages aligned and major upgrades separate for review.
+- Enable repository Dependabot alerts and security-update PRs. GitHub sends security fixes only to the default branch, so a `develop` target for version updates does not cover security maintenance of the default branch. Carry each accepted security correction to both maintained branches through the normal PR/release flow.
+- Require passing CI and human review before merging dependency updates. Keep `npm audit --audit-level=high` enabled and add a scheduled audit of `develop` to detect new advisories even when no application change is pushed.
+
+See [Dependabot version-update configuration](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates), [grouping](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates), and [branch behavior](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/customizing-dependabot-prs). This is a maintenance plan, not a promise that future vulnerability reports cannot make CI fail.
 
 ## Integration tests
 
@@ -164,3 +197,5 @@ The bulk benchmark requires the seeded `performance@pennyworth.local` user, prev
 - [`ci-workflow`](../sources.md#sourceci-workflow)
 - [`operational-scripts`](../sources.md#sourceoperational-scripts)
 - [`database-schema`](../sources.md#sourcedatabase-schema)
+- [`source-map-js-advisory`](../sources.md#sourcesource-map-js-advisory)
+- [`dependabot-docs`](../sources.md#sourcedependabot-docs)

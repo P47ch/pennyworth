@@ -65,6 +65,7 @@ const transactionInclude = {
   sourceAccount: true,
   destinationAccount: true,
   category: true,
+  feeTransaction: { select: { id: true, amountMinor: true, sourceAccountId: true } },
   tags: { include: { tag: true } }
 } satisfies Prisma.TransactionInclude;
 
@@ -212,12 +213,14 @@ export async function createTransaction(input: {
   description?: string;
   notes?: string;
   tagIds: string[];
+  feeForTransactionId?: string;
+  applyRules?: boolean;
 }, db: Prisma.TransactionClient | typeof prisma = prisma): Promise<Prisma.TransactionGetPayload<{}> & { appliedRule: AppliedRule | null }> {
   if (db === prisma) {
     return prisma.$transaction((tx) => createTransaction(input, tx));
   }
 
-  const rule = input.type === "expense" && !input.categoryId
+  const rule = input.applyRules !== false && input.type === "expense" && !input.categoryId
     ? matchRuleForText(input, await listActiveRules(input.userId, db))
     : null;
   const categoryId = rule?.categoryId ?? input.categoryId;
@@ -226,6 +229,14 @@ export async function createTransaction(input: {
   const tagIds = [...input.tagIds, ...addedTags.map((tag) => tag.id)];
 
   await assertTransactionReferences({ ...input, categoryId, tagIds }, db);
+  if (input.feeForTransactionId) {
+    const principal = await db.transaction.findFirst({ where: { id: input.feeForTransactionId, userId: input.userId } });
+    if (!principal || principal.type !== "transfer" || input.type !== "expense"
+      || principal.date.getTime() !== input.date.getTime()
+      || ![principal.sourceAccountId, principal.destinationAccountId].includes(input.sourceAccountId ?? null)) {
+      throw new Error("A top-up fee must debit the transfer source or destination on the same date.");
+    }
+  }
 
   const transaction = await db.transaction.create({
     data: {
@@ -238,6 +249,7 @@ export async function createTransaction(input: {
       categoryId: input.type === "transfer" ? null : categoryId || null,
       description: input.description || null,
       notes: input.notes || null,
+      feeForTransactionId: input.feeForTransactionId || null,
       tags: {
         create: Array.from(new Set(tagIds)).map((tagId) => ({
           tag: { connect: { id_userId: { id: tagId, userId: input.userId } } }
@@ -267,11 +279,18 @@ export async function updateTransaction(input: {
 }) {
   return prisma.$transaction(async (tx) => {
     const transaction = await tx.transaction.findFirst({
-      where: { id: input.transactionId, userId: input.userId }
+      where: { id: input.transactionId, userId: input.userId }, include: { feeTransaction: true }
     });
 
     if (!transaction) {
       throw new Error("Transaction not found.");
+    }
+
+    const linkedFee = transaction.feeTransaction;
+    if ((transaction.feeForTransactionId || linkedFee) && (transaction.type !== input.type
+      || transaction.date.getTime() !== input.date.getTime() || transaction.sourceAccountId !== (input.sourceAccountId || null)
+      || transaction.destinationAccountId !== (input.type === "transfer" ? input.destinationAccountId || null : null))) {
+      throw new Error("Linked transfers and fees must keep their type, date, and accounts. Delete the pair and recreate it to change these fields.");
     }
 
     await lockCategoriesForUse(
@@ -309,16 +328,15 @@ export async function deleteTransaction(userId: string, transactionId: string) {
   await prisma.$transaction(async (tx) => {
     const transaction = await tx.transaction.findFirst({
       where: { id: transactionId, userId },
-      select: { categoryId: true }
+      select: { categoryId: true, feeTransaction: { select: { categoryId: true } } }
     });
 
     if (!transaction) {
       throw new Error("Transaction not found.");
     }
 
-    if (transaction.categoryId) {
-      await lockCategoryForUse(userId, transaction.categoryId, tx);
-    }
+    await lockCategoriesForUse(userId, [transaction.categoryId, transaction.feeTransaction?.categoryId]
+      .filter((id): id is string => Boolean(id)), tx);
 
     await tx.transaction.delete({ where: { id_userId: { id: transactionId, userId } } });
   });

@@ -14,10 +14,10 @@
       <span class="muted"><%= t("JSON import") %></span>
     </div>
     <div class="backup-format-help">
-      <p><%= t("Creating an import from Excel or another system? Use the documented version 10 format.") %></p>
+      <p><%= t("Creating an import from Excel or another system? Use the documented version 12 format.") %></p>
       <div class="row-actions">
-        <a class="action-link" href="/public/schemas/pennyworth-backup-v10.schema.json" download><%= t("Download JSON Schema") %></a>
-        <a class="action-link" href="/public/examples/pennyworth-backup-v10-starter.json" download><%= t("Download starter example") %></a>
+        <a class="action-link" href="/public/schemas/pennyworth-backup-v12.schema.json" download><%= t("Download JSON Schema") %></a>
+        <a class="action-link" href="/public/examples/pennyworth-backup-v12-starter.json" download><%= t("Download starter example") %></a>
       </div>
     </div>
     <% if (restoreError) { %><p class="error"><%= t(restoreError) %></p><% } %>

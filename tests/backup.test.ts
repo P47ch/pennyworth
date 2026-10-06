@@ -192,20 +192,21 @@ function sampleBackup() {
 describe("backup restore preview", () => {
   it("keeps the published schema and starter example aligned with the current importer", () => {
     const schema = JSON.parse(
-      readFileSync(new URL("../src/public/schemas/pennyworth-backup-v10.schema.json", import.meta.url), "utf8")
+      readFileSync(new URL("../src/public/schemas/pennyworth-backup-v12.schema.json", import.meta.url), "utf8")
     ) as { properties: { schemaVersion: { const: number } } };
     const starter = readFileSync(
-      new URL("../src/public/examples/pennyworth-backup-v10-starter.json", import.meta.url),
+      new URL("../src/public/examples/pennyworth-backup-v12-starter.json", import.meta.url),
       "utf8"
     );
 
     expect(schema.properties.schemaVersion.const).toBe(currentBackupSchemaVersion);
     expect(previewBackupJson(starter)).toMatchObject({
-      accountCount: 1,
-      categoryCount: 1,
+      accountCount: 2,
+      categoryCount: 2,
       tagCount: 1,
-      transactionCount: 1,
-      ruleCount: 2
+      transactionCount: 3,
+      ruleCount: 2,
+      recurringCount: 4
     });
   });
 
@@ -225,6 +226,45 @@ describe("backup restore preview", () => {
       holdingCount: 1,
       investmentTransactionCount: 1
     });
+  });
+
+  it.each(["daily", "every_3_months", "every_6_months"])("accepts %s only in version 12 backups", (frequency) => {
+    const backup = sampleBackup();
+    backup.recurringTransactions[0].frequency = frequency;
+    backup.schemaVersion = 12;
+    expect(previewBackupJson(JSON.stringify(backup)).recurringCount).toBe(1);
+    for (const version of [1, 10, 11]) {
+      backup.schemaVersion = version;
+      expect(() => previewBackupJson(JSON.stringify(backup))).toThrow("frequency");
+    }
+  });
+
+  it("keeps published version 11 scheduling and transfer-fee backups importable", () => {
+    const schema = JSON.parse(readFileSync(new URL("../src/public/schemas/pennyworth-backup-v11.schema.json", import.meta.url), "utf8"));
+    expect(schema.properties.schemaVersion.const).toBe(11);
+    expect(schema.$defs.recurringTransaction.allOf[1].properties.frequency.enum).toEqual(["monthly", "weekly"]);
+    const starter = readFileSync(new URL("../src/public/examples/pennyworth-backup-v11-starter.json", import.meta.url), "utf8");
+    expect(previewBackupJson(starter)).toMatchObject({ recurringCount: 1, transactionCount: 3 });
+  });
+
+  it.each([11, 12])("preserves alternative matching text during version %i restore", async (version) => {
+    const backup = sampleBackup();
+    backup.schemaVersion = version;
+    backup.rules[0].matchText = "netflix, spotify";
+    const models = ["investmentTransactionResult", "investmentPosition", "investmentTransaction", "holding", "assetPrice", "asset",
+      "recurringTransaction", "rule", "transaction", "budget", "tag", "category", "account", "user", "transactionTag", "ruleTag"];
+    const tx = Object.fromEntries(models.map(model => [model, {
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }), updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      update: vi.fn().mockResolvedValue({}), createMany: vi.fn().mockResolvedValue({ count: 1 })
+    }]));
+    vi.spyOn(prisma, "$transaction").mockImplementation(async (callback) => {
+      if (typeof callback === "function") return callback(tx as unknown as Prisma.TransactionClient);
+      throw new Error("Expected a transaction callback.");
+    });
+    await restoreUserBackup("target-user", JSON.stringify(backup));
+    expect(tx.rule.createMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.arrayContaining([
+      expect.objectContaining({ matchText: "netflix, spotify" })
+    ]) }));
   });
 
   it("accepts valid version 10 alternatives and literal quoted phrases", () => {
@@ -250,10 +290,42 @@ describe("backup restore preview", () => {
       backup.rules[0].matchText = 'Smith, "Inc"';
       expect(previewBackupJson(JSON.stringify(backup)).ruleCount).toBe(1);
     }
-    for (const version of [8, 9]) {
+    for (const version of [8, 9, 10]) {
       const starter = readFileSync(new URL(`../src/public/examples/pennyworth-backup-v${version}-starter.json`, import.meta.url), "utf8");
       expect(previewBackupJson(starter).transactionCount).toBe(1);
     }
+  });
+
+  it("validates current recurring modes, fee roles, and fee category relationships", () => {
+    const starter = JSON.parse(readFileSync(new URL("../src/public/examples/pennyworth-backup-v11-starter.json", import.meta.url), "utf8"));
+    for (const fields of [
+      { amountMode: "spending" }, { amountMode: "fixed", amountMinor: null }, { amountMinor: 500 },
+      { targetBalanceMinor: -1 }, { feeAmountMinor: -1 }, { feeAccount: "third-account" },
+      { type: "expense" }, { frequency: "daily" }, { feeCategoryId: "missing-category" }
+    ]) {
+      const backup = structuredClone(starter);
+      Object.assign(backup.recurringTransactions[0], fields);
+      expect(() => previewBackupJson(JSON.stringify(backup))).toThrow();
+    }
+    const backup = structuredClone(starter);
+    backup.categories.find((category: { id: string }) => category.id === "category-fees").type = "income";
+    expect(() => previewBackupJson(JSON.stringify(backup))).toThrow("incompatible");
+  });
+
+  it("rejects malformed or duplicated transfer-fee links before replacing records", () => {
+    const starter = JSON.parse(readFileSync(new URL("../src/public/examples/pennyworth-backup-v11-starter.json", import.meta.url), "utf8"));
+    for (const fields of [
+      { feeForTransactionId: "missing" }, { feeForTransactionId: "transaction-top-up-fee" },
+      { feeForTransactionId: "transaction-groceries" }, { date: "2026-10-06T00:00:00.000Z" }, { type: "income" }
+    ]) {
+      const backup = structuredClone(starter);
+      Object.assign(backup.transactions.find((row: { id: string }) => row.id === "transaction-top-up-fee"), fields);
+      expect(() => previewBackupJson(JSON.stringify(backup))).toThrow("feeForTransactionId");
+    }
+    const backup = structuredClone(starter);
+    const fee = backup.transactions.find((row: { id: string }) => row.id === "transaction-top-up-fee");
+    backup.transactions.push({ ...fee, id: "second-fee" });
+    expect(() => previewBackupJson(JSON.stringify(backup))).toThrow("duplicates a transfer fee");
   });
 
   it("preserves literal legacy rules during restore and never reapplies them to saved transactions", async () => {

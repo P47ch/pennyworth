@@ -2,8 +2,8 @@
 title: Interface, Localization, and Accessibility
 type: feature
 status: current
-updated: 2026-10-05
-source_ids: [project-contract, application-source, interface-source, finance-source, query-source, package-manifest, test-suite]
+updated: 2026-10-06
+source_ids: [project-contract, application-source, interface-source, finance-source, query-source, package-manifest, test-suite, issue-8-help]
 tags: [interface, accessibility, localization, themes]
 ---
 
@@ -32,6 +32,16 @@ The category creation control is a quiet plus icon beside the category dropdown,
 Duplicate creation responses offer a localized **Use existing** button for a compatible saved category or tag. A visible explanation says that existing details will be kept; choosing it announces selection and restores focus to the opener without navigating or clearing the draft. Incompatible categories show a focused error instead. Editing the dialog clears its previous recovery action. This also recovers creations whose successful response was interrupted.
 
 Rules and Edit rule expose a transparent, unframed 44-pixel question-mark control backed by native `details`/`summary`, with an outline for keyboard focus. It opens localized matching and application guidance on tap, click, or keyboard activation, and remains usable without JavaScript. A small enhancement closes it on outside click or Escape and restores focus after Escape. The matching field also has permanent guidance connected with `aria-describedby`; field and help examples use Netflix, Spotify, and Amazon Prime. The rule list offers localized Enable/Disable buttons with rule-specific accessible names alongside its status badges, and works without JavaScript. Transaction creation feedback appears in a server-rendered `role="status"` notice, including applied rule/category and newly added tags when applicable; explicit category choices skip rules.
+
+**Recurring help (issue #8):** Recurring, Edit recurring, and preview use the same question-mark/native-details interaction. English/Italian help explains daily, weekly, monthly, quarterly, and semiannual schedules, fixed and target-balance modes, fees on source or destination, balance examples, preview/confirmation/skipping, reporting, and linked deletion. Opening or dismissing help preserves the form draft. The panel scrolls on mobile, supports keyboard focus and no-JavaScript operation, and keeps short field hints visible. Browser checks also verify fee selectors contain exactly source and destination and that transfer badges meet text contrast requirements. See [recurring templates](automation.md#recurring-help-following-rules).
+
+Recurring create/edit fields align at the top of each grid row, so multiline amount-mode guidance does not push adjacent Amount or Category controls below the selector. The same alignment covers fee fields; the Active checkbox and submit action retain their existing placement, and narrow screens retain the single-column form.
+
+Both recurring account selectors prompt **Choose account** (Italian: **Scegli un conto**). The destination field remains labeled **Destination account** and appears for transfers with JavaScript; users must select the owned account receiving the money rather than leave the empty placeholder selected.
+
+Recurring create/edit **Name** and **Description** labels have a subtle dotted underline and localized explanations on hover. The underline uses a one-pixel dotted border positioned at the bottom of the label, keeping its placement consistent across fonts and labels without shifting the controls. Name identifies the recurring operation in the list; Description is copied to its generated transaction, falling back to Name when blank. **Fee account** uses the same hint in create/edit and preview: a source fee adds to the transfer debit, while a destination fee is deducted from the money received. The same explanations appear when their controls receive keyboard focus or users tap the labels. Each control references its tooltip with `aria-describedby`, keeping the visible label as its accessible name; the Fee account selector also retains the shared fee guidance in create/edit. The popup stays readable while hovered, fits its field width, and follows the light/dark theme. JavaScript adds Escape and outside-click dismissal without changing the draft; hover and focus still work without JavaScript.
+
+Recurring list Preview, Edit, and Delete use the same action-control height, padding, typography, and rounded border. Delete retains the red expense/danger palette, including hover and keyboard focus.
 
 The login form includes collapsed forgotten-password guidance. Members are directed to another application administrator for a temporary password; the only administrator is directed to the self-hosted console recovery command. The form does not collect an address or imply that Pennyworth can deliver recovery mail.
 
@@ -88,3 +98,4 @@ The last recorded local sweep on 2026-07-18 covered 16 authenticated routes in d
 - [`query-source`](../sources.md#sourcequery-source)
 - [`package-manifest`](../sources.md#sourcepackage-manifest)
 - [`test-suite`](../sources.md#sourcetest-suite)
+- [`issue-8-help`](../sources.md#sourceissue-8-help)

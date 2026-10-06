@@ -153,8 +153,7 @@ if (importMappingForm) {
   }
 }
 
-const rulesHelp = document.querySelector("[data-rules-help]");
-if (rulesHelp) {
+for (const rulesHelp of document.querySelectorAll("[data-rules-help], [data-page-help]")) {
   document.addEventListener("click", (event) => {
     if (!rulesHelp.contains(event.target)) {
       rulesHelp.open = false;
@@ -169,6 +168,27 @@ if (rulesHelp) {
 }
 
 const transactionForm = document.querySelector("[data-transaction-form]");
+
+const fieldHints = document.querySelectorAll("[data-field-hint]");
+for (const fieldHint of fieldHints) {
+  const resetHint = () => fieldHint.removeAttribute("data-hint-dismissed");
+  const label = fieldHint.querySelector("label");
+  label?.addEventListener("pointerenter", resetHint);
+  label?.addEventListener("click", resetHint);
+  fieldHint.addEventListener("focusin", resetHint);
+}
+if (fieldHints.length > 0) {
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      for (const fieldHint of fieldHints) fieldHint.setAttribute("data-hint-dismissed", "");
+    }
+  });
+  document.addEventListener("click", (event) => {
+    for (const fieldHint of fieldHints) {
+      if (!fieldHint.contains(event.target)) fieldHint.setAttribute("data-hint-dismissed", "");
+    }
+  });
+}
 
 if (transactionForm) {
   const typeSelect = transactionForm.querySelector("[data-transaction-type]");
@@ -205,7 +225,7 @@ if (transactionForm) {
     const isTransfer = type === "transfer";
 
     if (sourceAccountText) {
-      sourceAccountText.textContent = isTransfer ? "Source account" : "Account";
+      sourceAccountText.textContent = isTransfer ? sourceAccountText.dataset.sourceLabel || "Source account" : sourceAccountText.dataset.accountLabel || "Account";
     }
 
     if (destinationField && destinationSelect) {
@@ -223,4 +243,30 @@ if (transactionForm) {
     typeSelect.addEventListener("change", syncTransactionForm);
     syncTransactionForm();
   }
+}
+
+const recurringForm = document.querySelector('[data-recurring-form]');
+if (recurringForm) {
+  const type = recurringForm.querySelector('[data-transaction-type]');
+  const mode = recurringForm.querySelector('[data-recurring-mode]');
+  const fixed = recurringForm.querySelector('[data-recurring-fixed]');
+  const target = recurringForm.querySelector('[data-recurring-target]');
+  const fees = recurringForm.querySelector('[data-recurring-fees]');
+  const syncRecurring = () => {
+    const transfer = type.value === 'transfer';
+    if (!transfer) mode.value = 'fixed';
+    mode.disabled = !transfer;
+    const calculated = transfer && mode.value === 'target_balance';
+    fixed.hidden = calculated;
+    fixed.querySelector('input').disabled = calculated;
+    fixed.querySelector('input').required = !calculated;
+    target.hidden = !calculated;
+    target.querySelector('input').disabled = !calculated;
+    target.querySelector('input').required = calculated;
+    fees.hidden = !transfer;
+    fees.disabled = !transfer;
+  };
+  type.addEventListener('change', syncRecurring);
+  mode.addEventListener('change', syncRecurring);
+  syncRecurring();
 }
