@@ -15,7 +15,8 @@ import {
   updateTransaction
 } from "../../services/transactions.js";
 import { requireCurrentUser } from "../../services/users.js";
-import { field, formBody } from "../form.js";
+import { formBody } from "../form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "../deleteConfirmation.js";
 import {
   parseTransactionFilters,
   parseTransactionPage,
@@ -156,9 +157,19 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
     const { transactionId } = request.params as { transactionId: string };
 
     const transaction = await getTransactionForUser(user.id, transactionId);
-    if (transaction && (transaction.feeForTransactionId || transaction.feeTransaction)
-      && field(formBody(request.body), "confirmDelete") !== "yes") {
-      return reply.view("transactions/delete.ejs", { title: "Delete transaction", transaction });
+    if (!transaction) return reply.redirect("/transactions");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete transaction", recordName: transaction.description || "—",
+        deleteAction: `/transactions/${transaction.id}/delete`, cancelHref: "/transactions",
+        details: [{ label: "Type", type: transaction.type }, { label: "Date", value: transaction.date.toISOString().slice(0, 10) },
+          { label: "Account", value: transaction.sourceAccount?.name || "—" },
+          ...(transaction.destinationAccount ? [{ label: "Destination account", value: transaction.destinationAccount.name }] : []),
+          { label: "Amount", amountMinor: transaction.amountMinor, currency: transaction.sourceAccount?.currency || loadConfig().primaryCurrency }],
+        warnings: ["This transaction will be permanently deleted.",
+          ...(transaction.feeTransaction ? ["Deleting this transfer also deletes its linked fee expense."] : []),
+          ...(transaction.feeForTransactionId ? ["Deleting this fee keeps the linked transfer."] : [])]
+      });
     }
     await deleteTransaction(user.id, transactionId);
     return reply.redirect("/transactions");

@@ -2,7 +2,7 @@
 title: Security and Privacy
 type: security
 status: current
-updated: 2026-10-05
+updated: 2026-10-07
 source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite, owasp-password-storage, node-crypto, fastify-multipart, github-rest-releases]
 tags: [security, privacy, authentication, integrity, encryption]
 ---
@@ -44,6 +44,8 @@ Update checks default to disabled. When an operator enables them, only the Penny
 ## Ownership and database integrity
 
 Services check that referenced accounts, categories, tags, assets, budgets, rules, and recurring records belong to the current user. Updates and deletes use composite `(id, userId)` selectors, and PostgreSQL independently enforces same-user composite foreign keys across ledger, automation, and investment records.
+
+Every user-facing Delete action first renders a [record-scoped confirmation](../features/interface-and-accessibility.md#deletion-confirmations). The initial POST does not delete or inactivate anything. A second POST must carry the scalar `confirmDelete=yes` value from **Confirm deletion**, with authentication, ownership, and CSRF checked again. Duplicate confirmation fields and missing or invalid values cannot trigger deletion. Cancel is non-mutating, including with JavaScript disabled.
 
 Family-user support retains `User` as the tenant boundary: authenticated users cannot read or modify another user's financial records, and there is no household-wide shared ledger. Application administrators manage authentication access but receive no application-level view into another user's ledger. The home-lab operator remains a trusted infrastructure administrator with container and database access, including the ability to reset a user's password.
 

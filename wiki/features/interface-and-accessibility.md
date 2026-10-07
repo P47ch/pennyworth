@@ -2,7 +2,7 @@
 title: Interface, Localization, and Accessibility
 type: feature
 status: current
-updated: 2026-10-06
+updated: 2026-10-07
 source_ids: [project-contract, application-source, interface-source, finance-source, query-source, package-manifest, test-suite, issue-8-help]
 tags: [interface, accessibility, localization, themes]
 ---
@@ -48,6 +48,14 @@ The login form includes collapsed forgotten-password guidance. Members are direc
 Administrators see a Users settings tab. It creates isolated member accounts, shows each generated temporary password only in the immediate response, and offers password reset and access activation controls. A member using a temporary password is restricted to Security until the password is replaced.
 
 Administrators also see a quiet Application settings tab. When the optional server-side update check finds a newer eligible GitHub Release, the installed-version footer becomes a normal link with visible “Update available” text and a small dot; the same link appears in the mobile account menu. Members receive neither the indicator nor update details. The interface does not use a popup, live region, automatic navigation, or client-side GitHub request.
+
+## Deletion confirmations
+
+Every Delete action uses a shared server-rendered review page: accounts, transactions, categories, tags, budgets, rules, recurring templates, assets, asset prices, manual holdings, and investment activity. The page identifies the record, shows relevant dates, accounts, types, or money values, and explains affected records. English and Italian controls offer **Cancel** and **Confirm deletion**, using the existing action-control sizing and themes.
+
+The first POST only reads the current user's record and renders the review. The destructive handler requires the explicit scalar `confirmDelete=yes` value submitted by the confirmation button. Missing, invalid, or repeated values return to review. Both requests retain authentication, ownership, and CSRF checks, and the flow remains usable with JavaScript disabled. Cancel is a normal link and changes no records.
+
+Used accounts and assets retain their existing inactivation behavior after confirmation; unused ones are deleted. Deleting a recurring template or rule keeps existing transactions. Tag deletion removes its associations while keeping transactions and rules. Linked transfer/fee reviews preserve their specific deletion explanations. See [transactions](transactions.md#transaction-lifecycle) and [security](../architecture/security-and-privacy.md#ownership-and-database-integrity).
 
 ## Dashboard hierarchy
 

@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { assetTypes, createAsset, deleteAsset, getAssetForUser, listAssets, updateAsset } from "../services/assets.js";
 import { requireCurrentUser } from "../services/users.js";
 import { field, formBody } from "./form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 
 function validateAssetInput(body: ReturnType<typeof formBody>) {
   const symbol = field(body, "symbol").trim().toUpperCase();
@@ -121,6 +122,17 @@ export async function assetRoutes(app: FastifyInstance) {
   app.post("/assets/:assetId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { assetId } = request.params as { assetId: string };
+    const asset = await getAssetForUser(user.id, assetId);
+
+    if (!asset) return reply.redirect("/assets");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete asset", recordName: asset.name,
+        deleteAction: `/assets/${asset.id}/delete`, cancelHref: "/assets",
+        details: [{ label: "Symbol", value: asset.symbol }, { label: "Type", type: asset.type }],
+        warnings: ["Unused assets and their price history are permanently deleted. Assets used by holdings or investment activity are marked inactive instead."]
+      });
+    }
 
     await deleteAsset(user.id, assetId);
     return reply.redirect("/assets");

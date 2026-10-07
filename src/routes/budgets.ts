@@ -6,6 +6,7 @@ import { currentDateOnly } from "../lib/dates.js";
 import { createBudget, deleteBudget, getBudgetForUser, getBudgetPageData, updateBudget } from "../services/budgets.js";
 import { requireCurrentUser } from "../services/users.js";
 import { field, formBody } from "./form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 
 const timeZone = loadConfig().timeZone;
 
@@ -133,7 +134,18 @@ export async function budgetRoutes(app: FastifyInstance) {
     const { budgetId } = request.params as { budgetId: string };
     const budget = await getBudgetForUser(user.id, budgetId);
 
+    if (!budget) return reply.redirect("/budgets");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete budget", recordName: budget.category.name,
+        deleteAction: `/budgets/${budget.id}/delete`, cancelHref: `/budgets?month=${monthInputValue(budget.month)}`,
+        details: [{ label: "Month", value: monthInputValue(budget.month) },
+          { label: "Amount", amountMinor: budget.amountMinor, currency: loadConfig().primaryCurrency }],
+        warnings: ["Deleting this budget keeps its transactions."]
+      });
+    }
+
     await deleteBudget(user.id, budgetId);
-    return reply.redirect(`/budgets${budget ? `?month=${monthInputValue(budget.month)}` : ""}`);
+    return reply.redirect(`/budgets?month=${monthInputValue(budget.month)}`);
   });
 }

@@ -13,6 +13,7 @@ import {
 } from "../services/investmentTransactions.js";
 import { requireCurrentUser } from "../services/users.js";
 import { field, formBody } from "./form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 
 function parseOptionalQuantity(input: string) {
   const normalized = input.trim().replace(",", ".");
@@ -228,6 +229,19 @@ export async function investmentTransactionRoutes(app: FastifyInstance) {
   app.post("/investment-transactions/:investmentTransactionId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { investmentTransactionId } = request.params as { investmentTransactionId: string };
+    const transaction = await getInvestmentTransactionForUser(user.id, investmentTransactionId);
+
+    if (!transaction) return reply.redirect("/investment-transactions");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete investment transaction", recordName: transaction.asset.name,
+        deleteAction: `/investment-transactions/${transaction.id}/delete`, cancelHref: "/investment-transactions",
+        details: [{ label: "Type", type: transaction.type }, { label: "Date", value: formatDateOnly(transaction.date) },
+          { label: "Account", value: transaction.account.name },
+          { label: "Amount", amountMinor: transaction.amountMinor, currency: transaction.asset.currency }],
+        warnings: ["Deleting this activity changes holdings and any associated cash balance."]
+      });
+    }
 
     await deleteInvestmentTransaction(user.id, investmentTransactionId);
     return reply.redirect("/investment-transactions");

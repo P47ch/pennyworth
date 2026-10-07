@@ -14,6 +14,7 @@ import { listCategories } from "../services/taxonomy.js";
 import { transactionTypes } from "../services/transactions.js";
 import { requireCurrentUser } from "../services/users.js";
 import { field, formBody } from "./form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 import { parseRecurringConfirmationDate, recurringFormValues, validateRecurringInput } from "./recurringInput.js";
 
 const timeZone = loadConfig().timeZone;
@@ -136,6 +137,16 @@ export async function recurringRoutes(app: FastifyInstance) {
   app.post("/recurring/:recurringId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { recurringId } = request.params as { recurringId: string };
+    const recurring = await getRecurringForUser(user.id, recurringId);
+
+    if (!recurring) return reply.redirect("/recurring");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete recurring template", recordName: recurring.name,
+        deleteAction: `/recurring/${recurring.id}/delete`, cancelHref: "/recurring",
+        warnings: ["Deleting this template stops future occurrences. Transactions already generated are kept."]
+      });
+    }
     await deleteRecurringTransaction(user.id, recurringId);
     return reply.redirect("/recurring");
   });

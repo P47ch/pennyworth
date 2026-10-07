@@ -13,6 +13,7 @@ import {
 import { listCategories, listTags } from "../services/taxonomy.js";
 import { requireCurrentUser } from "../services/users.js";
 import { field, formBody } from "./form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 
 function ruleFormValues(body: ReturnType<typeof formBody>) {
   return {
@@ -158,6 +159,16 @@ export async function ruleRoutes(app: FastifyInstance) {
   app.post("/rules/:ruleId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { ruleId } = request.params as { ruleId: string };
+    const rule = await getRuleForUser(user.id, ruleId);
+
+    if (!rule) return reply.redirect("/rules");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete rule", recordName: rule.name,
+        deleteAction: `/rules/${rule.id}/delete`, cancelHref: "/rules",
+        warnings: ["Deleting this rule stops future automatic categorization by this rule. Existing transactions are kept."]
+      });
+    }
 
     await deleteRule(user.id, ruleId);
     return reply.redirect("/rules");

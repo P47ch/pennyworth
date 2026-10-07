@@ -1630,7 +1630,7 @@ describe("Fastify authentication boundary", () => {
       prisma.transaction.count({ where: { userId: user.id, description: "Imported route expense" } })
     ).resolves.toBe(1);
 
-    const deleteResponse = await app.inject({
+    const deletePreview = await app.inject({
       method: "POST",
       url: `/transactions/${transaction.id}/delete`,
       headers: {
@@ -1638,6 +1638,17 @@ describe("Fastify authentication boundary", () => {
         "content-type": "application/x-www-form-urlencoded"
       },
       payload: new URLSearchParams({ csrfToken: csrfToken ?? "" }).toString()
+    });
+
+    expect(deletePreview.statusCode).toBe(200);
+    expect(deletePreview.body).toContain("Confirm deletion");
+    await expect(prisma.transaction.findUnique({ where: { id: transaction.id } })).resolves.not.toBeNull();
+
+    const deleteResponse = await app.inject({
+      method: "POST",
+      url: `/transactions/${transaction.id}/delete`,
+      headers: { cookie: authenticatedCookie, "content-type": "application/x-www-form-urlencoded" },
+      payload: new URLSearchParams({ csrfToken: csrfToken ?? "", confirmDelete: "yes" }).toString()
     });
 
     expect(deleteResponse.statusCode).toBe(302);

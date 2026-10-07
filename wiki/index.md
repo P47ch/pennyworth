@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Index
 type: index
 status: current
-updated: 2026-10-06
+updated: 2026-10-07
 source_ids: [project-contract, application-source, llm-wiki-pattern]
 tags: [index, navigation]
 ---
@@ -35,7 +35,7 @@ Read this page first. It catalogs every maintained page and gives agents a bound
 - [`features/transactions.md`](features/transactions.md) — transaction lifecycle, filters, pagination, CSV import/export, duplicate handling, and quick category/tag creation with interrupted-response recovery.
 - [`features/automation.md`](features/automation.md) — categories, tags, budgets, automatic categorization rules, quick rule activation, daily, weekly, monthly, quarterly, and semiannual fixed or target-balance recurring templates with source/destination fees, safe confirmation, and Rules-style help.
 - [`features/investments.md`](features/investments.md) — assets, prices, activity, positions, valuation, and cash impact.
-- [`features/interface-and-accessibility.md`](features/interface-and-accessibility.md) — server-rendered UI, themes, localized type labels, recurring field explanations, navigation, mobile behavior, and audits.
+- [`features/interface-and-accessibility.md`](features/interface-and-accessibility.md) — server-rendered UI, themes, localization, deletion confirmations, recurring field explanations, navigation, mobile behavior, and audits.
 
 ## Operations
 

@@ -3,6 +3,7 @@ import { createTranslator } from "../lib/i18n.js";
 import { normalizeUserPreferences } from "../lib/preferences.js";
 import { createTag, deleteTag, getTagByNameForUser, getTagForUser, listTags, updateTag } from "../services/taxonomy.js";
 import { requireCurrentUser } from "../services/users.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 import { formBody } from "./form.js";
 import { quickTaxonomyError, validateTagInput } from "./taxonomyInput.js";
 
@@ -108,6 +109,16 @@ export async function tagRoutes(app: FastifyInstance) {
   app.post("/tags/:tagId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { tagId } = request.params as { tagId: string };
+    const tag = await getTagForUser(user.id, tagId);
+
+    if (!tag) return reply.redirect("/tags");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete tag", recordName: tag.name,
+        deleteAction: `/tags/${tag.id}/delete`, cancelHref: "/tags",
+        warnings: ["Deleting this tag removes it from transactions and rules. The transactions and rules are kept."]
+      });
+    }
 
     await deleteTag(user.id, tagId);
     return reply.redirect("/tags");
