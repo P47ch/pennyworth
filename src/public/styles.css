@@ -2008,12 +2008,16 @@ tbody tr:hover {
   text-align: right;
 }
 
-.bar-row-top span,
+.bar-row-top > span,
+.list-row span,
+.transaction-item small {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .list-row span,
 .transaction-item small {
   display: block;
-  color: var(--muted);
-  font-size: 0.88rem;
 }
 
 .bar-track {

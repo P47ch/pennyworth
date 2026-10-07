@@ -222,7 +222,7 @@
                   <a class="action-link" href="/transactions/<%= transaction.id %>/edit">Edit</a>
                   <form method="post" action="/transactions/<%= transaction.id %>/delete">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
-                    <button class="button-danger" type="submit">Delete</button>
+                    <button class="action-link button-danger" type="submit">Delete</button>
                   </form>
                 </div>
               </td>
