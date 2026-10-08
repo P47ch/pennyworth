@@ -2,7 +2,7 @@
 title: Testing and Performance
 type: verification
 status: current
-updated: 2026-10-07
+updated: 2026-10-08
 source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema, source-map-js-advisory, dependabot-docs]
 tags: [testing, integration, accessibility, performance, ci]
 ---
@@ -25,6 +25,29 @@ npm run wiki:lint
 ```
 
 Run `npm run audit:a11y` against a prepared, running application after interface changes. Build the production image before a release that changes dependencies, Prisma generation, build output, or the Dockerfile.
+
+## 0.9.0-alpha.1 release verification
+
+Local release verification on 2026-10-08 passed against the prepared working tree on `release/0.9.0-alpha.1`:
+
+- 290 unit tests across 38 files and all 56 PostgreSQL/Fastify integration tests across three files.
+- Application/test TypeScript checks, production TypeScript build, and wiki lint.
+- A fresh `npm audit --audit-level=high` with zero vulnerabilities; the production image also installed and pruned dependencies successfully.
+- All 28 migrations applied to a new, isolated PostgreSQL 16 database. Integration tests left the normal development database untouched.
+- Eight quick-entry browser fixtures plus the no-JavaScript fallback, and all 30 recurring browser configurations.
+- The authenticated Chromium/axe audit across 17 routes in desktop and mobile viewports, with no accessibility violations, horizontal overflow, console/page errors, or failed requests.
+- Draft 2020-12 schema validation, including date-time formats, of published version-8 through version-12 starters and two actual PostgreSQL-backed version-12 exports.
+- Real production HTTP import of the version-12 starter, JSON file export/restore, and encrypted `.pwb` export/file restore with explicit confirmation. Replacement removed deliberately added test tags and preserved the complete exported ledger, relationships, and record timestamps.
+- A production Docker build using Node 22 Alpine, and managed/external PostgreSQL profile startup, readiness, login, displayed version, and served CSS checks. A PostgreSQL dump restored into a second disposable database and matched the original ledger through the external-database app.
+- All three Compose profiles parsed through Docker Compose and Podman's installed Compose provider.
+
+The backup rehearsal exposed transfer-fee `updatedAt` drift during relinking. Versions 11 and 12 reproduced it before the fix; the expanded PostgreSQL regression, full test suites, rebuilt production image, and real JSON/encrypted round-trips passed after timestamp preservation was corrected. Published backup fields, validation, schemas, and examples retain their contract.
+
+**Podman limitation:** the local Windows Podman 5.7.1 WSL VM could not complete a runtime smoke test because its user-session bus was unavailable, preventing rootless DNS/network startup. Static Compose validation passed; runtime compatibility on this host is not verified. Temporary socket services and test resources were used without changing the configured default connection or rootful setting. Repair that VM or repeat the smoke test on the intended Podman host before deploying there.
+
+These are local working-tree results. CI on the committed release and resulting `main` merge commit remains required before tagging. The release has not been tagged or published.
+
+Removed the disposable test databases, containers, volumes, release-test images, and temporary validation files after verification. Returned the Podman VM to its original stopped state. The original Docker development app and PostgreSQL remained running; app readiness returned 200 after cleanup.
 
 ## Unit tests
 

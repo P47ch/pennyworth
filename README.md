@@ -4,7 +4,7 @@ Pennyworth is a private, self-hosted personal-finance accounting application. It
 
 The application runs on infrastructure you control, stores its data in PostgreSQL, and does not connect to banks, brokers, exchanges, analytics services, or market-data providers. One installation can have an administrator and trusted family members, but every user has a separate financial ledger. There are no shared accounts or household-wide reports.
 
-> **Development status:** The current version is **v0.8.0-alpha.1**. Pennyworth is under active development and has not reached a stable v1.0 release. Features, behavior, and data structures may still change, so keep tested backups and review the [changelog](CHANGELOG.md) before updating. Work toward a reliable v1.0 is progressing as quickly as possible without compromising financial correctness or data safety.
+> **Development status:** The current application version is **v0.9.0-alpha.1**. Pennyworth is under active development and has not reached a stable v1.0 release. Features, behavior, and data structures may still change, so keep tested backups and review the [changelog](CHANGELOG.md) before updating. Work toward a reliable v1.0 is progressing as quickly as possible without compromising financial correctness or data safety.
 
 ## What Pennyworth does
 
@@ -17,13 +17,14 @@ The application runs on infrastructure you control, stores its data in PostgreSQ
 - Provides transaction editing, deletion, pagination, and filters for date, type, account, category, tag, and text.
 - Imports normal transactions from CSV through column mapping, validation, duplicate detection, and a confirmation preview.
 - Exports the currently filtered normal transactions to CSV.
+- Creates categories and tags directly from transaction quick entry while preserving the draft.
 
 ### Organization and automation
 
 - Supports nested income, expense, or mixed categories with custom colors and icons.
 - Supports reusable colored tags with many-to-many transaction assignment.
 - Tracks monthly category budgets and highlights approaching or exceeded limits.
-- Applies user-defined text-matching rules to uncategorized expenses during CSV preview or through an explicit existing-ledger preview.
+- Automatically applies enabled text-matching rules to new uncategorized expenses and recurring generation, with comma-separated alternatives and optional tags. CSV imports and existing-ledger changes have explicit previews; choosing a category skips rules.
 - Stores daily, weekly, monthly, quarterly, and semiannual recurring income, expense, and transfer templates, including target-balance top-ups with optional source/destination fees. Preview and confirm each occurrence manually; the Recurring help explains calculations and skipping.
 
 ### Dashboard and reports
@@ -36,6 +37,7 @@ The application runs on infrastructure you control, stores its data in PostgreSQ
 ### Data ownership and recovery
 
 - Provides versioned, user-scoped JSON backup and destructive restore with validation and a confirmation preview.
+- Offers password-protected `.pwb` backup downloads and restore from `.pwb` or `.json` files.
 - Includes a published [JSON Schema and starter backup](wiki/operations/json-backup-format.md) for converting data from spreadsheets or other systems.
 - Supports full-installation recovery through normal PostgreSQL dumps.
 - Keeps credentials, roles, and interface preferences outside user-scoped JSON restore; a database dump is required to preserve the complete installation state.
@@ -46,6 +48,8 @@ The application runs on infrastructure you control, stores its data in PostgreSQ
 - Provides local password authentication, CSRF protection, signed sessions, and administrator-provisioned users without public registration.
 - Keeps each user's accounts, transactions, automation, and investments isolated at both application and database levels.
 - Includes customizable navigation, category iconography, and local built-in avatars without remote image dependencies.
+- Requires a separate confirmation for every Delete action, including when JavaScript is disabled.
+- Offers optional administrator-only notifications for newer GitHub releases, with stable or prerelease channels.
 
 ## Investment tracking
 

@@ -2,8 +2,8 @@
 title: Product Status and Roadmap
 type: status
 status: current
-updated: 2026-10-06
-source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy, issue-6, issue-8, issue-8-fees, issue-8-help]
+updated: 2026-10-08
+source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy, package-manifest, issue-6, issue-8, issue-8-fees, issue-8-help]
 tags: [status, roadmap, verification]
 ---
 
@@ -13,13 +13,16 @@ This page separates implemented behavior, dated verification evidence, and genui
 
 ## Release status
 
-Pennyworth `0.8.0-alpha.1` is an actively developed public preview, not a stable v1 release. The alpha designation reflects that application contracts and upgrade behavior are still being stabilized. Operators should expect compatible migrations where practical but must keep tested JSON and PostgreSQL backups and review release changes before updating.
+The manifest version is `0.9.0-alpha.1`; its [release notes](../../CHANGELOG.md#090-alpha1---2026-10-08) and current-version documentation are prepared. Local automated release checks, browser checks, Docker deployment smoke tests, and backup recovery rehearsals passed on 2026-10-08. The local Podman VM could not complete runtime verification. Merging into `main` and `develop`, CI on the final release commit, tagging, and GitHub prerelease publication remain pending. See [release management](../operations/releases.md#current-release-preparation).
+
+Pennyworth remains an actively developed alpha preview. Application contracts and upgrade behavior are still being stabilized. Operators should expect compatible migrations where practical but must keep tested JSON and PostgreSQL backups and review release changes before updating, including the four migrations and schema-version-12 backup compatibility documented for this release.
 
 ## Implemented
 
 - Local login/logout, signed cookie sessions, login throttling, password changes, operator-console password recovery, and session invalidation support.
 - Administrator-managed family accounts with isolated ledgers, one-time temporary passwords, forced password replacement, access activation/deactivation, and starter categories/tags.
 - Account, nested-category, tag, transaction, budget, rule, and recurring-template management.
+- Localized server-rendered confirmation for every Delete action, with identifying details, cancellation, CSRF/ownership checks, and no-JavaScript support.
 - Income, expense, and transfer accounting with account balances and monthly reporting.
 - A focused dashboard with net worth, combined monthly cashflow, conditional budget/recurring attention items, recent activity, and limited spending/account previews.
 - Statistics with 12-month net-worth, per-account balance, monthly cashflow, and category-spending history; category/tag drilldowns; largest expenses; and current account balances.
@@ -33,6 +36,7 @@ Pennyworth `0.8.0-alpha.1` is an actively developed public preview, not a stable
 - Password-protected `.pwb` backup export and file-based restore using bounded scrypt and AES-256-GCM envelopes, metadata authentication, generic decrypt failures, and preview-bound confirmation; ordinary JSON remains supported.
 - Repeatable-read JSON export snapshots, primary-currency enforcement, and central signed-32-bit money bounds.
 - English/Italian localization, light/dark themes, configurable sidebar, responsive layouts, server-rendered icons, and an administrator-only optional update indicator backed by a bounded GitHub Release metadata check.
+- Consistent row-action dimensions, centered category badges in dashboard and budget cards, wrapping long category labels, mobile Settings tabs, and bounded iOS date inputs.
 - CSRF, CSP and browser headers, signed `HttpOnly` and `SameSite=Strict` cookies for the documented LAN-only HTTP topology, service ownership validation, and PostgreSQL constraints.
 - Generic server-rendered error and not-found pages that keep internal exception details in server logs and expose only a request ID for correlation.
 - Docker and Podman-compatible Compose definitions for development and private-LAN HTTP production with either managed or externally managed PostgreSQL.
@@ -63,6 +67,8 @@ Review fixes on the same date preserved inert legacy rules through version-10 ba
 Follow-up verification on 2026-10-02 passed 231 unit tests across 35 files, both TypeScript checks, the production build, and all 16 PostgreSQL/Fastify integration tests against a separate disposable `pennyworth_rule_test` database in Docker PostgreSQL 16. All 25 migrations applied successfully there, including the literal-rule migration. The integration suite verifies the new list Enable/Disable action, CSRF and user ownership, repeated state submissions, unchanged settings and saved transactions, and future matching. Eight Rules browser fixtures also passed desktop/mobile English/Italian light/dark checks, including native controls without JavaScript and both active/inactive buttons.
 
 ## Current focus
+
+Finish the `0.9.0-alpha.1` release using the [release checklist](../operations/releases.md#prepare-a-release). [Local release verification](../operations/testing-and-performance.md#090-alpha1-release-verification) records passing checks and the local Podman VM limitation. Verify CI on the committed release and final `main` merge before publication; repeat Podman runtime checks on a working host before deploying with that engine. The dated feature evidence below records prior validation.
 
 Issue #8 recurring top-ups was verified on 2026-10-05 with 253 unit tests, 30 PostgreSQL/Fastify integration tests in a disposable database, 30 recurring browser configurations, both TypeScript checks, production build, Prisma validation, backup schema/export compatibility checks, and wiki lint. The running test container passed an authenticated 17-route desktop/mobile accessibility sweep and live preview/help checks using a temporary isolated user. Its migration is applied and update checking is enabled at the user's request. Fixed/target-balance transfers and source/destination fee choices are current behavior; generation remains manual. See [testing and performance](../operations/testing-and-performance.md#recurring-form-and-help-checks).
 
@@ -115,6 +121,7 @@ The former task page listed dashboard budget state, recurring templates, categor
 - [`container-definitions`](../sources.md#sourcecontainer-definitions)
 - [`project-contract`](../sources.md#sourceproject-contract)
 - [`release-policy`](../sources.md#sourcerelease-policy)
+- [`package-manifest`](../sources.md#sourcepackage-manifest)
 - [`issue-6`](../sources.md#sourceissue-6)
 - [`issue-8`](../sources.md#sourceissue-8)
 - [`issue-8-fees`](../sources.md#sourceissue-8-fees)

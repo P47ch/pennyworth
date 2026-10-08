@@ -2,7 +2,7 @@
 title: JSON Backup Format
 type: runbook
 status: current
-updated: 2026-10-06
+updated: 2026-10-08
 source_ids: [application-source, database-schema, migrations, test-suite, project-contract, owasp-password-storage, node-crypto]
 tags: [backup, restore, json, schema, migration, excel, encryption]
 ---
@@ -103,6 +103,8 @@ Every record inside an array requires:
 - `updatedAt`: valid ISO 8601 date-time.
 
 `userId` may appear because normal exports include it, but handcrafted files may omit it.
+
+Restore preserves the record's `createdAt` and `updatedAt` values. Assigning a linked transfer fee to its parent after insertion also preserves those timestamps, regardless of transaction order. Re-exporting that fee retains its saved update time.
 
 ## Record fields
 
