@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Index
 type: index
 status: current
-updated: 2026-10-07
+updated: 2026-10-08
 source_ids: [project-contract, application-source, llm-wiki-pattern]
 tags: [index, navigation]
 ---
@@ -35,13 +35,13 @@ Read this page first. It catalogs every maintained page and gives agents a bound
 - [`features/transactions.md`](features/transactions.md) — transaction lifecycle, filters, pagination, CSV import/export, duplicate handling, and quick category/tag creation with interrupted-response recovery.
 - [`features/automation.md`](features/automation.md) — categories, tags, budgets, automatic categorization rules, quick rule activation, daily, weekly, monthly, quarterly, and semiannual fixed or target-balance recurring templates with source/destination fees, safe confirmation, and Rules-style help.
 - [`features/investments.md`](features/investments.md) — assets, prices, activity, positions, valuation, and cash impact.
-- [`features/interface-and-accessibility.md`](features/interface-and-accessibility.md) — server-rendered UI, themes, localization, deletion confirmations, recurring field explanations, navigation, mobile behavior, and audits.
+- [`features/interface-and-accessibility.md`](features/interface-and-accessibility.md) — server-rendered UI, themes, localization, deletion confirmations, consistent action controls and category badges, recurring field explanations, navigation, mobile behavior, and audits.
 
 ## Operations
 
-- [`operations/releases.md`](operations/releases.md) — Semantic Versioning, prerelease stages, release checks, tags, and version-system boundaries.
+- [`operations/releases.md`](operations/releases.md) — current release preparation, Semantic Versioning, prerelease stages, release checks, tags, and version-system boundaries.
 - [`operations/local-development.md`](operations/local-development.md) — prerequisites, environment, local database topologies, initialization, Docker file watching, and scripts.
-- [`operations/testing-and-performance.md`](operations/testing-and-performance.md) — unit, integration, accessibility, CI, dependency audit and planned maintenance, performance data, and release verification.
+- [`operations/testing-and-performance.md`](operations/testing-and-performance.md) — current release verification and Podman host limitation, unit, integration, accessibility, CI, dependency audit and planned maintenance, and performance data.
 - [`operations/deployment.md`](operations/deployment.md) — LAN production requirements, Compose profiles, updates, and troubleshooting.
 - [`operations/backup-and-restore.md`](operations/backup-and-restore.md) — JSON and PostgreSQL backup/restore boundaries and procedures.
 - [`operations/json-backup-format.md`](operations/json-backup-format.md) — version 12 JSON fields, recurring modes and transfer-fee links, rule matching syntax, historical compatibility, schema, and starter file.

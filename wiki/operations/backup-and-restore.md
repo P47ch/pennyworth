@@ -2,7 +2,7 @@
 title: Backup and Restore
 type: runbook
 status: current
-updated: 2026-10-06
+updated: 2026-10-08
 source_ids: [application-source, database-schema, test-suite, container-definitions, project-contract, owasp-password-storage, node-crypto, fastify-multipart]
 tags: [backup, restore, recovery, encryption]
 ---
@@ -29,6 +29,8 @@ Restore accepts schema version `1` without budgets and versions `2` through `12`
 The current version 12 structure is documented in the [JSON backup format](json-backup-format.md). A machine-readable schema and an importable starter example are available there and from the Security page for conversions from Excel or another application. Version 8, 9, 10, and 11 schemas and starters remain published for historical exports. Versions 1–10 restore recurring records as fixed monthly amounts without fee presets; version 11 retains its monthly/weekly schedules, targets, and fees. Transfer-fee graphs are validated before replacement and linked after all transactions are created. Older rule match text is converted to a quoted literal phrase when necessary, preserving its meaning under the new comma-separated matcher.
 
 Historical whitespace-only rules remain inert and survive version 12 export and reimport, whether active or inactive. Backup validation accepts their original or quoted whitespace text; rule forms continue to require a non-empty matching term.
+
+Restore preserves the saved creation and update timestamps on financial records. Rebuilding a transfer-fee relationship keeps the imported fee's `updatedAt` rather than treating the link assignment as a new edit. This applies to both version-11 and version-12 JSON, including JSON inside an encrypted envelope.
 
 The user must review the preview and confirm with `RESTORE`. Replacement is user-scoped and transactional: a failure rolls back rather than leaving a partial ledger. A successful restore rebuilds derived investment state.
 

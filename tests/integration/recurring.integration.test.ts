@@ -223,17 +223,23 @@ describe('recurring transfers with fees', () => {
     expect(await prisma.transaction.count({ where: { userId: f.user.id } })).toBe(0);
     expect((await prisma.recurringTransaction.findUniqueOrThrow({ where: { id: template.id } })).nextDate).toEqual(f.input.nextDate);
   });
-  it('round-trips weekly target templates and linked fees, regardless of transaction order', async () => {
+  it.each([11, 12])('round-trips version %s weekly target templates and linked fee timestamps, regardless of transaction order', async (version) => {
     const f = await fixture(); const template = await createRecurringTransaction({ ...f.input, feeAccount: 'destination' });
     const preview = await previewRecurringTransaction(f.user.id, template.id);
     await generateRecurringTransaction(f.user.id, template.id, confirm(preview));
     const backup = await buildUserBackup(f.user.id);
+    backup.schemaVersion = version;
+    const fee = backup.transactions.find(transaction => transaction.feeForTransactionId)!;
+    fee.createdAt = new Date('2026-10-05T10:11:12.123Z');
+    fee.updatedAt = new Date('2026-10-06T12:34:56.789Z');
     backup.transactions.reverse();
     expect(previewBackupJson(JSON.stringify(backup)).transactionCount).toBe(2);
     await restoreUserBackup(f.user.id, JSON.stringify(backup));
     expect(await prisma.recurringTransaction.findUniqueOrThrow({ where: { id: template.id } }))
       .toMatchObject({ amountMinor: null, amountMode: 'target_balance', frequency: 'weekly', feeAccount: 'destination', feeAmountMinor: 50 });
     expect(await prisma.transaction.count({ where: { userId: f.user.id, feeForTransactionId: { not: null } } })).toBe(1);
+    expect(await prisma.transaction.findUniqueOrThrow({ where: { id: fee.id } }))
+      .toMatchObject({ feeForTransactionId: fee.feeForTransactionId, createdAt: fee.createdAt, updatedAt: fee.updatedAt });
     expect((await getAccountBalanceMap(f.user.id)).get(f.destination.id)).toBe(10_000);
   });
   it('requires a fresh preview when competing templates replenish the same destination', async () => {

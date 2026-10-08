@@ -2,7 +2,7 @@
 title: Interface, Localization, and Accessibility
 type: feature
 status: current
-updated: 2026-10-07
+updated: 2026-10-08
 source_ids: [project-contract, application-source, interface-source, finance-source, query-source, package-manifest, test-suite, issue-8-help]
 tags: [interface, accessibility, localization, themes]
 ---
@@ -17,6 +17,8 @@ Fastify renders EJS templates for authenticated pages and forms. Routes return f
 
 Approved Lucide icons render server-side. This keeps navigation consistent while preserving the self-only script Content Security Policy. Category forms use a keyboard-accessible visual icon picker, while category references throughout ledger and reporting views combine their saved icon and color with the name instead of exposing storage strings as separate columns. Native select options remain text-only because browsers do not reliably support SVG or other rich option content.
 
+Category badge SVGs stay centered through the shared grid marker. Dashboard spending and budget summary styles target their direct text children so they do not override nested icon geometry. Category names may shrink and wrap beside the badge, keeping long labels inside narrow reporting cards.
+
 ## Navigation and responsive behavior
 
 The interface has a grouped sidebar that can collapse to icons on wider screens and become a drawer on mobile. Users can hide feature menu items, but Settings and logout remain available so preferences can always be recovered.
@@ -24,6 +26,8 @@ The interface has a grouped sidebar that can collapse to icons on wider screens 
 Authenticated pages also expose an account control in the header. Users may keep up to two initials derived from their name or select one of five bundled Terminal Clerk pixel-art characters: Auditor, Archivist, Operator, Courier, or Custodian. The email local part is a defensive initials fallback. The control opens a native-details account panel containing the signed-in identity, Preferences, Security, and logout; lightweight browser behavior closes it on outside click or Escape. Avatar keys resolve only to registered local assets, and unknown stored values fall back safely to initials.
 
 Forms use accessible labels and native controls. Dense tables gain mobile alternatives or constrained overflow behavior. The visual tone favors calm summaries, clear financial sign/color semantics, and fast transaction entry.
+
+Date inputs are constrained to their field width, including iOS native controls. Settings tabs wrap onto additional rows on narrow screens.
 
 Manual transaction entry offers localized Add category/Add tag controls backed by native dialogs. Opening and dismissing them keeps the draft, and saving selects the new record. Dialogs provide autofocus, keyboard dismissal, focus restoration, focused alert messages, success announcements, and responsive light/dark styling; optional category details reuse the approved icon picker. Dismissal is blocked while the bounded save request is pending. Controls stay hidden without JavaScript while normal transaction and taxonomy forms remain available. [Quick-entry browser checks](../operations/testing-and-performance.md#quick-entry-dialog-checks) exercise these states separately from the full-route accessibility sweep.
 
@@ -41,7 +45,7 @@ Both recurring account selectors prompt **Choose account** (Italian: **Scegli un
 
 Recurring create/edit **Name** and **Description** labels have a subtle dotted underline and localized explanations on hover. The underline uses a one-pixel dotted border positioned at the bottom of the label, keeping its placement consistent across fonts and labels without shifting the controls. Name identifies the recurring operation in the list; Description is copied to its generated transaction, falling back to Name when blank. **Fee account** uses the same hint in create/edit and preview: a source fee adds to the transfer debit, while a destination fee is deducted from the money received. The same explanations appear when their controls receive keyboard focus or users tap the labels. Each control references its tooltip with `aria-describedby`, keeping the visible label as its accessible name; the Fee account selector also retains the shared fee guidance in create/edit. The popup stays readable while hovered, fits its field width, and follows the light/dark theme. JavaScript adds Escape and outside-click dismissal without changing the draft; hover and focus still work without JavaScript.
 
-Recurring list Preview, Edit, and Delete use the same action-control height, padding, typography, and rounded border. Delete retains the red expense/danger palette, including hover and keyboard focus.
+Buttons and links in shared row-action groups use the same height, padding, typography, and rounded border. This keeps Delete aligned with Edit, Preview, and other adjacent controls across lists, budget cards, user management, and confirmation pages. Delete retains the red expense/danger palette, including hover and keyboard focus.
 
 The login form includes collapsed forgotten-password guidance. Members are directed to another application administrator for a temporary password; the only administrator is directed to the self-hosted console recovery command. The form does not collect an address or imply that Pennyworth can deliver recovery mail.
 

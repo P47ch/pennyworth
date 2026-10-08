@@ -818,7 +818,8 @@ export async function restoreUserBackup(userId: string, rawJson: string) {
       const feeForTransactionId = optionalStringValue(transaction.feeForTransactionId, `transactions[${index}].feeForTransactionId`);
       if (feeForTransactionId) await tx.transaction.update({
         where: { id_userId: { id: stringValue(transaction.id, `transactions[${index}].id`), userId } },
-        data: { feeForTransactionId }
+        // Relinking is restore bookkeeping, not a new edit to the backed-up fee.
+        data: { feeForTransactionId, updatedAt: transactionRows[index].updatedAt }
       });
     }
 

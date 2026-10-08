@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Log
 type: log
 status: current
-updated: 2026-10-07
+updated: 2026-10-08
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [log, audit]
 ---
@@ -340,3 +340,27 @@ At the user's request, recorded dependency maintenance as a separate follow-up a
 Added a shared English/Italian server-rendered deletion review for accounts, transactions, categories, tags, budgets, rules, recurring templates, assets, asset prices, manual holdings, and investment activity. The first POST reads the owned record without changing it; only the confirmation button submits the scalar `confirmDelete=yes` value. Missing, invalid, and repeated values cannot delete. Cancel uses a normal link, and both stages retain authentication, ownership, and CSRF checks. Reviews show identifying fields and explain linked fees, retained transactions/tag associations, valuation changes, and used-account/asset inactivation. Replaced the fee-only transaction confirmation view and synchronized canonical interface, security, transaction, automation, investment, verification, index, and unreleased changelog guidance.
 
 Validation passed 290 unit tests, all 55 PostgreSQL/Fastify integration tests in the separate `pennyworth_delete_confirmations_test` database with all 28 migrations, both TypeScript checks, and the production build. New integration checks compare domain snapshots across preview/cancellation for all 11 Delete actions, verify CSRF and ownership, and cover confirmed removal, inactivation, and transfer/fee cascades. Sixteen browser configurations covered desktop/320-pixel mobile, English/Italian, light/dark, accessibility, long-name wrapping, keyboard cancellation, and explicit form confirmation with JavaScript disabled. Inspected desktop/mobile review screenshots. Test users and their records were cleaned up. No accounting model, backup schema, dependency, or application version changes.
+
+## [2026-10-08] source-sync | Prepare v0.9.0-alpha.1 release documentation
+
+Moved completed Unreleased notes into the dated `0.9.0-alpha.1` entry and reconciled them against the commits since `main`, including encrypted backups, optional update notifications, mobile fixes, deletion confirmations, and shared action/category styling. Documented the four required migrations, schema-version-12 exports and versions 1–11 imports, encrypted-envelope independence, pre-upgrade backup and rollback requirements, and current alpha limitations. Preserved the historical `0.8.0-alpha.1` entry and published backup artifacts.
+
+Synchronized README, product brief/status, release management, interface guidance, and index with the prepared package version. Clarified merging into both `main` and `develop`, tagging the verified `main` release commit, and marking the GitHub release as a prerelease. Package metadata was already set to `0.9.0-alpha.1` before this documentation work. The final release checks, release merge, annotated tag, and GitHub publication remain pending; earlier feature verification is historical evidence.
+
+## [2026-10-08] lint | Verify prepared release documentation
+
+Wiki lint passed. Checked package/lock version agreement, all four migration references against the release diff, current backup schema, 106 local Markdown links in the changed documents, preservation of the historical changelog and prior wiki entries, and unchanged licensing text. Documentation whitespace checks passed. These checks validate documentation preparation; the full application release checklist remains pending.
+
+## [2026-10-08] source-sync | Preserve restored transfer-fee timestamps
+
+The production release backup rehearsal found that assigning a restored transfer fee's parent let Prisma replace its imported `updatedAt` with the restore time. Two PostgreSQL regressions reproduced the defect for versions 11 and 12 with out-of-order transactions and timestamps containing milliseconds. Retained the already parsed update timestamp during relinking, preserving creation/update metadata as well as the existing financial values and relationships. Updated release notes and canonical recovery/format guidance. The schema, example files, validation rules, and version numbers retain the existing contract; this corrects restoration of a saved field rather than changing the published format.
+
+## [2026-10-08] lint | Run local 0.9.0-alpha.1 release checks
+
+Passed 290 unit tests, all 56 isolated PostgreSQL/Fastify integration tests with all 28 migrations, both TypeScript checks, the production build, and a fresh dependency audit reporting zero vulnerabilities. Eight quick-entry fixtures plus native fallback, 30 recurring configurations, and the 17-route desktop/mobile authenticated accessibility audit passed. Validated historical/current starters and two actual exports against Draft 2020-12 schemas with date-time formats. Real production JSON and encrypted file round-trips preserved the ledger and timestamps after the fee fix. Managed/external PostgreSQL Docker profiles passed readiness, login, version/CSS checks, and ledger comparison after an isolated SQL dump/restore.
+
+All three Compose profiles parsed with Docker and Podman's provider. The local Podman WSL VM could not complete its runtime smoke because the unavailable user-session bus prevented rootless network/DNS startup; recorded that limitation and retained the configured default connection and rootful setting. Synchronized release/status/verification guidance. These results cover the local working tree; release/main CI, merges, tagging, and publication remain pending.
+
+## [2026-10-08] lint | Close release verification rehearsal
+
+Removed only the verified release-test containers, disposable database volumes, temporary images, SQL/schema fixtures, and validation tools. Returned the previously stopped Podman VM to its original state. The original Docker development app and PostgreSQL remained running, and readiness returned 200. Verified version/lock agreement, unchanged dependency metadata and published backup artifacts, preserved historical changelog/wiki entries, and unchanged licensing. Final wiki lint and documentation/source whitespace checks passed. Release changes remain uncommitted.
