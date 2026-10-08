@@ -3,19 +3,23 @@ title: Release Management
 type: runbook
 status: current
 updated: 2026-10-08
-source_ids: [release-policy, package-manifest, test-suite, ci-workflow, container-definitions, application-source]
+source_ids: [release-policy, release-0-9-0-alpha-1, package-manifest, test-suite, ci-workflow, container-definitions, application-source]
 tags: [release, versioning, semver, verification]
 ---
 
 # Release Management
 
-Pennyworth uses Semantic Versioning. `package.json` is the authoritative application-version source, and `package-lock.json` mirrors it. The current application version is `0.9.0-alpha.1`, an actively changing pre-v1 preview being prepared for release.
+Pennyworth uses Semantic Versioning. `package.json` is the authoritative application-version source, and `package-lock.json` mirrors it. The current application version is `0.9.0-alpha.1`, an alpha prerelease published on 2026-10-08.
 
-## Current release preparation
+## Current release
 
 The dated [0.9.0-alpha.1 changelog entry](../../CHANGELOG.md#090-alpha1---2026-10-08) contains the release notes, four required migrations, backup compatibility, rollback requirements, and known limitations. This minor preview includes meaningful recurring and categorization changes as well as encrypted backups, optional update notifications, deletion confirmations, and interface fixes.
 
-Package versions and documentation are prepared. The seven local automated release checks, Chromium accessibility audit, Docker production profiles, and JSON/encrypted/PostgreSQL recovery rehearsals passed on 2026-10-08; see [release verification](testing-and-performance.md#090-alpha1-release-verification) for the exact scope and the unresolved local Podman VM runtime limitation. Pull requests into `main` and `develop`, CI on the resulting release commit, an annotated tag, and a matching GitHub prerelease remain pending. Local working-tree checks do not replace CI on the final commit.
+[Pennyworth v0.9.0-alpha.1](https://github.com/P47ch/pennyworth/releases/tag/v0.9.0-alpha.1) was published on 2026-10-08 at 15:50:41 UTC as a non-draft GitHub prerelease.
+
+The prepared release commit `7adf9dd` was preserved by merge commits in [main PR #16](https://github.com/P47ch/pennyworth/pull/16) and [develop PR #17](https://github.com/P47ch/pennyworth/pull/17). [CI passed](https://github.com/P47ch/pennyworth/actions/runs/37801932900) on the final main commit `3a6aeaa27ea71599e1b3d410714e4312286bc3a8`. The annotated tag `v0.9.0-alpha.1` has tag-object ID `e4a9523fbf806a8ddf943cbd2bd81810b59049db` and targets that verified commit.
+
+The seven local automated release checks, Chromium accessibility audit, Docker production profiles, and JSON/encrypted/PostgreSQL recovery rehearsals passed on 2026-10-08; see [release verification](testing-and-performance.md#090-alpha1-release-verification) for the exact scope and the unresolved local Podman VM runtime limitation.
 
 Operators upgrading from `0.8.0-alpha.1` should follow [deployment updates](deployment.md#updates), retain tested pre-upgrade JSON and PostgreSQL backups, and review [backup compatibility](json-backup-format.md) before starting the new application.
 
@@ -102,6 +106,7 @@ CI remains executable truth for automated verification. A tag should identify th
 ## Sources
 
 - [`release-policy`](../sources.md#sourcerelease-policy)
+- [`release-0-9-0-alpha-1`](../sources.md#sourcerelease-0-9-0-alpha-1)
 - [`package-manifest`](../sources.md#sourcepackage-manifest)
 - [`test-suite`](../sources.md#sourcetest-suite)
 - [`ci-workflow`](../sources.md#sourceci-workflow)

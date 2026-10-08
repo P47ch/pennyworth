@@ -3,7 +3,7 @@ title: Pennyworth Product Brief
 type: product
 status: current
 updated: 2026-10-08
-source_ids: [project-contract, release-policy, package-manifest, license-policy, application-source, database-schema]
+source_ids: [project-contract, release-policy, release-0-9-0-alpha-1, package-manifest, license-policy, application-source, database-schema]
 tags: [product, scope, principles]
 ---
 
@@ -11,7 +11,7 @@ tags: [product, scope, principles]
 
 Pennyworth is a private, self-hosted personal-finance accounting web application. One home-lab installation can serve its owner and trusted family members, but every application user has an independent financial ledger. Accounts, transactions, categories, investments, reports, exports, and backups are not shared between users.
 
-The current application version is `0.9.0-alpha.1`, being prepared for release. Pennyworth is under active development and has not reached a stable v1.0 release. Behavior and data structures may still change, so operators should keep tested backups and review changes before updating. See [release management](../operations/releases.md#current-release-preparation) for the preparation status. The project is moving toward v1.0 as quickly as reliability, financial correctness, and data safety allow.
+The current application version is [0.9.0-alpha.1](https://github.com/P47ch/pennyworth/releases/tag/v0.9.0-alpha.1), published as an alpha prerelease on 2026-10-08. Pennyworth is under active development and has not reached a stable v1.0 release. Behavior and data structures may still change, so operators should keep tested backups and review changes before updating. See [release management](../operations/releases.md#current-release) for the publication and verification status. The project is moving toward v1.0 as quickly as reliability, financial correctness, and data safety allow.
 
 ## Primary user
 
@@ -67,6 +67,7 @@ Pennyworth is open-source software distributed under the MIT License. `LICENSE` 
 
 - [`project-contract`](../sources.md#sourceproject-contract)
 - [`release-policy`](../sources.md#sourcerelease-policy)
+- [`release-0-9-0-alpha-1`](../sources.md#sourcerelease-0-9-0-alpha-1)
 - [`package-manifest`](../sources.md#sourcepackage-manifest)
 - [`license-policy`](../sources.md#sourcelicense-policy)
 - [`application-source`](../sources.md#sourceapplication-source)

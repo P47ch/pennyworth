@@ -39,7 +39,7 @@ Read this page first. It catalogs every maintained page and gives agents a bound
 
 ## Operations
 
-- [`operations/releases.md`](operations/releases.md) — current release preparation, Semantic Versioning, prerelease stages, release checks, tags, and version-system boundaries.
+- [`operations/releases.md`](operations/releases.md) — current published release, Semantic Versioning, prerelease stages, release checks, tags, and version-system boundaries.
 - [`operations/local-development.md`](operations/local-development.md) — prerequisites, environment, local database topologies, initialization, Docker file watching, and scripts.
 - [`operations/testing-and-performance.md`](operations/testing-and-performance.md) — current release verification and Podman host limitation, unit, integration, accessibility, CI, dependency audit and planned maintenance, and performance data.
 - [`operations/deployment.md`](operations/deployment.md) — LAN production requirements, Compose profiles, updates, and troubleshooting.
