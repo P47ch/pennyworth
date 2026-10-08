@@ -1611,6 +1611,11 @@ button:disabled {
   min-width: 0;
 }
 
+.category-reference > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .category-reference-marker {
   display: inline-grid;
   width: 1.65rem;
@@ -1915,35 +1920,46 @@ tbody tr:hover {
   width: auto;
 }
 
-.action-link {
+.action-link,
+.row-actions button,
+.row-actions .button-link {
   display: inline-flex;
   align-items: center;
   min-height: 2.55rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.55rem 0.75rem;
-  background: var(--panel);
-  color: var(--text);
   font-size: 0.84rem;
   font-weight: 700;
-  text-decoration: none;
   gap: 0.45rem;
 }
 
+.action-link,
+.row-actions .button-link {
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+}
+
 .action-link:hover,
-.action-link:focus {
+.action-link:focus,
+.row-actions .button-link:hover,
+.row-actions .button-link:focus {
   border-color: var(--border-strong);
   background: var(--panel-soft);
 }
 
-.action-link.button-danger {
+.action-link.button-danger,
+.row-actions .button-danger {
   border-color: var(--danger-border);
   background: var(--danger-bg);
   color: var(--expense);
 }
 
 .action-link.button-danger:hover,
-.action-link.button-danger:focus {
+.action-link.button-danger:focus,
+.row-actions .button-danger:hover,
+.row-actions .button-danger:focus {
   background: var(--danger-bg-hover);
 }
 
@@ -1997,8 +2013,8 @@ tbody tr:hover {
   gap: 1rem;
 }
 
-.budget-row-main span,
-.budget-row-numbers span {
+.budget-row-main > div > span,
+.budget-row-numbers > span {
   display: block;
   color: var(--muted);
   font-size: 0.88rem;
@@ -2008,12 +2024,16 @@ tbody tr:hover {
   text-align: right;
 }
 
-.bar-row-top span,
+.bar-row-top > span,
+.list-row span,
+.transaction-item small {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .list-row span,
 .transaction-item small {
   display: block;
-  color: var(--muted);
-  font-size: 0.88rem;
 }
 
 .bar-track {
