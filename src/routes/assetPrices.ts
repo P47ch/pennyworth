@@ -11,6 +11,7 @@ import {
 } from "../services/assetPrices.js";
 import { requireCurrentUser } from "../services/users.js";
 import { field, formBody } from "./form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 
 function validateAssetPriceInput(body: ReturnType<typeof formBody>) {
   const assetId = field(body, "assetId");
@@ -121,6 +122,18 @@ export async function assetPriceRoutes(app: FastifyInstance) {
   app.post("/asset-prices/:assetPriceId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { assetPriceId } = request.params as { assetPriceId: string };
+    const assetPrice = await getAssetPriceForUser(user.id, assetPriceId);
+
+    if (!assetPrice) return reply.redirect("/asset-prices");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete asset price", recordName: assetPrice.asset.name,
+        deleteAction: `/asset-prices/${assetPrice.id}/delete`, cancelHref: "/asset-prices",
+        details: [{ label: "Symbol", value: assetPrice.asset.symbol }, { label: "Date", value: formatDateOnly(assetPrice.date) },
+          { label: "Price", amountMinor: assetPrice.priceMinor, currency: assetPrice.asset.currency }],
+        warnings: ["Deleting this price may change investment valuations."]
+      });
+    }
 
     await deleteAssetPrice(user.id, assetPriceId);
     return reply.redirect("/asset-prices");

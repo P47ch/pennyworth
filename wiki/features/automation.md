@@ -2,7 +2,7 @@
 title: Categories, Budgets, Rules, and Recurring Templates
 type: feature
 status: current
-updated: 2026-10-06
+updated: 2026-10-07
 source_ids: [project-contract, application-source, finance-source, query-source, database-schema, migrations, test-suite, issue-8, issue-8-fees, issue-8-help]
 tags: [categories, tags, budgets, rules, recurring]
 ---
@@ -10,6 +10,8 @@ tags: [categories, tags, budgets, rules, recurring]
 # Categories, Budgets, Rules, and Recurring Templates
 
 Pennyworth keeps automation visible and user-controlled. Categories and tags organize records; budgets summarize spending; rules propose categorization; recurring templates generate only when the user asks.
+
+Categories, tags, budgets, rules, and recurring templates all require the shared [Delete confirmation](interface-and-accessibility.md#deletion-confirmations). Cancelling keeps their records unchanged. Confirmed rule/template deletion retains existing transactions, tag deletion removes its associations without removing transactions or rules, and categories in use remain protected by the existing service/database constraints.
 
 ## Categories and tags
 

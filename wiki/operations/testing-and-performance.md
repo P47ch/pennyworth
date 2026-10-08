@@ -2,7 +2,7 @@
 title: Testing and Performance
 type: verification
 status: current
-updated: 2026-10-06
+updated: 2026-10-07
 source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema, source-map-js-advisory, dependabot-docs]
 tags: [testing, integration, accessibility, performance, ci]
 ---
@@ -35,6 +35,14 @@ The dependency-security verification on 2026-09-17 passed 151 tests in 28 files 
 The 2026-10-02 rule-review fixes passed 211 unit tests across 35 files, both TypeScript checks, and the production build. Regression coverage checks legacy inert-rule restore/export/reimport and verifies that CSV and existing-expense previews prepare rule text once per batch. The corresponding PostgreSQL backup regression was added, but the guarded integration runner could not start because `TEST_DATABASE_URL` was unset.
 
 Encrypted-backup tamper tests decode the selected ciphertext, authentication tag, salt, or nonce, flip a bit, and re-encode it. This guarantees a byte change while retaining valid Base64 and field lengths. A fixed, valid envelope whose ciphertext starts with `A` covers the case where the previous character-replacement test left its randomized input unchanged. The 2026-10-05 correction passed 232 unit tests across 35 files and the test TypeScript check.
+
+## Deletion confirmation checks
+
+`tests/deleteConfirmation.test.ts` checks explicit scalar confirmation, rejection of missing/invalid/repeated fields, safe name escaping, and English/Italian review controls. The guarded `tests/integration/deletions.integration.test.ts` covers all 11 Delete actions against PostgreSQL. It compares user-scoped domain snapshots before and after review/cancellation, verifies confirmation requires CSRF and cannot access another user's record, and exercises confirmed removal, used-account/asset inactivation, and linked transfer/fee deletion. The existing authenticated transaction lifecycle test also covers the two-step flow.
+
+On 2026-10-07, 290 unit tests and all 55 PostgreSQL/Fastify integration tests passed in the separate `pennyworth_delete_confirmations_test` database with all 28 migrations. Test users and their records were removed afterward.
+
+Both TypeScript checks and the production build passed. Sixteen browser configurations checked the shared review in desktop/320-pixel mobile, English/Italian, light/dark, accessibility, long-name wrapping, keyboard cancellation, and explicit confirmation with JavaScript disabled. Inspected desktop/mobile screenshots showed no horizontal overflow.
 
 ## Recurring form and help checks
 

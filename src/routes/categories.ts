@@ -12,6 +12,7 @@ import {
   updateCategory
 } from "../services/taxonomy.js";
 import { requireCurrentUser } from "../services/users.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 import { formBody } from "./form.js";
 import { quickTaxonomyError, validateCategoryInput } from "./taxonomyInput.js";
 
@@ -129,6 +130,16 @@ export async function categoryRoutes(app: FastifyInstance) {
   app.post("/categories/:categoryId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { categoryId } = request.params as { categoryId: string };
+    const category = await getCategoryForUser(user.id, categoryId);
+
+    if (!category) return reply.redirect("/categories");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete category", recordName: category.name,
+        deleteAction: `/categories/${category.id}/delete`, cancelHref: "/categories",
+        warnings: ["Categories in use or with child categories cannot be deleted."]
+      });
+    }
 
     try {
       await deleteCategoryIfUnused(user.id, categoryId);

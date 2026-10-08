@@ -2,7 +2,7 @@
 title: Investments
 type: feature
 status: current
-updated: 2026-09-02
+updated: 2026-10-07
 source_ids: [project-contract, application-source, finance-source, query-source, database-schema, migrations, test-suite]
 tags: [investments, assets, positions, valuation]
 ---
@@ -10,6 +10,8 @@ tags: [investments, assets, positions, valuation]
 # Investments
 
 Investments are a separate asset ledger associated with owned accounts. They affect cash balances and net worth but do not masquerade as normal income or expenses.
+
+Asset, asset-price, manual-holding, and activity Delete actions use the shared [confirmation review](interface-and-accessibility.md#deletion-confirmations) before any change. Reviews identify the record and explain changes to valuations, holdings, cash balances, or price history. Confirming deletion of a used asset marks it inactive; an unused asset and its price history are removed.
 
 ## Assets and prices
 

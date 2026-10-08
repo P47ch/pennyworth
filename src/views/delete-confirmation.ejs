@@ -1,0 +1,32 @@
+<section class="page-heading"><h1><%= t(title) %></h1></section>
+
+<section class="panel">
+  <p>Are you sure you want to delete this item?</p>
+  <dl class="credential-details">
+    <div><dt>Name</dt><dd><%= recordName %></dd></div>
+    <% for (const detail of details) { %>
+      <div>
+        <dt><%= t(detail.label) %></dt>
+        <dd>
+          <% if ("amountMinor" in detail) { %>
+            <%= formatMoney(detail.amountMinor, detail.currency) %>
+          <% } else if ("type" in detail) { %>
+            <%= typeLabel(detail.type) %>
+          <% } else { %>
+            <%= detail.value %>
+          <% } %>
+        </dd>
+      </div>
+    <% } %>
+  </dl>
+  <% for (const warning of warnings) { %>
+    <p><%= t(warning) %></p>
+  <% } %>
+  <div class="row-actions">
+    <a class="action-link" href="<%= cancelHref %>">Cancel</a>
+    <form method="post" action="<%= deleteAction %>">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+      <button class="action-link button-danger" type="submit" name="confirmDelete" value="yes">Confirm deletion</button>
+    </form>
+  </div>
+</section>

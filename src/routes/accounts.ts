@@ -12,6 +12,7 @@ import {
 } from "../services/accounts.js";
 import { requireCurrentUser } from "../services/users.js";
 import { field, formBody } from "./form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 import { loadConfig } from "../lib/config.js";
 
 const primaryCurrency = loadConfig().primaryCurrency;
@@ -140,6 +141,17 @@ export async function accountRoutes(app: FastifyInstance) {
   app.post("/accounts/:accountId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { accountId } = request.params as { accountId: string };
+    const account = await getAccountForUser(user.id, accountId);
+
+    if (!account) return reply.redirect("/accounts");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete account", recordName: account.name,
+        deleteAction: `/accounts/${account.id}/delete`, cancelHref: "/accounts",
+        details: [{ label: "Type", type: account.type }, { label: "Currency", value: account.currency }],
+        warnings: ["Unused accounts are permanently deleted. Accounts used by transactions, holdings, investment activity, or recurring templates are marked inactive instead."]
+      });
+    }
 
     await deleteAccountIfUnused(user.id, accountId);
     return reply.redirect("/accounts");

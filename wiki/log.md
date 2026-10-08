@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Log
 type: log
 status: current
-updated: 2026-10-02
+updated: 2026-10-07
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [log, audit]
 ---
@@ -334,3 +334,9 @@ Replaced the font-dependent dotted text decoration on Name, Description, and Fee
 Inspected both failed GitHub Actions runs for commit `07b5a35`: migrations, unit/integration tests, both TypeScript checks, and build passed before the dependency audit reported GHSA-68fv-2mgg-jv7q in source-map-js 1.2.1. Updated only that transitive lockfile entry to the compatible patched 1.2.2 release; its BSD-3-Clause license and bundled notice remain intact. A fresh high-severity audit reported zero vulnerabilities and all 279 unit tests passed. Preserved the audit threshold, application version, and published data contracts. Updated unreleased notes and verification/source provenance.
 
 At the user's request, recorded dependency maintenance as a separate follow-up after this PR merges: weekly npm/GitHub Actions version PRs, compatible-update grouping and paired Prisma packages, security alerts/fixes, required CI/review, and a scheduled audit. Documented that Dependabot security updates target only the default branch even when version PRs target develop. The plan is not yet implemented; no repository automation or security settings were changed.
+
+## [2026-10-07] source-sync | Require confirmation for every Delete action
+
+Added a shared English/Italian server-rendered deletion review for accounts, transactions, categories, tags, budgets, rules, recurring templates, assets, asset prices, manual holdings, and investment activity. The first POST reads the owned record without changing it; only the confirmation button submits the scalar `confirmDelete=yes` value. Missing, invalid, and repeated values cannot delete. Cancel uses a normal link, and both stages retain authentication, ownership, and CSRF checks. Reviews show identifying fields and explain linked fees, retained transactions/tag associations, valuation changes, and used-account/asset inactivation. Replaced the fee-only transaction confirmation view and synchronized canonical interface, security, transaction, automation, investment, verification, index, and unreleased changelog guidance.
+
+Validation passed 290 unit tests, all 55 PostgreSQL/Fastify integration tests in the separate `pennyworth_delete_confirmations_test` database with all 28 migrations, both TypeScript checks, and the production build. New integration checks compare domain snapshots across preview/cancellation for all 11 Delete actions, verify CSRF and ownership, and cover confirmed removal, inactivation, and transfer/fee cascades. Sixteen browser configurations covered desktop/320-pixel mobile, English/Italian, light/dark, accessibility, long-name wrapping, keyboard cancellation, and explicit form confirmation with JavaScript disabled. Inspected desktop/mobile review screenshots. Test users and their records were cleaned up. No accounting model, backup schema, dependency, or application version changes.

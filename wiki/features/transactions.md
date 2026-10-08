@@ -2,7 +2,7 @@
 title: Transactions and CSV
 type: feature
 status: current
-updated: 2026-10-05
+updated: 2026-10-07
 source_ids: [project-contract, application-source, finance-source, query-source, database-schema, migrations, test-suite, issue-6]
 tags: [transactions, csv, ledger]
 ---
@@ -19,7 +19,9 @@ The authenticated UI supports create, edit, delete, filtered browsing, and pagin
 - Transfer uses different source and destination accounts and cannot have a category.
 - Service checks verify ownership and category compatibility.
 - PostgreSQL repeats the essential shape, positivity, and same-user checks.
-- Delete actions require explicit user interaction; normal records are not soft-deleted.
+- Every transaction Delete action first renders a review page showing the type, date, accounts, and amount. Only **Confirm deletion** submits `confirmDelete=yes`; **Cancel** returns to the list without changing the ledger. This server-enforced flow works without JavaScript. Normal records are not soft-deleted.
+
+Linked transfer reviews explain that their fee is also deleted; fee-only reviews explain that the transfer is kept. The same [confirmation flow](interface-and-accessibility.md#deletion-confirmations) covers every other Delete action in the application.
 
 Browsing supports date, type, account, category, tag, and text filters. Normal pages return at most 50 transactions; CSV export intentionally returns every transaction matching the active filters.
 
