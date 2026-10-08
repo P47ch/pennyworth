@@ -2,9 +2,9 @@
 title: Security and Privacy
 type: security
 status: current
-updated: 2026-09-16
-source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite]
-tags: [security, privacy, authentication, integrity]
+updated: 2026-10-07
+source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite, owasp-password-storage, node-crypto, fastify-multipart, github-rest-releases]
+tags: [security, privacy, authentication, integrity, encryption]
 ---
 
 # Security and Privacy
@@ -35,13 +35,23 @@ Pennyworth stores sensitive financial data. Its current deployment model assumes
 - Certificate-free private HTTP is an accepted low residual risk only while the application is unreachable from the public internet and unintended network segments. `HttpOnly`, `SameSite=Strict`, signing, and CSRF protection remain mandatory but do not replace transport encryption.
 - A centralized error handler logs full unhandled exceptions only on the server and renders a generic HTML error page with a request ID. Database codes, query details, stack traces, and exception messages are not included in browser responses.
 
+Transaction creation feedback uses a separate signed, `HttpOnly`, `SameSite=Strict` cookie scoped to `/transactions`, with `Secure` following the configured transport and a 60-second lifetime. The payload is bounded, tied to the authenticated user, checked for expiry, and cleared when read. Rule/category/tag labels are HTML-escaped when rendered. The notice contains no amounts, account identifiers, transaction descriptions, or secrets.
+
+## Optional update checks
+
+Update checks default to disabled. When an operator enables them, only the Pennyworth server contacts the fixed public GitHub Releases endpoint for `P47ch/pennyworth`; browsers never contact GitHub. The request sends no user, account, financial, database, or installation identifier—only normal HTTP metadata and `Pennyworth/<installed-version>` as its user agent, visible to GitHub along with the server's public IP address. The client uses HTTPS, a five-second timeout, a bounded response, validated release URLs, ETags, and rate-limit-aware scheduling. It never renders remote release text or makes update failure affect health, readiness, login, or financial functions.
+
 ## Ownership and database integrity
 
 Services check that referenced accounts, categories, tags, assets, budgets, rules, and recurring records belong to the current user. Updates and deletes use composite `(id, userId)` selectors, and PostgreSQL independently enforces same-user composite foreign keys across ledger, automation, and investment records.
 
+Every user-facing Delete action first renders a [record-scoped confirmation](../features/interface-and-accessibility.md#deletion-confirmations). The initial POST does not delete or inactivate anything. A second POST must carry the scalar `confirmDelete=yes` value from **Confirm deletion**, with authentication, ownership, and CSRF checked again. Duplicate confirmation fields and missing or invalid values cannot trigger deletion. Cancel is non-mutating, including with JavaScript disabled.
+
 Family-user support retains `User` as the tenant boundary: authenticated users cannot read or modify another user's financial records, and there is no household-wide shared ledger. Application administrators manage authentication access but receive no application-level view into another user's ledger. The home-lab operator remains a trusted infrastructure administrator with container and database access, including the ability to reset a user's password.
 
 Database constraints reject malformed transaction shapes, non-positive financial values, same-account transfers, categorized transfers, invalid investment combinations, cross-user references, and invalid derived position values. Category parent ownership is database-enforced, while services and restore validation reject hierarchy cycles.
+
+Recurring confirmation additionally uses a session-secret HMAC bound to the user, occurrence date, template revision, fee override, and calculated amounts/balance. The server recomputes within serializable isolation, so a client cannot alter a fee or reuse an old occurrence confirmation to process the next one. CSRF remains required for confirmation and skip. Deferred PostgreSQL constraints independently enforce linked transfer/fee ownership, date, parent type, and source/destination account.
 
 This defense in depth protects normal forms, imports, maintenance scripts, restore operations, and direct database writes.
 
@@ -53,7 +63,11 @@ PostgreSQL must remain on loopback, a private container network, an encrypted tu
 
 ## Backup boundary
 
-JSON backup export is user-scoped application data. Restore requires preview and explicit confirmation, validates references and cycles before replacement, and runs transactionally. SQL dumps are the full-server recovery mechanism. Both contain sensitive financial data and require private storage and tested recovery. See [`../operations/backup-and-restore.md`](../operations/backup-and-restore.md).
+JSON backup export is user-scoped application data. Restore requires preview and explicit confirmation, validates references and cycles before replacement, and runs transactionally. SQL dumps are the full-server recovery mechanism. Both contain sensitive financial data and require private storage and tested recovery.
+
+Encrypted `.pwb` export uses a separate versioned envelope: a unique random salt and nonce, fixed OWASP scrypt fallback parameters (`N=2^17`, `r=8`, `p=1`), and AES-256-GCM with a 128-bit authentication tag. New exports require at least 12 passphrase characters, while decryption continues to allow non-empty historical passphrases. Canonical authenticated additional data binds the envelope identifier, version, algorithms, KDF parameters, salt, and nonce. Before deriving a key, parsing enforces exact structure, fixed allow-listed parameters, Base64/component lengths, and envelope-size limits. The backup passphrase is not persisted, logged, placed in a URL, or reused automatically from the account password; temporary key and passphrase buffers are cleared after key derivation where Node permits. Generic handling keeps malformed files, altered ciphertext/metadata, and wrong passphrases in the same user-visible failure category. A process-local gate permits one active KDF and two queued operations across all encrypted backup paths.
+
+Encrypted restore parses from validated bytes rather than a filename or MIME type. Its preview-confirmation token is a 15-minute HMAC bound to the authenticated user and exact submitted payload, which is Base64url-encoded in the confirmation form to preserve its original UTF-8 bytes and prevent a client from swapping content after preview. Restore decrypts and validates again before its existing database transaction. The bounded single-file multipart parser uses in-memory request data only. Encryption protects stored backup confidentiality and integrity, not a compromised session, a disclosed passphrase, or an untrusted HTTP connection; private HTTP deployments therefore display an explicit warning. See [`../operations/backup-and-restore.md`](../operations/backup-and-restore.md).
 
 ## Operational requirements
 
@@ -88,3 +102,7 @@ Pennyworth is not a hardened public SaaS. Administrator-provisioned, isolated fa
 - [`container-definitions`](../sources.md#sourcecontainer-definitions)
 - [`environment-template`](../sources.md#sourceenvironment-template)
 - [`test-suite`](../sources.md#sourcetest-suite)
+- [`owasp-password-storage`](../sources.md#sourceowasp-password-storage)
+- [`node-crypto`](../sources.md#sourcenode-crypto)
+- [`fastify-multipart`](../sources.md#sourcefastify-multipart)
+- [`github-rest-releases`](../sources.md#sourcegithub-rest-releases)

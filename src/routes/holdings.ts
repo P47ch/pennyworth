@@ -10,6 +10,7 @@ import {
 } from "../services/holdings.js";
 import { requireCurrentUser } from "../services/users.js";
 import { field, formBody } from "./form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 
 function parseQuantity(input: string): string {
   const normalized = input.trim().replace(",", ".");
@@ -150,6 +151,17 @@ export async function holdingRoutes(app: FastifyInstance) {
   app.post("/holdings/:holdingId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { holdingId } = request.params as { holdingId: string };
+    const holding = await getHoldingForUser(user.id, holdingId);
+
+    if (!holding) return reply.redirect("/holdings");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete holding", recordName: holding.asset.name,
+        deleteAction: `/holdings/${holding.id}/delete`, cancelHref: "/holdings",
+        details: [{ label: "Account", value: holding.account.name }, { label: "Quantity", value: holding.quantity.toString() }],
+        warnings: ["Deleting this manual holding changes investment balances and allocation."]
+      });
+    }
 
     await deleteHolding(user.id, holdingId);
     return reply.redirect("/holdings");

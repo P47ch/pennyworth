@@ -181,7 +181,10 @@ export async function getCategoryDependencyCounts(
     db.transaction.count({ where: { userId, categoryId, type: { not: nextType } } }),
     nextType === "income" ? db.budget.count({ where: { userId, categoryId } }) : Promise.resolve(0),
     nextType === "income" ? db.rule.count({ where: { userId, categoryId } }) : Promise.resolve(0),
-    db.recurringTransaction.count({ where: { userId, categoryId, type: { not: nextType } } })
+    db.recurringTransaction.count({ where: { userId, OR: [
+      { categoryId, type: { not: nextType } },
+      ...(nextType === "income" ? [{ feeCategoryId: categoryId }] : [])
+    ] } })
   ]);
 
   return { transactions, budgets, rules, recurringTransactions };
@@ -280,6 +283,7 @@ export type BackupRelationshipInput = {
     sourceAccountId: string | null;
     destinationAccountId: string | null;
     categoryId: string | null;
+    feeCategoryId?: string | null;
   }>;
   holdings: Array<{ accountId: string }>;
   investmentTransactions: Array<{ accountId: string; cashAccountId: string | null }>;
@@ -401,6 +405,12 @@ export function validateBackupRelationshipSemantics(input: BackupRelationshipInp
 
   for (const [index, recurring] of input.recurringTransactions.entries()) {
     const label = `recurringTransactions[${index}]`;
+    if (recurring.feeCategoryId) {
+      const category = backupCategory(categories, recurring.feeCategoryId);
+      if (!category || !categorySupportsExpenseUse(category.type as CategoryType)) {
+        throw new Error(`${label}.feeCategoryId must reference an expense or both category.`);
+      }
+    }
 
     if (!["income", "expense", "transfer"].includes(recurring.type)) {
       throw new Error(`${label}.type must be income, expense, or transfer.`);

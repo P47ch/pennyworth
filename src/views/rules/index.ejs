@@ -1,7 +1,10 @@
 <section class="page-heading">
   <div>
     <p class="eyebrow">Automation</p>
-    <h1>Rules</h1>
+    <div class="rules-title-row">
+      <h1>Rules</h1>
+      <%- include("../partials/rules-help.ejs") %>
+    </div>
   </div>
 </section>
 
@@ -10,23 +13,24 @@
     <h2>Add rule</h2>
     <span class="muted">Match transaction text to a category</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/rules" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/rules" class="form-grid rules-form">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
-      <input name="name" required>
+      <input name="name" value="<%= form.name %>" required>
     </label>
     <label>
       Match text
-      <input name="matchText" placeholder="grocery, rent, spotify" required>
+      <input name="matchText" value="<%= form.matchText %>" placeholder="netflix, spotify, amazon prime" aria-describedby="rule-match-hint" required>
+      <small class="muted" id="rule-match-hint">Separate alternatives with commas. Any matching term applies the rule; spaces within a term form a phrase.</small>
     </label>
     <label>
       Category
       <select name="categoryId" required>
         <option value="">Choose category</option>
         <% for (const category of categories) { %>
-          <option value="<%= category.id %>"><%= category.name %></option>
+          <option value="<%= category.id %>" <%= form.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
         <% } %>
       </select>
     </label>
@@ -35,14 +39,14 @@
       <div class="checkbox-list">
         <% for (const tag of tags) { %>
           <label>
-            <input type="checkbox" name="tagIds" value="<%= tag.id %>">
+            <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= form.tagIds.includes(tag.id) ? "checked" : "" %>>
             <%= tag.name %>
           </label>
         <% } %>
       </div>
     </fieldset>
     <label class="checkbox-row">
-      <input type="checkbox" name="isActive" checked>
+      <input type="checkbox" name="isActive" <%= form.isActive ? "checked" : "" %>>
       Active
     </label>
     <button type="submit">Add rule</button>
@@ -114,6 +118,11 @@
               <td data-label="Actions">
                 <div class="row-actions">
                   <a class="action-link" href="/rules/<%= rule.id %>/edit">Edit</a>
+                  <form method="post" action="/rules/<%= rule.id %>/active">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <input type="hidden" name="isActive" value="<%= rule.isActive ? 'false' : 'true' %>">
+                    <button class="button-secondary" type="submit" aria-label="<%= t(rule.isActive ? 'Disable rule: {name}' : 'Enable rule: {name}', { name: rule.name }) %>"><%= t(rule.isActive ? "Disable" : "Enable") %></button>
+                  </form>
                   <form method="post" action="/rules/<%= rule.id %>/delete">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-danger" type="submit">Delete</button>

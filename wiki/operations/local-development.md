@@ -2,7 +2,7 @@
 title: Local Development
 type: runbook
 status: current
-updated: 2026-09-17
+updated: 2026-10-05
 source_ids: [package-manifest, environment-template, container-definitions, operational-scripts, project-contract]
 tags: [development, setup, postgres]
 ---
@@ -27,9 +27,14 @@ APP_TIME_ZONE="Europe/Rome"
 INITIAL_ADMIN_EMAIL="admin@example.com"
 INITIAL_ADMIN_PASSWORD="replace-with-a-password-of-at-least-12-characters"
 PRIMARY_CURRENCY="EUR"
+UPDATE_CHECK_ENABLED="false"
+UPDATE_CHANNEL="prerelease"
+UPDATE_CHECK_INTERVAL_HOURS="24"
 ```
 
 `DATABASE_URL` uses `localhost` when Node runs on the host, `postgres` when the app and database share a Compose project, and an SSH-tunnel endpoint when PostgreSQL runs on another machine.
+
+Update checks are opt-in. Changing the Compose environment file requires recreating the app service (a process restart keeps its old environment): `docker compose --env-file PATH -f compose.dev.yml up -d --no-deps --force-recreate app`. Include the same project name and override files used to start a test stack. Verify the running value with `docker compose -f compose.dev.yml exec app printenv UPDATE_CHECK_ENABLED`; this prints only that flag. Set `UPDATE_CHECK_ENABLED=true` only when the development server may make an ordinary HTTPS request for public Pennyworth GitHub Release metadata. `UPDATE_CHANNEL` is `prerelease` by default (includes alpha/beta/RC and stable releases) or `stable` (full releases only); `UPDATE_CHECK_INTERVAL_HOURS` accepts integers from 1 through 168.
 
 ## Host Node with container PostgreSQL
 
@@ -76,6 +81,28 @@ docker compose -f compose.dev.yml exec app npm run db:seed
 
 The source tree is bind-mounted at `/app`; Linux dependencies use the separate `app-node-modules` named volume so Windows host packages are not reused inside the container.
 
+### Development file watching
+
+`npm run dev` uses `tsx watch` to restart the server when watched TypeScript files change. File-change notifications can be missed across Windows/Docker Desktop bind mounts, leaving updated templates and CSS served by a process that still has older routes in memory. The development profile therefore enables periodic file checks through the Chokidar watcher bundled with `tsx`.
+
+Both settings are already configured under `app.environment` in [`compose.dev.yml`](../../compose.dev.yml):
+
+| Variable | Configured value | Purpose |
+| --- | --- | --- |
+| `CHOKIDAR_USEPOLLING` | `"true"` | Check watched files periodically instead of relying on native file-change notifications. |
+| `CHOKIDAR_INTERVAL` | `"300"` | Check watched source files every 300 milliseconds when polling is enabled. |
+
+Developers using this Compose profile do not need additional `.env` entries for these settings. To adjust them, edit the values in `compose.dev.yml`. A shorter interval detects changes sooner but increases filesystem checks and CPU work; a longer interval reduces that work but delays detection. On a system with reliable native file-change notifications, setting `CHOKIDAR_USEPOLLING` to `"false"` switches back to native watching. These settings apply to the development watcher; production runs the compiled application.
+
+After changing the container environment, recreate only the app service:
+
+```bash
+docker compose -f compose.dev.yml up -d --no-deps app
+docker compose -f compose.dev.yml logs -f app
+```
+
+Wait for startup and verify `/readyz`. Editing a watched TypeScript file should produce a `tsx` restart message in the logs. Reload the browser to view the updated page.
+
 ## PostgreSQL on another machine
 
 The base Compose profile publishes PostgreSQL only on `127.0.0.1` of its host. Use a strong password there, start only `postgres`, then create an encrypted tunnel from the application machine:
@@ -111,6 +138,8 @@ npm run test:typecheck       # type-check tests
 npm run typecheck            # type-check application
 npm run test:integration     # guarded PostgreSQL/Fastify integration suite
 npm run audit:a11y           # live authenticated browser audit
+npm run test:quick-entry     # isolated dialog browser/a11y checks (Chromium required)
+npm run test:recurring       # recurring forms/help browser/a11y checks (Chromium required)
 npm run db:generate          # generate Prisma Client
 npm run db:migrate           # create/apply development migration
 npm run db:deploy            # apply existing migrations

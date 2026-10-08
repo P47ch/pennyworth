@@ -9,16 +9,20 @@
 <section class="panel">
   <div class="panel-heading">
     <h2><%= transaction.description || "Transaction" %></h2>
-    <span class="badge badge-<%= transaction.type %>"><%= transaction.type %></span>
+    <span class="badge badge-<%= transaction.type %>"><%= typeLabel(transaction.type) %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <% if (transaction.feeForTransactionId || transaction.feeTransaction) { %>
+    <p class="muted"><%= t('This entry is linked to a top-up fee. Its type, date, and accounts must stay together; amounts and categories can be corrected separately.') %></p>
+    <a class="action-link" href="/transactions/<%= transaction.feeForTransactionId || transaction.feeTransaction.id %>/edit"><%= t(transaction.feeForTransactionId ? 'View linked transfer' : 'View linked fee') %></a>
+  <% } %>
   <form method="post" action="/transactions/<%= transaction.id %>" class="form-grid transaction-form" data-transaction-form>
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       <span>Type</span>
       <select name="type" required data-transaction-type>
         <% for (const type of transactionTypes) { %>
-          <option value="<%= type %>" <%= transaction.type === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= transaction.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>

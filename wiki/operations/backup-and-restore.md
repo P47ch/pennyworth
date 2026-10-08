@@ -2,32 +2,47 @@
 title: Backup and Restore
 type: runbook
 status: current
-updated: 2026-09-16
-source_ids: [application-source, database-schema, test-suite, container-definitions, project-contract]
-tags: [backup, restore, recovery]
+updated: 2026-10-08
+source_ids: [application-source, database-schema, test-suite, container-definitions, project-contract, owasp-password-storage, node-crypto, fastify-multipart]
+tags: [backup, restore, recovery, encryption]
 ---
 
 # Backup and Restore
 
 Pennyworth has two complementary recovery layers: user-scoped JSON for portable application data and PostgreSQL dumps for full server recovery. Neither is useful until a restore has been tested.
 
-## JSON backup
+## User-scoped backups
 
-Authenticated users export JSON from Security. Current schema version `9` includes:
+Authenticated users export JSON from Security. Current schema version `12` includes:
 
 - accounts, categories, tags, transactions, and transaction-tag links;
-- budgets, rules, rule tags, and recurring templates;
+- budgets, rules, rule tags, daily/weekly/monthly/quarterly/semiannual fixed or target-balance recurring templates and fee presets;
+- transfer-fee links preserving the separate expense and source/destination accounting;
 - assets, manual prices, holdings, and investment activity including cash impact.
 
 Derived `InvestmentPosition` and `InvestmentTransactionResult` rows are excluded because they rebuild from authoritative investment activity. Export reads all included record families inside one PostgreSQL repeatable-read transaction, preventing a backup from mixing states across concurrent edits.
 
 Account credentials, roles, and interface preferences such as language, theme, menu visibility, and avatar choice are not replaced by JSON restore. Use a PostgreSQL dump when full installation recovery, including those settings, is required.
 
-Restore accepts schema version `1` without budgets and versions `2` through `9` with later record families defaulted when absent. Preview validates app identity, schema version, unique IDs, references, category cycles, the configured primary currency, integer money bounds, supported values, and service-level relationship semantics. Restore independently parses and validates the exact submitted payload immediately before opening its replacement transaction, then writes the captured validated graph without reparsing it inside the transaction.
+Restore accepts schema version `1` without budgets and versions `2` through `12` with later record families defaulted when absent. Preview validates app identity, schema version, unique IDs, references, category cycles, the configured primary currency, integer money bounds, supported values, rule matching syntax, and service-level relationship semantics. Restore independently parses and validates the exact submitted payload immediately before opening its replacement transaction, then writes the captured validated graph without reparsing it inside the transaction. Saved categories and tags are restored exactly; categorization rules are never rerun during restore.
 
-The current version 9 structure is documented in the [JSON backup format](json-backup-format.md). A machine-readable schema and an importable starter example are available there and from the Security page for conversions from Excel or another application. The version 8 schema and starter remain published for historical exports.
+The current version 12 structure is documented in the [JSON backup format](json-backup-format.md). A machine-readable schema and an importable starter example are available there and from the Security page for conversions from Excel or another application. Version 8, 9, 10, and 11 schemas and starters remain published for historical exports. Versions 1–10 restore recurring records as fixed monthly amounts without fee presets; version 11 retains its monthly/weekly schedules, targets, and fees. Transfer-fee graphs are validated before replacement and linked after all transactions are created. Older rule match text is converted to a quoted literal phrase when necessary, preserving its meaning under the new comma-separated matcher.
+
+Historical whitespace-only rules remain inert and survive version 12 export and reimport, whether active or inactive. Backup validation accepts their original or quoted whitespace text; rule forms continue to require a non-empty matching term.
+
+Restore preserves the saved creation and update timestamps on financial records. Rebuilding a transfer-fee relationship keeps the imported fee's `updatedAt` rather than treating the link assignment as a new edit. This applies to both version-11 and version-12 JSON, including JSON inside an encrypted envelope.
 
 The user must review the preview and confirm with `RESTORE`. Replacement is user-scoped and transactional: a failure rolls back rather than leaving a partial ledger. A successful restore rebuilds derived investment state.
+
+### Encrypted `.pwb` backup
+
+Security also offers a password-protected download named `pennyworth-backup-YYYY-MM-DD.pwb`. New exports require a passphrase of at least 12 characters; existing encrypted backups with shorter passphrases remain restorable for compatibility. The passphrase is never stored, placed in a URL, or included in the filename. Pennyworth cannot recover a backup when its passphrase is lost, so keep a separate recovery copy and use a unique, memorable passphrase.
+
+The `.pwb` file is an encrypted envelope around the exact same JSON export, currently schema version `12`. Its envelope version remains `1`, and ordinary `.json` export and restore remain available for interoperability. The envelope is parsed from content rather than relying on a filename or MIME type. Restore accepts one `.pwb` or `.json` file, or pasted JSON; it shows the ordinary record-count preview and requires a second passphrase entry plus `RESTORE` before replacing data. A 15-minute server-signed token binds the confirmation to the exact payload shown in the preview, and decryption plus JSON validation run again immediately before the existing transactional restore.
+
+Pennyworth limits encrypted JSON plaintext to 10 MiB and the UTF-8 envelope to 14 MiB. Multipart accepts only one file and four non-file fields, with the same resource bounds; uploaded files are held only in request memory and are never written to disk. The confirmation preserves the exact UTF-8 payload using bounded Base64url transport (the confirmation route is limited to 20 MiB). A 15-minute server-signed token binds it to the preview. Passphrase attempts are limited to three per 15 minutes per Fastify rate-limit key; across export, preview, and confirmation, the service runs at most one scrypt operation at a time and queues at most two more. Wrong passphrases, malformed envelopes, and modified encrypted metadata or ciphertext all report the same safe failure message.
+
+Encryption protects a stored file from a cloud-storage or removable-media disclosure and detects modification. It does not protect an unlocked Pennyworth session, a leaked passphrase, or passphrase transit over an untrusted HTTP connection. In `trusted-private-http` mode the Security page warns that the passphrase crosses the network; use HTTPS or a trusted private network/VPN for that workflow.
 
 ## PostgreSQL dump
 
@@ -55,7 +70,7 @@ Verify `/readyz`, login, balances, recent transactions, investment positions, an
 
 1. Start a compatible Pennyworth version and sign in.
 2. Open **Security**.
-3. Paste the JSON backup.
+3. Select a `.json` or `.pwb` backup file, or paste JSON. Enter the passphrase for a `.pwb` file.
 4. Review record counts and validation output.
 5. Confirm with `RESTORE`.
 6. Verify balances, reports, tags, automation, and investments.
@@ -84,3 +99,6 @@ Verify `/readyz`, login, balances, recent transactions, investment positions, an
 - [`test-suite`](../sources.md#sourcetest-suite)
 - [`container-definitions`](../sources.md#sourcecontainer-definitions)
 - [`project-contract`](../sources.md#sourceproject-contract)
+- [`owasp-password-storage`](../sources.md#sourceowasp-password-storage)
+- [`node-crypto`](../sources.md#sourcenode-crypto)
+- [`fastify-multipart`](../sources.md#sourcefastify-multipart)

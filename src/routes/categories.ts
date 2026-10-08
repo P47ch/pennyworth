@@ -1,40 +1,43 @@
-import type { CategoryType } from "@prisma/client";
 import type { FastifyInstance } from "fastify";
-import { categoryIconOptions, isCategoryIcon, parseCategoryIcon } from "../lib/icons.js";
+import { categoryIconOptions, isCategoryIcon } from "../lib/icons.js";
+import { createTranslator } from "../lib/i18n.js";
+import { normalizeUserPreferences } from "../lib/preferences.js";
 import {
   categoryTypes,
   createCategory,
   deleteCategoryIfUnused,
+  getCategoryByNameForUser,
   getCategoryForUser,
   listCategories,
   updateCategory
 } from "../services/taxonomy.js";
 import { requireCurrentUser } from "../services/users.js";
-import { parseHexColor } from "./colors.js";
-import { field, formBody } from "./form.js";
-
-function validateCategoryInput(body: ReturnType<typeof formBody>) {
-  const name = field(body, "name").trim();
-  const type = field(body, "type") as CategoryType;
-
-  if (!name) {
-    throw new Error("Category name is required.");
-  }
-
-  if (!categoryTypes.includes(type)) {
-    throw new Error("Choose a valid category type.");
-  }
-
-  return {
-    name,
-    type,
-    parentId: field(body, "parentId"),
-    color: parseHexColor(field(body, "color"), "#2563eb"),
-    icon: parseCategoryIcon(field(body, "icon"))
-  };
-}
+import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
+import { formBody } from "./form.js";
+import { quickTaxonomyError, validateCategoryInput } from "./taxonomyInput.js";
 
 export async function categoryRoutes(app: FastifyInstance) {
+  app.post("/categories/quick", async (request, reply) => {
+    const user = await requireCurrentUser(request);
+    const t = createTranslator(normalizeUserPreferences(user).language);
+    try {
+      const input = validateCategoryInput(formBody(request.body));
+      try {
+        const category = await createCategory({ userId: user.id, ...input });
+        return reply.code(201).send({ category: { id: category.id, name: category.name, type: category.type } });
+      } catch (error) {
+        const failure = quickTaxonomyError(error, "category");
+        if (failure.statusCode !== 409) throw error;
+        const existing = await getCategoryByNameForUser(user.id, input.name);
+        return reply.code(409).send({ error: t(failure.message), existing });
+      }
+    } catch (error) {
+      const failure = quickTaxonomyError(error, "category");
+      if (failure.statusCode === 500) request.log.error("Quick category creation failed");
+      return reply.code(failure.statusCode).send({ error: t(failure.message) });
+    }
+  });
+
   app.get("/categories", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const categories = await listCategories(user.id);
@@ -127,6 +130,16 @@ export async function categoryRoutes(app: FastifyInstance) {
   app.post("/categories/:categoryId/delete", async (request, reply) => {
     const user = await requireCurrentUser(request);
     const { categoryId } = request.params as { categoryId: string };
+    const category = await getCategoryForUser(user.id, categoryId);
+
+    if (!category) return reply.redirect("/categories");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete category", recordName: category.name,
+        deleteAction: `/categories/${category.id}/delete`, cancelHref: "/categories",
+        warnings: ["Categories in use or with child categories cannot be deleted."]
+      });
+    }
 
     try {
       await deleteCategoryIfUnused(user.id, categoryId);

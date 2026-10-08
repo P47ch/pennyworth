@@ -2,7 +2,7 @@
 title: System Overview
 type: architecture
 status: current
-updated: 2026-09-03
+updated: 2026-10-05
 source_ids: [project-contract, package-manifest, application-source, query-source, interface-source]
 tags: [architecture, fastify, server-rendering]
 ---
@@ -23,6 +23,8 @@ Browser
 ```
 
 `src/server.ts` loads validated configuration, registers cookies, form parsing, rate limiting, static assets, and EJS, installs security/session hooks, registers routes, and starts the server. The session hook validates the account once and stores the current user on the request for tenant-scoped route services, avoiding a second identity query. `/healthz` reports process health; `/readyz` checks database readiness.
+
+When explicitly enabled, `src/services/updateCheck.ts` runs one process-local, non-blocking GitHub Release metadata check after Fastify is ready. It uses a bounded response, timeout, ETag cache, and an unref'ed timer; it never participates in readiness, authentication, request rendering, or financial operations. Each replica has its own memory cache and timer, so deployments with multiple replicas make one request per configured interval per replica.
 
 ## Module boundaries
 
@@ -55,6 +57,8 @@ Read-heavy summaries avoid replaying complete ledgers in Node:
 - `src/queries/latestAssetPrices.ts` selects one latest price per asset.
 - Query adapters convert PostgreSQL `bigint` only after checking JavaScript safe-integer bounds.
 
+Recurring generation uses a server-rendered signed preview and serializable transaction. It reads the dated ledger, checks the occurrence and template revision, conditionally advances the date, and creates a principal plus optional linked fee atomically. Bounded retries recompute after serialization conflicts; changed amounts require new confirmation. Skipping a zero top-up shares the same controls.
+
 Investment positions and per-entry realized gains are rebuildable database projections. They bound dashboard, holdings, and activity reads while keeping investment activity authoritative.
 
 ## Dates and time zones
@@ -64,6 +68,8 @@ Accounting dates are strict date-only values normalized to UTC midnight. Financi
 ## Rendering and preferences
 
 The app renders usable HTML on the server. Browser scripts add targeted behavior such as navigation state, chart controls, file-to-text CSV handling, and immediate theme preview.
+
+Manual transaction [quick category/tag creation](../features/transactions.md#quick-category-and-tag-creation-issue-6) is a small asynchronous exception to full-page form responses: native dialogs send URL-encoded same-origin requests to explicit JSON creation endpoints. Those endpoints share management-form validators and taxonomy services, while the browser updates the current form without navigation. Duplicate responses include a minimal user-owned record for explicit recovery after an uncertain creation outcome; the browser checks category compatibility and never silently updates existing settings. Ordinary transaction saving remains server-rendered.
 
 The `User` record stores language, theme, hidden navigation items, and session/projection versions. English is the translation fallback. Static template content is localized before EJS compilation; user-authored values are not translated. Lucide SVG icons are rendered server-side through an approved icon helper so no browser icon runtime or broader script policy is needed.
 

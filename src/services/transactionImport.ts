@@ -4,6 +4,7 @@ import { maximumMoneyMinor, minimumMoneyMinor, parseMoneyToMinorUnits } from "..
 import { parseCsv, toCsv } from "../lib/csv.js";
 import { parseDateOnly } from "../lib/dates.js";
 import { prisma } from "../lib/db.js";
+import { createRuleMatcher } from "../lib/ruleMatching.js";
 import {
   bulkWorkflowBatchSize,
   bulkWorkflowTransactionMaxWaitMs,
@@ -235,16 +236,6 @@ function duplicateSignature(input: {
   ].join("|");
 }
 
-function findMatchingRule(input: { type: TransactionType | null; description: string; notes: string }, rules: ImportRule[]) {
-  if (input.type !== "expense") {
-    return null;
-  }
-
-  const searchableText = `${input.description} ${input.notes}`.toLowerCase();
-
-  return rules.find((rule) => rule.matchText.trim() && searchableText.includes(rule.matchText.trim().toLowerCase())) ?? null;
-}
-
 export function previewTransactionImportCsv(csvText: string, refs: TransactionImportRefs): TransactionImportPreview {
   const csvRows = parseCsv(csvText);
 
@@ -268,6 +259,7 @@ export function previewTransactionImportCsv(csvText: string, refs: TransactionIm
   const accountLookup = buildLookup(refs.accounts);
   const categoryLookup = buildLookup(refs.categories);
   const tagLookup = buildLookup(refs.tags);
+  const matchRule = createRuleMatcher(refs.rules ?? []);
   const existingSignatures = new Map<string, ImportExistingTransaction>();
 
   for (const transaction of refs.existingTransactions ?? []) {
@@ -338,7 +330,9 @@ export function previewTransactionImportCsv(csvText: string, refs: TransactionIm
     let resolvedCategoryName = categoryName;
     const description = value(row, "description");
     const notes = value(row, "notes");
-    const matchingRule = findMatchingRule({ type, description, notes }, refs.rules ?? []);
+    const matchingRule = type === "expense" && !categoryName
+      ? matchRule({ description, notes })
+      : null;
 
     if (matchingRule) {
       if (!categoryName) {

@@ -9,7 +9,7 @@
 <section class="panel">
   <div class="panel-heading">
     <h2><%= investmentTransaction.asset.symbol %></h2>
-    <span class="badge badge-muted"><%= investmentTransaction.type %></span>
+    <span class="badge badge-muted"><%= typeLabel(investmentTransaction.type) %></span>
   </div>
   <% if (error) { %><p class="error"><%= error %></p><% } %>
   <form method="post" action="/investment-transactions/<%= investmentTransaction.id %>" class="form-grid">
@@ -18,7 +18,7 @@
       Account
       <select name="accountId" required>
         <% for (const account of accounts) { %>
-          <option value="<%= account.id %>" <%= investmentTransaction.accountId === account.id ? "selected" : "" %>><%= account.name %> (<%= account.type %>)</option>
+          <option value="<%= account.id %>" <%= investmentTransaction.accountId === account.id ? "selected" : "" %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>
@@ -35,7 +35,7 @@
       <select name="cashAccountId">
         <option value="" <%= investmentTransaction.cashAccountId === investmentTransaction.accountId ? "selected" : "" %>>Same as account</option>
         <% for (const account of cashAccounts) { %>
-          <option value="<%= account.id %>" <%= investmentTransaction.cashAccountId !== investmentTransaction.accountId && investmentTransaction.cashAccountId === account.id ? "selected" : "" %>><%= account.name %> (<%= account.type %>)</option>
+          <option value="<%= account.id %>" <%= investmentTransaction.cashAccountId !== investmentTransaction.accountId && investmentTransaction.cashAccountId === account.id ? "selected" : "" %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>
@@ -43,7 +43,7 @@
       Type
       <select name="type" required>
         <% for (const type of investmentTransactionTypes) { %>
-          <option value="<%= type %>" <%= investmentTransaction.type === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= investmentTransaction.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>

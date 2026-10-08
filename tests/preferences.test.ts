@@ -52,6 +52,21 @@ describe("localization", () => {
     expect(t("User-defined value")).toBe("User-defined value");
   });
 
+  it.each(["en", "it"] as const)("preserves interpolation values literally in %s", (language) => {
+    const t = createTranslator(language);
+    const name = "$$ $& $` $' {count} {name}";
+
+    expect(t("Label: {name}. Count: {count}. Again: {name}.", { name, count: 0 })).toBe(
+      `Label: ${name}. Count: 0. Again: ${name}.`
+    );
+  });
+
+  it("leaves placeholders without supplied values unchanged", () => {
+    const t = createTranslator("en");
+
+    expect(t("{name} {missing} {toString}", { name: "Household" })).toBe("Household {missing} {toString}");
+  });
+
   it("adds translation calls only to static template content", () => {
     const localized = localizeEjsTemplate(
       '<h1 title="Accounts">Accounts</h1><p><%= userDefinedName %></p><td data-label="Amount"><%= amount %></td>'

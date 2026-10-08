@@ -95,6 +95,7 @@ const icons = {
   dashboard: LayoutDashboard,
   expense: CircleMinus,
   holdings: Layers3,
+  help: CircleHelp,
   investments: ChartCandlestick,
   logout: LogOut,
   menu: Menu,

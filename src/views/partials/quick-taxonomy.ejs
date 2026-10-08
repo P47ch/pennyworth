@@ -1,0 +1,76 @@
+<% for (const kind of ['category', 'tag']) { const isCategory = kind === 'category'; %>
+  <dialog id="quick-<%= kind %>-dialog" class="taxonomy-dialog" aria-labelledby="quick-<%= kind %>-title" aria-describedby="quick-<%= kind %>-hint"
+    data-quick-taxonomy="<%= kind %>"
+    data-request-error="<%= t('Could not save. Check your connection and try again.') %>"
+    data-session-error="<%= t('Your session needs attention. Sign in or change your password in another tab, then try again. Your transaction is still here.') %>"
+    data-csrf-error="<%= t('The form token was refreshed. Try saving again. Your transaction is still here.') %>"
+    data-incompatible-error="<%= t('This category cannot be used for this transaction type. Choose a different name.') %>"
+    data-existing-selected="<%= t(isCategory ? 'Existing category selected.' : 'Existing tag selected.') %>">
+    <h2 id="quick-<%= kind %>-title"><%= t(isCategory ? 'Add category' : 'Add tag') %></h2>
+    <p class="muted" id="quick-<%= kind %>-hint"><%= t('Saved immediately, even if you do not save the transaction.') %></p>
+    <form method="post" action="/<%= isCategory ? 'categories' : 'tags' %>/quick" class="taxonomy-dialog-form">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+      <p class="error" role="alert" tabindex="-1" data-quick-taxonomy-error hidden></p>
+      <div data-quick-taxonomy-existing hidden>
+        <p class="muted"><%= t('Use the saved item with this name. Its existing details will be kept.') %></p>
+        <button type="button" class="button-secondary" data-use-existing><%= t('Use existing') %></button>
+      </div>
+      <label>
+        <%= t('Name') %>
+        <input name="name" required autofocus>
+      </label>
+      <% if (isCategory) { %>
+        <label>
+          <%= t('Type') %>
+          <select name="type" required>
+            <% for (const type of categoryTypes) { %>
+              <option value="<%= type %>"><%= typeLabel(type) %></option>
+            <% } %>
+          </select>
+        </label>
+        <details class="taxonomy-details">
+          <summary><%= t('Optional details') %></summary>
+          <div class="taxonomy-dialog-fields">
+            <label>
+              <%= t('Parent') %>
+              <select name="parentId">
+                <option value=""><%= t('None') %></option>
+                <% for (const category of categories) { %>
+                  <option value="<%= category.id %>"><%= category.name %></option>
+                <% } %>
+              </select>
+            </label>
+            <label>
+              <%= t('Color') %>
+              <input class="taxonomy-color-input" type="color" name="color" value="#2563eb">
+            </label>
+            <fieldset class="icon-picker">
+              <legend><%= t('Icon') %></legend>
+              <div class="icon-choice-grid">
+                <% for (const option of categoryIconOptions) { %>
+                  <label class="icon-choice">
+                    <input type="radio" name="icon" value="<%= option.name %>" <%= option.name === 'other' ? 'checked' : '' %>>
+                    <span class="icon-choice-card"><%- icon(option.name) %><span><%= t(option.label) %></span></span>
+                  </label>
+                <% } %>
+                <label class="icon-choice">
+                  <input type="radio" name="icon" value="">
+                  <span class="icon-choice-card"><%- icon('no-icon') %><span><%= t('No icon') %></span></span>
+                </label>
+              </div>
+            </fieldset>
+          </div>
+        </details>
+      <% } else { %>
+        <label>
+          <%= t('Color') %>
+          <input class="taxonomy-color-input" type="color" name="color" value="#2563eb">
+        </label>
+      <% } %>
+      <div class="taxonomy-dialog-actions">
+        <button type="button" class="button-secondary" data-dialog-cancel><%= t('Cancel') %></button>
+        <button type="submit"><%= t(isCategory ? 'Add category' : 'Add tag') %></button>
+      </div>
+    </form>
+  </dialog>
+<% } %>

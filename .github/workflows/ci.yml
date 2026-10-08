@@ -79,6 +79,12 @@ jobs:
       - name: Install Chromium for accessibility audit
         run: npx playwright install --with-deps chromium
 
+      - name: Check quick-entry dialogs
+        run: npm run test:quick-entry
+
+      - name: Check recurring forms and help
+        run: npm run test:recurring
+
       - name: Run browser accessibility audit
         run: |
           npm run start > app.log 2>&1 &

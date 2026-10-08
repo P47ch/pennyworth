@@ -2,14 +2,22 @@
 title: Release Management
 type: runbook
 status: current
-updated: 2026-09-05
+updated: 2026-10-08
 source_ids: [release-policy, package-manifest, test-suite, ci-workflow, container-definitions, application-source]
 tags: [release, versioning, semver, verification]
 ---
 
 # Release Management
 
-Pennyworth uses Semantic Versioning. `package.json` is the authoritative application-version source, and `package-lock.json` mirrors it. The current release is `0.8.0-alpha.1`, an actively changing pre-v1 public preview.
+Pennyworth uses Semantic Versioning. `package.json` is the authoritative application-version source, and `package-lock.json` mirrors it. The current application version is `0.9.0-alpha.1`, an actively changing pre-v1 preview being prepared for release.
+
+## Current release preparation
+
+The dated [0.9.0-alpha.1 changelog entry](../../CHANGELOG.md#090-alpha1---2026-10-08) contains the release notes, four required migrations, backup compatibility, rollback requirements, and known limitations. This minor preview includes meaningful recurring and categorization changes as well as encrypted backups, optional update notifications, deletion confirmations, and interface fixes.
+
+Package versions and documentation are prepared. The seven local automated release checks, Chromium accessibility audit, Docker production profiles, and JSON/encrypted/PostgreSQL recovery rehearsals passed on 2026-10-08; see [release verification](testing-and-performance.md#090-alpha1-release-verification) for the exact scope and the unresolved local Podman VM runtime limitation. Pull requests into `main` and `develop`, CI on the resulting release commit, an annotated tag, and a matching GitHub prerelease remain pending. Local working-tree checks do not replace CI on the final commit.
+
+Operators upgrading from `0.8.0-alpha.1` should follow [deployment updates](deployment.md#updates), retain tested pre-upgrade JSON and PostgreSQL backups, and review [backup compatibility](json-backup-format.md) before starting the new application.
 
 ## Version selection
 
@@ -24,12 +32,24 @@ Before v1.0:
 
 Versions are release identifiers, not completion percentages. Ordinary development commits do not each receive a new application version.
 
+## Branch workflow
+
+Pennyworth uses `main` for stable release history and `develop` as the integration branch. Changes normally reach `develop` through short-lived branches and pull requests. Branch names must follow Git Flow naming, use lowercase kebab-case after the prefix, and must not use agent or tool-specific prefixes:
+
+- `feature/*` for new product behavior.
+- `fix/*` for compatible defect corrections found during normal development.
+- `chore/*` for dependencies, build tooling, CI, documentation maintenance, and other work that does not add product behavior.
+- `release/*` for final version, changelog, documentation, and verification work before merging a release into both `main` and `develop`.
+- `hotfix/*` for urgent corrections branched from `main` and merged back into both `main` and `develop`.
+
+Create `feature/*`, `fix/*`, and `chore/*` branches from the current `develop` branch and target their pull requests back to `develop`. Delete short-lived branches after merging.
+
 ## Independent version systems
 
 Do not couple these identifiers:
 
-- **Application version:** Semantic Version such as `0.8.0-alpha.1`, sourced from `package.json` and shown in the application sidebar.
-- **JSON backup schema:** integer such as `8`, governed by the published backup contract and restore compatibility.
+- **Application version:** Semantic Version such as `0.9.0-alpha.1`, sourced from `package.json` and shown in the application sidebar.
+- **JSON backup schema:** integer such as `12`, governed by the published backup contract and restore compatibility.
 - **Database migrations:** immutable timestamped directories under `prisma/migrations/`.
 
 A change can affect one, two, or all three systems. Evaluate and update each according to its own contract.
@@ -57,15 +77,17 @@ A change can affect one, two, or all three systems. Evaluate and update each acc
    ```
 
 5. Run the browser accessibility audit against the built application and validate the affected Docker and Podman Compose profiles. Exercise backup and restore whenever data contracts or migrations changed.
-6. Commit the exact release state with a message such as `release: v0.8.0-alpha.1`.
-7. Create and push an annotated, immutable tag:
+6. Commit and push the exact release state with a message such as `release: v0.9.0-alpha.1`. Merge the release branch through pull requests into both `main` and `develop`, preserving the release commit in both branches with merge commits. Verify required CI on the resulting `main` release commit.
+7. Check out that verified `main` commit and create and push an annotated, immutable tag:
 
    ```bash
-   git tag -a v0.8.0-alpha.1 -m "Pennyworth v0.8.0-alpha.1"
-   git push origin v0.8.0-alpha.1
+   git tag -a v0.9.0-alpha.1 -m "Pennyworth v0.9.0-alpha.1"
+   git push origin v0.9.0-alpha.1
    ```
 
-8. Create the corresponding GitHub Release from the tag and use the changelog entry as the basis for its notes.
+8. Create the corresponding GitHub Release from the tag and use the changelog entry as the basis for its notes. Mark alpha, beta, and RC versions as prereleases. After publication, update current release-status documentation and append the publication result to the wiki log.
+
+Every Pennyworth Git tag published as a release must have a matching GitHub Release whose tag is valid Semantic Versioning (an optional leading `v` is accepted). This is the public release metadata consumed by the optional administrator update check; drafts are ignored, stable-only installations ignore prereleases, and release prose is never interpreted as application metadata.
 
 CI remains executable truth for automated verification. A tag should identify the exact commit that passed the required checks; never move or reuse a published tag.
 

@@ -2,7 +2,7 @@
 title: Pennyworth Source Map
 type: source-map
 status: current
-updated: 2026-09-17
+updated: 2026-10-06
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [sources, provenance]
 ---
@@ -34,7 +34,7 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 
 ## source:package-manifest
 
-- Location: [`../package.json`](../package.json)
+- Location: [`../package.json`](../package.json) and [`../package-lock.json`](../package-lock.json)
 - Kind: executable manifest
 - Authority: current scripts and installed application/tooling dependencies
 - Covers: authoritative application version, Node commands, Fastify/EJS/Prisma stack, tests, accessibility tools, and Chart.js
@@ -58,7 +58,7 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Location: [`../prisma/migrations/`](../prisma/migrations/)
 - Kind: executable history
 - Authority: applied PostgreSQL constraints and schema evolution
-- Covers: transaction integrity, tenant integrity, investments, preferences, reporting indexes, and review fixes
+- Covers: transaction integrity, tenant integrity, investments, preferences, reporting indexes, literal-rule matching compatibility, and review fixes
 
 ## source:application-source
 
@@ -66,6 +66,34 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Kind: executable source
 - Authority: current HTTP, service, validation, rendering, configuration, session, and backup behavior
 - Covers: runtime behavior across routes, services, libraries, views, and public assets
+
+## source:issue-6
+
+- Location: [GitHub issue #6: Creazione rapida di categorie e tag](https://github.com/P47ch/pennyworth/issues/6)
+- Kind: user-reported enhancement request, inspected on 2026-10-05
+- Authority: requested transaction-entry workflow; repository code remains authoritative for current behavior
+- Covers: creating a missing category or tag without leaving an in-progress transaction, with a proposed quick-add dialog
+
+## source:issue-8
+
+- Location: [GitHub issue #8: Giroconti ricorrenti fissi e variabili](https://github.com/P47ch/pennyworth/issues/8)
+- Kind: user-reported enhancement request, inspected on 2026-10-05
+- Authority: requested recurring-transfer workflow; repository code remains authoritative for current behavior, the approved implementation uses target-balance replenishment
+- Covers: fixed and variable recurring transfers, weekly account replenishment using a Satispay example, and monthly account activity visibility
+
+## source:issue-8-fees
+
+- Location: direct user clarification in the current Codex chat on 2026-10-05, recorded in [`log.md`](log.md)
+- Kind: primary user requirement
+- Authority: optional top-up fees and choosing source or destination as the fee-paying account are requested scope; repository code defines implemented accounting and workflow
+- Covers: optional costs of replenishing an account, occasions where a top-up is free, and a fee-account selector limited to the transfer's source or destination
+
+## source:issue-8-help
+
+- Location: direct user clarification in the current Codex chat on 2026-10-05, recorded in [`log.md`](log.md); interaction reference is [`../src/views/partials/rules-help.ejs`](../src/views/partials/rules-help.ejs)
+- Kind: primary user requirement with an existing application UI reference
+- Authority: Rules-style help for the expanded Recurring page is requested scope; repository code remains authoritative for what is implemented
+- Covers: accessible localized in-page recurring help, explanation of amount modes and fee-account choices, and keeping forms understandable as the feature grows
 
 ## source:finance-source
 
@@ -90,10 +118,10 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 
 ## source:test-suite
 
-- Location: [`../tests/`](../tests/) and [`../scripts/a11y-audit.mjs`](../scripts/a11y-audit.mjs)
+- Location: [`../tests/`](../tests/), [`../scripts/a11y-audit.mjs`](../scripts/a11y-audit.mjs), [`../scripts/quick-taxonomy-browser.ts`](../scripts/quick-taxonomy-browser.ts), and [`../scripts/recurring-browser.ts`](../scripts/recurring-browser.ts)
 - Kind: executable verification
 - Authority: tested behavior and regression coverage; passing status must be dated separately
-- Covers: finance, configuration, CSV, backup, authentication, queries, integration boundaries, and accessibility
+- Covers: finance, configuration, CSV, backup, authentication, queries, integration boundaries, accessibility, and quick-entry dialog behavior including interrupted-response recovery, and recurring form/help behavior
 
 ## source:ci-workflow
 
@@ -107,7 +135,7 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Location: [`../Dockerfile`](../Dockerfile), [`../compose.dev.yml`](../compose.dev.yml), and [`../deploy/`](../deploy/)
 - Kind: executable deployment source
 - Authority: images, services, health checks, ports, volumes, and startup commands
-- Covers: Docker, Podman-compatible Compose, development, private-LAN HTTP production, and managed or externally managed PostgreSQL
+- Covers: Docker, Podman-compatible Compose, development with bind-mount file polling, private-LAN HTTP production, and managed or externally managed PostgreSQL
 
 ## source:environment-template
 
@@ -129,6 +157,48 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Kind: external primary sources
 - Authority: current Podman provider, virtual-machine, rootless, and restart behavior
 - Covers: Compose delegation, Windows/macOS machines, and reboot management
+
+## source:owasp-password-storage
+
+- Location: [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+- Kind: external security guidance
+- Authority: KDF selection and work-factor guidance
+- Covers: the scrypt fallback configuration used for encrypted backup passphrases
+
+## source:node-crypto
+
+- Location: [Node.js Crypto documentation](https://nodejs.org/api/crypto.html)
+- Kind: external primary documentation
+- Authority: Node cryptographic API behavior
+- Covers: `scrypt`, `randomBytes`, AES-GCM authentication tags, and authenticated additional data
+
+## source:fastify-multipart
+
+- Location: [@fastify/multipart](https://github.com/fastify/fastify-multipart)
+- Kind: external primary documentation and dependency
+- Authority: bounded multipart parsing behavior and dependency licensing
+- Covers: single-file upload limits, in-memory parsing, and the MIT-licensed Fastify multipart plugin
+
+## source:github-rest-releases
+
+- Location: [GitHub REST API — Releases](https://docs.github.com/en/rest/releases/releases)
+- Kind: external primary documentation
+- Authority: public Releases endpoint, conditional request, and rate-limit response behavior
+- Covers: optional Pennyworth update-check request and release metadata boundary
+
+## source:source-map-js-advisory
+
+- Location: [GitHub advisory GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)
+- Kind: reviewed security advisory
+- Authority: affected source-map-js versions and patched version
+- Covers: indexed source-map denial of service through 1.2.1 and the 1.2.2 correction
+
+## source:dependabot-docs
+
+- Location: [Configuring Dependabot version updates](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates), [Optimizing update pull requests](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates), and [Customizing Dependabot pull requests](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/customizing-dependabot-prs)
+- Kind: external primary documentation
+- Authority: Dependabot scheduling, grouping, and branch behavior
+- Covers: weekly version checks, compatible-update groups, and security updates targeting only the default branch
 
 ## Sources
 

@@ -1,6 +1,11 @@
 import type { FastifyInstance } from "fastify";
+import { loadConfig } from "../../lib/config.js";
+import { createTranslator } from "../../lib/i18n.js";
+import { categoryIconOptions } from "../../lib/icons.js";
+import { normalizeUserPreferences } from "../../lib/preferences.js";
+import { consumeTransactionNotice, setTransactionNotice } from "../../lib/transactionNotice.js";
 import { listAccountsWithBalances } from "../../services/accounts.js";
-import { listCategories, listTags } from "../../services/taxonomy.js";
+import { categoryTypes, listCategories, listTags } from "../../services/taxonomy.js";
 import {
   createTransaction,
   deleteTransaction,
@@ -11,6 +16,7 @@ import {
 } from "../../services/transactions.js";
 import { requireCurrentUser } from "../../services/users.js";
 import { formBody } from "../form.js";
+import { isDeleteConfirmed, showDeleteConfirmation } from "../deleteConfirmation.js";
 import {
   parseTransactionFilters,
   parseTransactionPage,
@@ -39,6 +45,9 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
       transactionTypes,
       filters,
       form: transactionFormValues(),
+      categoryTypes,
+      categoryIconOptions,
+      notice: consumeTransactionNotice(request, reply, user.id),
       error: null,
     });
   });
@@ -48,11 +57,12 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
     const body = formBody(request.body);
 
     try {
-      await createTransaction({
+      const transaction = await createTransaction({
         userId: user.id,
         ...validateTransactionInput(body)
       });
 
+      setTransactionNotice(reply, user.id, transaction.appliedRule, createTranslator(normalizeUserPreferences(user).language), loadConfig().secureCookies);
       return reply.redirect("/transactions");
     } catch (error) {
       const [transactionPage, accounts, categories, tags] = await Promise.all([
@@ -72,6 +82,9 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
         transactionTypes,
         filters: parseTransactionFilters({}),
         form: transactionFormValues(body),
+        categoryTypes,
+        categoryIconOptions,
+        notice: null,
         error: error instanceof Error ? error.message : "Could not create transaction.",
       });
     }
@@ -143,6 +156,21 @@ export async function transactionCrudRoutes(app: FastifyInstance) {
     const user = await requireCurrentUser(request);
     const { transactionId } = request.params as { transactionId: string };
 
+    const transaction = await getTransactionForUser(user.id, transactionId);
+    if (!transaction) return reply.redirect("/transactions");
+    if (!isDeleteConfirmed(request.body)) {
+      return showDeleteConfirmation(reply, {
+        title: "Delete transaction", recordName: transaction.description || "—",
+        deleteAction: `/transactions/${transaction.id}/delete`, cancelHref: "/transactions",
+        details: [{ label: "Type", type: transaction.type }, { label: "Date", value: transaction.date.toISOString().slice(0, 10) },
+          { label: "Account", value: transaction.sourceAccount?.name || "—" },
+          ...(transaction.destinationAccount ? [{ label: "Destination account", value: transaction.destinationAccount.name }] : []),
+          { label: "Amount", amountMinor: transaction.amountMinor, currency: transaction.sourceAccount?.currency || loadConfig().primaryCurrency }],
+        warnings: ["This transaction will be permanently deleted.",
+          ...(transaction.feeTransaction ? ["Deleting this transfer also deletes its linked fee expense."] : []),
+          ...(transaction.feeForTransactionId ? ["Deleting this fee keeps the linked transfer."] : [])]
+      });
+    }
     await deleteTransaction(user.id, transactionId);
     return reply.redirect("/transactions");
   });

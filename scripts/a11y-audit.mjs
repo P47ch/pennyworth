@@ -27,6 +27,7 @@ const routes = [
   "/categories",
   "/tags",
   "/rules",
+  "/settings/application",
   "/settings/security"
 ];
 

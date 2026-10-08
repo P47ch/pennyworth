@@ -6,6 +6,10 @@
   <a class="button-link" href="/transactions/import">Import CSV</a>
 </section>
 
+<% if (typeof notice !== "undefined" && notice) { %>
+  <p class="success" role="status"><%= notice %></p>
+<% } %>
+
 <section class="panel">
   <div class="panel-heading">
     <h2>Quick entry</h2>
@@ -18,7 +22,7 @@
       <span>Type</span>
       <select name="type" required data-transaction-type>
         <% for (const type of transactionTypes) { %>
-          <option value="<%= type %>" <%= form.type === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= form.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
@@ -48,15 +52,19 @@
         <% } %>
       </select>
     </label>
-    <label data-category-field>
-      <span>Category</span>
-      <select name="categoryId" data-persist-field="transaction-category">
-        <option value="">None</option>
-        <% for (const category of categories) { %>
-          <option value="<%= category.id %>" <%= form.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
-        <% } %>
-      </select>
-    </label>
+    <div class="quick-category" data-category-field>
+      <label for="transaction-category"><span>Category</span></label>
+      <div class="taxonomy-control-row">
+        <select id="transaction-category" name="categoryId" aria-describedby="transaction-rule-hint">
+          <option value="">None</option>
+          <% for (const category of categories) { %>
+            <option value="<%= category.id %>" data-category-type="<%= category.type %>" <%= form.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
+          <% } %>
+        </select>
+        <button type="button" class="button-secondary taxonomy-add taxonomy-add-icon" data-quick-taxonomy-open="category" aria-label="Add category" title="Add category" aria-haspopup="dialog" aria-controls="quick-category-dialog" hidden><%- icon('plus') %></button>
+      </div>
+      <small class="muted" id="transaction-rule-hint">Leave empty to apply rules automatically to a new expense.</small>
+    </div>
     <label class="quick-description">
       <span>Description</span>
       <input name="description" placeholder="Groceries, rent, paycheck" value="<%= form.description %>">
@@ -66,7 +74,8 @@
     </div>
     <fieldset class="quick-tags">
       <legend>Tags</legend>
-      <div class="checkbox-list">
+      <button type="button" class="button-secondary taxonomy-add" data-quick-taxonomy-open="tag" aria-haspopup="dialog" aria-controls="quick-tag-dialog" hidden>Add tag</button>
+      <div class="checkbox-list" data-transaction-tags>
         <% for (const tag of tags) { %>
           <label>
             <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= form.tagIds.includes(tag.id) ? "checked" : "" %>>
@@ -79,8 +88,14 @@
       <span>Notes</span>
       <textarea name="notes" rows="3"><%= form.notes %></textarea>
     </label>
+    <p class="visually-hidden" role="status" data-quick-taxonomy-status
+      data-category-created="<%= t('Category created and selected.') %>"
+      data-tag-created="<%= t('Tag created and selected.') %>"></p>
   </form>
 </section>
+
+<%- include('../partials/quick-taxonomy') %>
+<script src="/public/quick-taxonomy.js" defer></script>
 
 <section class="panel">
   <div class="panel-heading">
@@ -104,7 +119,7 @@
       <select name="type">
         <option value="">All types</option>
         <% for (const type of transactionTypes) { %>
-          <option value="<%= type %>" <%= filters.typeValue === type ? "selected" : "" %>><%= type %></option>
+          <option value="<%= type %>" <%= filters.typeValue === type ? "selected" : "" %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
@@ -180,7 +195,7 @@
           <% for (const transaction of transactions) { %>
             <tr>
               <td data-label="Date"><%= transaction.date.toISOString().slice(0, 10) %></td>
-              <td data-label="Type"><span class="badge badge-<%= transaction.type %>"><%= transaction.type %></span></td>
+              <td data-label="Type"><span class="badge badge-<%= transaction.type %>"><%= typeLabel(transaction.type) %></span></td>
               <td data-label="Description"><strong><%= transaction.description || "-" %></strong></td>
               <td data-label="Account">
                 <% if (transaction.type === "transfer") { %>
@@ -207,7 +222,7 @@
                   <a class="action-link" href="/transactions/<%= transaction.id %>/edit">Edit</a>
                   <form method="post" action="/transactions/<%= transaction.id %>/delete">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
-                    <button class="button-danger" type="submit">Delete</button>
+                    <button class="action-link button-danger" type="submit">Delete</button>
                   </form>
                 </div>
               </td>

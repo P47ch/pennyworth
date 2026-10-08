@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cookie from "@fastify/cookie";
 import formbody from "@fastify/formbody";
+import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
 import staticFiles from "@fastify/static";
 import view from "@fastify/view";
@@ -29,7 +30,7 @@ import { loadConfig } from "./lib/config.js";
 import { getOrCreateCsrfToken, validateCsrfToken } from "./lib/csrf.js";
 import { todayDateInput } from "./lib/dates.js";
 import { prisma } from "./lib/db.js";
-import { createTranslator } from "./lib/i18n.js";
+import { createTranslator, createTypeLabelFormatter } from "./lib/i18n.js";
 import { renderCategoryIcon, renderCategoryLabel, renderColorSwatch, renderIcon } from "./lib/icons.js";
 import { errorPageModel } from "./lib/httpErrors.js";
 import { localizeEjsTemplate } from "./lib/localizedEjs.js";
@@ -37,6 +38,8 @@ import { defaultUserPreferences, languages, menuGroups, normalizeUserPreferences
 import { resolveAvatar } from "./lib/avatar.js";
 import { clearSessionCookie, getSessionData, refreshSessionCookie } from "./lib/session.js";
 import { applicationVersion } from "./lib/version.js";
+import { maximumEncryptedBackupEnvelopeBytes } from "./services/encryptedBackup.js";
+import { createUpdateCheckService } from "./services/updateCheck.js";
 
 const projectRoot = process.cwd();
 const config = loadConfig();
@@ -49,13 +52,27 @@ const localizedEjs = {
 
 export async function buildApp() {
   const app = Fastify({
-    bodyLimit: 10 * 1024 * 1024,
+    bodyLimit: 15 * 1024 * 1024,
     logger: {
       level: config.isProduction ? "info" : "warn"
     }
   });
+  const updateCheckService = createUpdateCheckService({
+    enabled: config.updateCheckEnabled,
+    channel: config.updateChannel,
+    installedVersion: applicationVersion,
+    intervalHours: config.updateCheckIntervalHours,
+    logger: app.log
+  });
 
   app.decorateRequest("currentUser", null);
+  app.decorate("config", { updateChannel: config.updateChannel, installedVersion: applicationVersion });
+  app.addHook("onReady", () => {
+    updateCheckService.start();
+  });
+  app.addHook("onClose", () => {
+    updateCheckService.stop();
+  });
 
   await app.register(cookie, {
     secret: config.sessionSecret
@@ -64,6 +81,18 @@ export async function buildApp() {
     global: false
   });
   await app.register(formbody);
+  await app.register(multipart, {
+    attachFieldsToBody: "keyValues",
+    limits: {
+      files: 1,
+      fields: 4,
+      parts: 5,
+      fileSize: maximumEncryptedBackupEnvelopeBytes,
+      fieldSize: 10 * 1024 * 1024,
+      fieldNameSize: 100,
+      headerPairs: 100
+    }
+  });
   await app.register(staticFiles, {
     root: path.join(projectRoot, "src", "public"),
     prefix: "/public/"
@@ -171,6 +200,7 @@ export async function buildApp() {
       menuGroups,
       themes,
       t: createTranslator(defaultUserPreferences.language),
+      typeLabel: createTypeLabelFormatter(defaultUserPreferences.language),
       userPreferences: defaultUserPreferences
     };
 
@@ -213,6 +243,9 @@ export async function buildApp() {
     }
 
     const userPreferences = normalizeUserPreferences(user);
+    const updateState = updateCheckService.getState();
+    const updateAvailable =
+      updateState.status === "available" || updateState.status === "stale" ? updateState.release : undefined;
     reply.locals = {
       ...reply.locals,
       currentUser: {
@@ -223,13 +256,16 @@ export async function buildApp() {
         mustChangePassword: user.mustChangePassword,
         avatar: resolveAvatar(user)
       },
+      updateAvailable:
+        user.role === "admin" ? updateAvailable : undefined,
       t: createTranslator(userPreferences.language),
+      typeLabel: createTypeLabelFormatter(userPreferences.language),
       userPreferences
     };
   });
 
   await app.register(authRoutes);
-  await app.register(settingsRoutes);
+  await app.register(settingsRoutes, { updateCheckService, timeZone: config.timeZone });
   await app.register(managedUserRoutes);
   await app.register(dashboardRoutes);
   await app.register(statisticsRoutes);

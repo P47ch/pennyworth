@@ -1,6 +1,127 @@
 import type { Language } from "./preferences.js";
 
 const italian: Record<string, string> = {
+  "Delete account": "Elimina conto",
+  "Delete transaction": "Elimina transazione",
+  "Delete category": "Elimina categoria",
+  "Delete tag": "Elimina etichetta",
+  "Delete budget": "Elimina budget",
+  "Delete rule": "Elimina regola",
+  "Delete recurring template": "Elimina modello ricorrente",
+  "Delete asset": "Elimina asset",
+  "Delete asset price": "Elimina prezzo asset",
+  "Delete holding": "Elimina posizione",
+  "Delete investment transaction": "Elimina transazione di investimento",
+  "Are you sure you want to delete this item?": "Vuoi davvero eliminare questo elemento?",
+  "Confirm deletion": "Conferma eliminazione",
+  "This transaction will be permanently deleted.": "Questa transazione verrà eliminata definitivamente.",
+  "Unused accounts are permanently deleted. Accounts used by transactions, holdings, investment activity, or recurring templates are marked inactive instead.": "I conti non utilizzati vengono eliminati definitivamente. I conti utilizzati da transazioni, posizioni, attività di investimento o modelli ricorrenti vengono invece segnati come inattivi.",
+  "Unused assets and their price history are permanently deleted. Assets used by holdings or investment activity are marked inactive instead.": "Gli asset non utilizzati e lo storico dei loro prezzi vengono eliminati definitivamente. Gli asset utilizzati da posizioni o attività di investimento vengono invece segnati come inattivi.",
+  "Deleting this price may change investment valuations.": "Eliminare questo prezzo può modificare le valutazioni degli investimenti.",
+  "Categories in use or with child categories cannot be deleted.": "Le categorie utilizzate o con sottocategorie non possono essere eliminate.",
+  "Deleting this tag removes it from transactions and rules. The transactions and rules are kept.": "Eliminare questa etichetta la rimuove dalle transazioni e dalle regole. Le transazioni e le regole vengono conservate.",
+  "Deleting this budget keeps its transactions.": "Eliminare questo budget mantiene le sue transazioni.",
+  "Deleting this manual holding changes investment balances and allocation.": "Eliminare questa posizione manuale modifica i saldi e l’allocazione degli investimenti.",
+  "Deleting this activity changes holdings and any associated cash balance.": "Eliminare questa attività modifica le posizioni e l’eventuale saldo di cassa associato.",
+  "Deleting this rule stops future automatic categorization by this rule. Existing transactions are kept.": "Eliminare questa regola interrompe le future categorizzazioni automatiche effettuate dalla regola. Le transazioni esistenti vengono conservate.",
+  "Deleting this template stops future occurrences. Transactions already generated are kept.": "Eliminare questo modello interrompe le occorrenze future. Le transazioni già generate vengono conservate.",
+  "Source account": "Conto di origine",
+  "A recurring template with that name already exists.": "Esiste già un modello ricorrente con questo nome.",
+  "How recurring transactions work": "Come funzionano le transazioni ricorrenti",
+  "Name of the recurring operation, used to identify it in the recurring list.": "Nome dell’operazione ricorrente, usato per identificarla nell’elenco.",
+  "Description used for the generated transaction. Leave it blank to use the recurring operation's name.": "Descrizione della transazione generata. Se lasci il campo vuoto, viene usato il nome dell’operazione ricorrente.",
+  "Weekly": "Settimanale",
+  "Monthly": "Mensile",
+  "Quarterly": "Trimestrale",
+  "Semiannual": "Semestrale",
+  "Daily": "Giornaliera",
+  "Scheduled templates, confirmed manually": "Modelli programmati, confermati manualmente",
+  "Weekly repeats every seven calendar days. Other schedules advance by 1, 3, or 6 calendar months, clamping to the last day when needed. Missed dates are processed one at a time.": "Settimanale ripete ogni sette giorni di calendario. Le altre frequenze avanzano di 1, 3 o 6 mesi di calendario, usando l’ultimo giorno del mese quando necessario. Le date arretrate si elaborano una alla volta.",
+  "Daily repeats every calendar day; weekly repeats every seven days. Monthly, quarterly, and semiannual schedules advance by 1, 3, or 6 calendar months, clamping to the last day when needed. Missed dates are processed one at a time.": "Giornaliera ripete ogni giorno di calendario; settimanale ogni sette giorni. Le frequenze mensile, trimestrale e semestrale avanzano di 1, 3 o 6 mesi di calendario, usando l’ultimo giorno del mese quando necessario. Le date arretrate si elaborano una alla volta.",
+  "Amount mode": "Modalità importo",
+  "Fixed amount": "Importo fisso",
+  "Restore target balance": "Ripristina saldo obiettivo",
+  "Target balance": "Saldo obiettivo",
+  "Optional top-up fee": "Commissione di ricarica facoltativa",
+  "Fee amount": "Importo commissione",
+  "Fee account": "Conto della commissione",
+  "Choose which account pays the fee. Source account: added to the transfer debit. Destination account: deducted from the money received.": "Scegli quale conto paga la commissione. Conto di origine: si aggiunge all’addebito del trasferimento. Conto di destinazione: viene detratta dall’importo ricevuto.",
+  "Fee category": "Categoria della commissione",
+  "Fee": "Commissione",
+  "Weekly or monthly templates, confirmed manually": "Modelli settimanali o mensili, confermati manualmente",
+  "Target balances are only available for transfers. The target is reached after fees.": "Il saldo obiettivo è disponibile solo per i trasferimenti. Viene raggiunto al netto delle commissioni.",
+  "Transfers only. The fee is a separate expense on the selected account. Use zero for a free top-up; adjust it in the preview.": "Solo per i trasferimenti. La commissione è una spesa separata sul conto selezionato. Usa zero per una ricarica gratuita; puoi modificarla nell’anteprima.",
+  "Preview recurring transaction": "Anteprima transazione ricorrente",
+  "Update preview": "Aggiorna anteprima",
+  "Transfer amount": "Importo trasferimento",
+  "Total source debit": "Addebito totale sul conto di origine",
+  "Destination net credit": "Accredito netto sul conto di destinazione",
+  "Destination balance before": "Saldo destinazione prima",
+  "Destination balance after": "Saldo destinazione dopo",
+  "Next date after confirmation": "Prossima data dopo la conferma",
+  "This records accounting entries. It does not send money.": "Registra movimenti contabili. Non invia denaro.",
+  "No top-up is needed. Skipping advances the schedule without a transfer or fee.": "Non serve una ricarica. Salta questa ricorrenza per avanzare la data senza trasferimenti o commissioni.",
+  "Skip occurrence": "Salta ricorrenza",
+  "Confirm and generate": "Conferma e genera",
+  "Templates create ledger entries only when you preview and confirm them. They do not make bank or wallet payments.": "I modelli creano movimenti contabili solo dopo anteprima e conferma. Non effettuano pagamenti bancari o sul portafoglio.",
+  "Weekly repeats every seven calendar days. Monthly moves to the next month, clamping to its last day when needed. Missed dates are processed one at a time.": "Settimanale ripete ogni sette giorni di calendario. Mensile passa al mese successivo, usando il suo ultimo giorno quando necessario. Le date arretrate si elaborano una alla volta.",
+  "Fixed amount repeats the same transfer amount. Restore target balance calculates what the destination needs, including recorded refunds and other movements through the occurrence date.": "Importo fisso ripete lo stesso importo. Ripristina saldo obiettivo calcola quanto serve alla destinazione, includendo rimborsi e altri movimenti registrati fino alla data della ricorrenza.",
+  "Example: a target of EUR 100 and a balance of EUR 35 require a EUR 65 top-up.": "Esempio: un obiettivo di EUR 100 e un saldo di EUR 35 richiedono una ricarica di EUR 65.",
+  "Choose Source account or Destination account for the fee. A EUR 0.50 source fee means a EUR 65 transfer plus EUR 0.50 expense. A destination fee requires EUR 65.50 transferred to reach the EUR 100 target after the fee.": "Scegli Conto di origine o Conto di destinazione per la commissione. EUR 0,50 sull’origine significa EUR 65 di trasferimento più EUR 0,50 di spesa. Sulla destinazione servono EUR 65,50 trasferiti per raggiungere EUR 100 al netto della commissione.",
+  "Fees are optional. You can change the fee or choose zero in the preview without changing the template.": "Le commissioni sono facoltative. Puoi modificarle o scegliere zero nell’anteprima senza cambiare il modello.",
+  "Review the amounts and balances before confirming. If the ledger or template changes, review the new preview. When no top-up is needed, skip the occurrence without recording a transfer or fee.": "Controlla importi e saldi prima di confermare. Se i movimenti o il modello cambiano, controlla la nuova anteprima. Quando non serve una ricarica, salta la ricorrenza senza registrare trasferimenti o commissioni.",
+  "Transfers do not count as income or expenses. Fees and purchases are expenses. Deleting a linked transfer also deletes its fee; deleting only the fee keeps the transfer.": "I trasferimenti non contano come entrate o spese. Commissioni e acquisti sono spese. Eliminare un trasferimento collegato elimina anche la commissione; eliminare solo la commissione mantiene il trasferimento.",
+  "Name must contain between 1 and 100 characters.": "Il nome deve contenere da 1 a 100 caratteri.",
+  "Choose a valid amount mode.": "Scegli una modalità importo valida.",
+  "Choose a valid frequency.": "Scegli una frequenza valida.",
+  "Choose source or destination for the fee.": "Scegli origine o destinazione per la commissione.",
+  "Fixed amounts cannot have a target balance.": "Gli importi fissi non possono avere un saldo obiettivo.",
+  "Target balances are only available for transfers.": "I saldi obiettivo sono disponibili solo per i trasferimenti.",
+  "Choose a valid target balance.": "Scegli un saldo obiettivo valido.",
+  "Top-up fees are only available for transfers.": "Le commissioni di ricarica sono disponibili solo per i trasferimenti.",
+  "This preview changed or the occurrence was already processed. Review it before confirming again.": "L’anteprima è cambiata oppure la ricorrenza è già stata elaborata. Controllala prima di confermare di nuovo.",
+  "Preview this recurring transfer before confirming.": "Visualizza l’anteprima del trasferimento ricorrente prima di confermare.",
+  "No top-up is needed. Skip this occurrence instead.": "Non serve una ricarica. Salta questa ricorrenza.",
+  "Only a zero-value top-up can be skipped here.": "Qui puoi saltare solo una ricarica di importo zero.",
+  "This entry is linked to a top-up fee. Its type, date, and accounts must stay together; amounts and categories can be corrected separately.": "Questo movimento è collegato a una commissione di ricarica. Tipo, data e conti devono restare associati; importi e categorie si possono correggere separatamente.",
+  "View linked transfer": "Visualizza trasferimento collegato",
+  "View linked fee": "Visualizza commissione collegata",
+  "Deleting this transfer also deletes its linked fee expense.": "Eliminare questo trasferimento elimina anche la spesa della commissione collegata.",
+  "Deleting this fee keeps the linked transfer.": "Eliminare questa commissione mantiene il trasferimento collegato.",
+  "Linked transfers and fees must keep their type, date, and accounts. Delete the pair and recreate it to change these fields.": "Trasferimenti e commissioni collegati devono mantenere tipo, data e conti. Per cambiarli, elimina la coppia e ricreala.",
+  "Creating an import from Excel or another system? Use the documented version 11 format.": "Vuoi creare un’importazione da Excel o un altro sistema? Usa il formato documentato versione 11.",
+  "Creating an import from Excel or another system? Use the documented version 12 format.": "Vuoi creare un’importazione da Excel o un altro sistema? Usa il formato documentato versione 12.",
+  "Cancel": "Annulla",
+  "Optional details": "Dettagli facoltativi",
+  "Saved immediately, even if you do not save the transaction.": "Salvata subito, anche se non salvi la transazione.",
+  "Category created and selected.": "Categoria creata e selezionata.",
+  "Tag created and selected.": "Etichetta creata e selezionata.",
+  "Could not save. Check your connection and try again.": "Salvataggio non riuscito. Controlla la connessione e riprova.",
+  "Your session needs attention. Sign in or change your password in another tab, then try again. Your transaction is still here.":
+    "La sessione richiede attenzione. Accedi o cambia la password in un'altra scheda, poi riprova. La transazione è ancora qui.",
+  "The form token was refreshed. Try saving again. Your transaction is still here.":
+    "Il token del modulo è stato aggiornato. Riprova a salvare. La transazione è ancora qui.",
+  "Use existing": "Usa esistente",
+  "Use the saved item with this name. Its existing details will be kept.":
+    "Usa l'elemento salvato con questo nome. I suoi dettagli esistenti saranno mantenuti.",
+  "This category cannot be used for this transaction type. Choose a different name.":
+    "Questa categoria non può essere usata per questo tipo di transazione. Scegli un nome diverso.",
+  "Existing category selected.": "Categoria esistente selezionata.",
+  "Existing tag selected.": "Etichetta esistente selezionata.",
+  "Check the submitted fields.": "Controlla i campi inviati.",
+  "Category name is required.": "Il nome della categoria è obbligatorio.",
+  "Tag name is required.": "Il nome dell'etichetta è obbligatorio.",
+  "Choose a valid category type.": "Scegli un tipo di categoria valido.",
+  "Choose a valid parent category.": "Scegli una categoria principale valida.",
+  "Choose a valid color.": "Scegli un colore valido.",
+  "Choose a valid icon.": "Scegli un'icona valida.",
+  "Category hierarchy contains a cycle.": "La gerarchia delle categorie contiene un ciclo.",
+  "A category cannot be its own parent.": "Una categoria non può essere la propria categoria principale.",
+  "A category cannot use one of its children as parent.": "Una categoria non può usare una propria sottocategoria come categoria principale.",
+  "A category with that name already exists.": "Esiste già una categoria con questo nome.",
+  "A tag with that name already exists.": "Esiste già un'etichetta con questo nome.",
+  "Could not create category. Try again in a moment.": "Creazione della categoria non riuscita. Riprova tra poco.",
+  "Could not create tag. Try again in a moment.": "Creazione dell'etichetta non riuscita. Riprova tra poco.",
   "% used": "% utilizzato",
   "% of budget used": "% del budget utilizzato",
   "Account": "Account",
@@ -68,8 +189,15 @@ const italian: Record<string, string> = {
   "Back to tags": "Torna alle etichette",
   "Back to transactions": "Torna alle transazioni",
   "Backup": "Backup",
+  "Backup file (.pwb or .json)": "File di backup (.pwb o .json)",
   "Backup contents": "Contenuto del backup",
   "Backup JSON": "JSON del backup",
+  "Backup JSON (or choose a file above)": "JSON del backup (oppure scegli un file qui sopra)",
+  "Backup file must be UTF-8 text.": "Il file di backup deve essere testo UTF-8.",
+  "Backup file is too large.": "Il file di backup è troppo grande.",
+  "Backup JSON is too large.": "Il JSON del backup è troppo grande.",
+  "Backup passphrase": "Passphrase del backup",
+  "Backup passphrase must be at least 12 characters.": "La passphrase del backup deve contenere almeno 12 caratteri.",
   "Backup restored successfully.": "Backup ripristinato correttamente.",
   "Balance": "Saldo",
   "Bank, cash, savings, cards": "Banca, contanti, risparmi e carte",
@@ -105,6 +233,7 @@ const italian: Record<string, string> = {
   "Category list": "Elenco categorie",
   "Change password": "Cambia password",
   "Choose account": "Scegli un conto",
+  "Choose destination account": "Scegli il conto di destinazione",
   "Choose asset": "Scegli uno strumento",
   "Choose category": "Scegli una categoria",
   "Choose the budget period": "Scegli il periodo del budget",
@@ -115,9 +244,10 @@ const italian: Record<string, string> = {
   "Column mapping": "Mappatura colonne",
   "Confirm import": "Conferma importazione",
   "Confirm new password": "Conferma nuova password",
+  "Confirm backup passphrase": "Conferma passphrase del backup",
   "Confirm restore": "Conferma ripristino",
-  "Creating an import from Excel or another system? Use the documented version 9 format.":
-    "Stai creando un'importazione da Excel o da un altro sistema? Usa il formato documentato della versione 9.",
+  "Creating an import from Excel or another system? Use the documented version 10 format.":
+    "Stai creando un'importazione da Excel o da un altro sistema? Usa il formato documentato della versione 10.",
   "Cost basis": "Costo fiscale",
   "CSV file": "File CSV",
   "CSV source": "Sorgente CSV",
@@ -398,11 +528,17 @@ const italian: Record<string, string> = {
   "bank": "conto bancario",
   "cash": "contanti",
   "credit card": "carta di credito",
+  "savings": "risparmio",
   "investment": "investimento",
   "crypto wallet": "portafoglio crypto",
   "other": "altro",
+  "income": "entrata",
   "both": "entrambi",
   "transfer": "trasferimento",
+  "stock": "azione",
+  "fund": "fondo",
+  "bond": "obbligazione",
+  "crypto": "crypto",
   "buy": "acquisto",
   "sell": "vendita",
   "dividend": "dividendo",
@@ -410,6 +546,22 @@ const italian: Record<string, string> = {
   "fee": "commissione",
   "monthly": "mensile",
   "Current password is incorrect.": "La password attuale non è corretta.",
+  "Choose either a backup file or pasted JSON.": "Scegli un file di backup oppure JSON incollato.",
+  "Download encrypted backup": "Scarica backup crittografato",
+  "Encrypted backup": "Backup crittografato",
+  "Encrypted backup could not be opened. Check the passphrase and file, then try again.":
+    "Impossibile aprire il backup crittografato. Controlla passphrase e file, quindi riprova.",
+  "Encrypted backup passphrases do not match.": "Le passphrase del backup crittografato non coincidono.",
+  "Password-protected .pwb export": "Esportazione .pwb protetta da password",
+  "Passphrase for encrypted backups": "Passphrase per backup crittografati",
+  "Re-enter the backup passphrase": "Inserisci di nuovo la passphrase del backup",
+  "Restore preview has expired or changed. Preview the backup again.":
+    "L'anteprima del ripristino è scaduta o è cambiata. Visualizza di nuovo l'anteprima del backup.",
+  "Select a backup file or paste backup JSON.": "Seleziona un file di backup oppure incolla JSON di backup.",
+  "This server uses trusted private HTTP. Encryption protects the downloaded file, but your passphrase still crosses the network. Use HTTPS or a trusted private network/VPN.":
+    "Questo server usa HTTP privato attendibile. La crittografia protegge il file scaricato, ma la passphrase attraversa comunque la rete. Usa HTTPS o una rete privata/VPN attendibile.",
+  "Use a unique, memorable passphrase. Pennyworth never stores it and cannot recover an encrypted backup if it is lost.":
+    "Usa una passphrase unica e memorabile. Pennyworth non la memorizza e non può recuperare un backup crittografato se viene persa.",
   "New password must be at least 12 characters.": "La nuova password deve contenere almeno 12 caratteri.",
   "New passwords do not match.": "Le nuove password non coincidono.",
   "Could not update preferences.": "Impossibile aggiornare le preferenze.",
@@ -460,19 +612,86 @@ const italian: Record<string, string> = {
   "Choose a valid user status.": "Scegli uno stato utente valido.",
   "You cannot deactivate your own account.": "Non puoi disattivare il tuo account.",
   "Administrator accounts cannot be deactivated here.": "Gli account amministratore non possono essere disattivati qui.",
-  "Use the Security page to change your own password.": "Usa la pagina Sicurezza per cambiare la tua password."
+  "Use the Security page to change your own password.": "Usa la pagina Sicurezza per cambiare la tua password.",
+  "How rules work": "Come funzionano le regole",
+  "Enable": "Attiva",
+  "Disable": "Disattiva",
+  "Enable rule: {name}": "Attiva regola: {name}",
+  "Disable rule: {name}": "Disattiva regola: {name}",
+  "Separate alternatives with commas. Any matching term applies the rule; spaces within a term form a phrase.":
+    "Separa le alternative con virgole. Basta una corrispondenza per applicare la regola; gli spazi all'interno di un termine formano una frase.",
+  "Leave empty to apply rules automatically to a new expense.":
+    "Lascia vuoto per applicare automaticamente le regole a una nuova spesa.",
+  "Active rules automatically categorize new expenses without a category, including CSV imports and generated recurring expenses.":
+    "Le regole attive categorizzano automaticamente le nuove spese senza categoria, comprese le importazioni CSV e le spese ricorrenti generate.",
+  "Matching searches description and notes, ignoring capitalization. Commas separate alternatives; any matching word or phrase is enough.":
+    "La ricerca avviene nella descrizione e nelle note, senza distinguere maiuscole e minuscole. Le virgole separano alternative; basta una parola o frase corrispondente.",
+  "Spaces stay within a phrase. For example, amazon prime matches that phrase, while netflix, spotify matches either service.":
+    "Gli spazi restano all'interno di una frase. Ad esempio, amazon prime cerca quella frase, mentre netflix, spotify cerca uno dei due servizi.",
+  'For a literal comma, quote the phrase: "Smith, Inc". Double quotes inside a quoted phrase must be doubled.':
+    'Per una virgola letterale, racchiudi la frase tra virgolette: "Smith, Inc". Le virgolette all\'interno della frase devono essere raddoppiate.',
+  "Rules run from top to bottom. The first match supplies the category and adds its tags, preserving existing tags.":
+    "Le regole vengono valutate dall'alto verso il basso. La prima corrispondenza assegna la categoria e aggiunge le sue etichette, mantenendo quelle esistenti.",
+  "Choosing a category yourself skips rules. Income and transfers are not affected.":
+    "Se scegli una categoria, le regole non vengono applicate. Entrate e trasferimenti non sono interessati.",
+  "Editing transactions, changing rules, and restoring backups do not automatically recategorize saved data.":
+    "Modificare transazioni, cambiare regole e ripristinare backup non ricategorizza automaticamente i dati salvati.",
+  "Use Apply to existing to preview and confirm changes to uncategorized expenses, in batches of up to 500 candidates.":
+    "Usa Applica alle esistenti per visualizzare e confermare le modifiche alle spese senza categoria, in gruppi di massimo 500 candidate.",
+  "Enter at least one matching word or phrase.": "Inserisci almeno una parola o frase da cercare.",
+  "Quote the whole phrase and double any quotes inside it.": "Racchiudi l'intera frase tra virgolette e raddoppia quelle al suo interno.",
+  "Separate quoted phrases with commas.": "Separa le frasi tra virgolette con virgole.",
+  "Match text contains an unclosed quoted phrase.": "Il testo da cercare contiene una frase con virgolette non chiuse.",
+  "Transaction saved.": "Transazione salvata.",
+  'Transaction saved. Applied rule "{rule}": category {category}.':
+    'Transazione salvata. Applicata regola "{rule}": categoria {category}.',
+  "Added tags: {tags}.": "Etichette aggiunte: {tags}.",
+  "Transaction saved. A categorization rule was applied.": "Transazione salvata. È stata applicata una regola di categorizzazione.",
+  "Application": "Applicazione",
+  "Application updates": "Aggiornamenti dell'applicazione",
+  "Installed version": "Versione installata",
+  "Update available": "Aggiornamento disponibile",
+  "Update channel": "Canale di aggiornamento",
+  "Latest eligible release": "Ultima versione idonea",
+  "Published": "Pubblicato",
+  "Last successful check": "Ultimo controllo riuscito",
+  "Last attempted": "Ultimo tentativo",
+  "Before updating": "Prima di aggiornare",
+  "Read release notes on GitHub": "Leggi le note di rilascio su GitHub",
+  "opens in a new tab": "si apre in una nuova scheda",
+  "stable": "stabile",
+  "prerelease": "pre-rilascio",
+  "Update checks are optional and only request public GitHub release metadata from this server.":
+    "I controlli degli aggiornamenti sono facoltativi e richiedono solo metadati pubblici delle versioni GitHub da questo server.",
+  "Update checks are disabled. Set UPDATE_CHECK_ENABLED=true to enable this optional server-to-server check.":
+    "I controlli degli aggiornamenti sono disattivati. Imposta UPDATE_CHECK_ENABLED=true per abilitare questo controllo facoltativo da server a server.",
+  "The first update check is pending.": "Il primo controllo degli aggiornamenti è in attesa.",
+  "Update information is temporarily unavailable. Pennyworth will try again later.":
+    "Le informazioni sugli aggiornamenti sono temporaneamente non disponibili. Pennyworth riproverà più tardi.",
+  "Showing the last successful result; the most recent check was unavailable.":
+    "Viene mostrato l'ultimo risultato riuscito; il controllo più recente non era disponibile.",
+  "This installation is up to date for its configured channel.": "Questa installazione è aggiornata per il canale configurato.",
+  "Create a backup and read the release notes and upgrade instructions before updating Pennyworth. Updates, migrations, restarts, and container actions always remain under the operator's control.":
+    "Crea un backup e leggi le note di rilascio e le istruzioni di aggiornamento prima di aggiornare Pennyworth. Aggiornamenti, migrazioni, riavvii e azioni sui container restano sempre sotto il controllo dell'operatore."
 };
 
 export type Translator = (message: string, values?: Record<string, string | number>) => string;
 
 export function createTranslator(language: Language): Translator {
   return (message, values = {}) => {
-    let translation = language === "it" ? italian[message] ?? message : message;
+    const translation = language === "it" ? italian[message] ?? message : message;
 
-    for (const [key, value] of Object.entries(values)) {
-      translation = translation.replaceAll(`{${key}}`, String(value));
-    }
+    return translation.replace(/\{([^{}]+)\}/g, (placeholder, key: string) =>
+      Object.hasOwn(values, key) ? String(values[key]) : placeholder
+    );
+  };
+}
 
-    return translation;
+export function createTypeLabelFormatter(language: Language): (type: string) => string {
+  const t = createTranslator(language);
+
+  return (type) => {
+    const label = t(type.replaceAll("_", " "));
+    return type === "etf" ? "ETF" : label.charAt(0).toUpperCase() + label.slice(1);
   };
 }

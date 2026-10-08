@@ -1,0 +1,44 @@
+<section class="page-heading"><div><p class="eyebrow">Review</p><div class="rules-title-row"><h1>Preview recurring transaction</h1><%- include('../partials/recurring-help.ejs') %></div></div><a class="button-link" href="/recurring">Back to recurring</a></section>
+<section class="panel">
+  <h2><%= preview.recurring.name %></h2>
+  <% if (error) { %><p class="error" role="alert"><%= t(error) %></p><% } %>
+  <p><%= preview.recurring.nextDate.toISOString().slice(0, 10) %> · <%= typeLabel(preview.recurring.type) %> · <%= preview.recurring.sourceAccount?.name %><% if (preview.recurring.destinationAccount) { %> → <%= preview.recurring.destinationAccount.name %><% } %></p>
+  <% if (preview.recurring.type === 'transfer') { %>
+    <form method="post" action="/recurring/<%= preview.recurring.id %>/preview" class="form-grid">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+      <label>Fee amount<input name="feeAmount" inputmode="decimal" value="<%= (preview.requestedFeeAmountMinor / 100).toFixed(2) %>" required></label>
+      <div class="field-hint" data-field-hint="fee-account">
+        <label for="recurring-fee-account" class="field-hint-label"><%= t("Fee account") %></label>
+        <span id="recurring-fee-account-hint" class="field-hint-content" role="tooltip"><%= t("Choose which account pays the fee. Source account: added to the transfer debit. Destination account: deducted from the money received.") %></span>
+        <select id="recurring-fee-account" name="feeAccount" aria-describedby="recurring-fee-account-hint">
+          <option value="source" <%= preview.feeAccount === 'source' ? 'selected' : '' %>><%= t("Source account") %></option>
+          <option value="destination" <%= preview.feeAccount === 'destination' ? 'selected' : '' %>><%= t("Destination account") %></option>
+        </select>
+      </div>
+      <button type="submit">Update preview</button>
+    </form>
+  <% } %>
+  <dl class="recurring-breakdown">
+    <dt><%= t(preview.recurring.type === 'transfer' ? 'Transfer amount' : 'Amount') %></dt><dd><%= formatMoney(preview.transferAmountMinor) %></dd>
+    <% if (preview.recurring.type === 'transfer') { %>
+      <dt>Fee amount</dt><dd><%= formatMoney(preview.feeAmountMinor) %> · <%= preview.feeAccount === 'source' ? preview.recurring.sourceAccount?.name : preview.recurring.destinationAccount?.name %></dd>
+      <dt>Total source debit</dt><dd><%= formatMoney(preview.sourceDebitMinor) %></dd>
+      <dt>Destination net credit</dt><dd><%= formatMoney(preview.destinationCreditMinor) %></dd>
+      <dt>Destination balance before</dt><dd><%= formatMoney(preview.destinationBalanceMinor) %></dd>
+      <dt>Destination balance after</dt><dd><%= formatMoney(preview.destinationAfterMinor) %></dd>
+      <% if (preview.recurring.targetBalanceMinor !== null) { %><dt>Target balance</dt><dd><%= formatMoney(preview.recurring.targetBalanceMinor) %></dd><% } %>
+    <% } %>
+    <dt>Next date after confirmation</dt><dd><%= preview.nextDate.toISOString().slice(0, 10) %></dd>
+  </dl>
+  <p class="muted">This records accounting entries. It does not send money.</p>
+  <% if (preview.transferAmountMinor === 0) { %><p>No top-up is needed. Skipping advances the schedule without a transfer or fee.</p><% } %>
+  <form method="post" action="/recurring/<%= preview.recurring.id %>/<%= preview.transferAmountMinor === 0 ? 'skip' : 'generate' %>">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <input type="hidden" name="expectedDate" value="<%= preview.recurring.nextDate.toISOString() %>">
+    <input type="hidden" name="expectedRevision" value="<%= preview.recurring.updatedAt.toISOString() %>">
+    <input type="hidden" name="signature" value="<%= preview.signature %>">
+    <input type="hidden" name="feeAmount" value="<%= (preview.requestedFeeAmountMinor / 100).toFixed(2) %>">
+    <input type="hidden" name="feeAccount" value="<%= preview.feeAccount %>">
+    <button type="submit"><%= t(preview.transferAmountMinor === 0 ? 'Skip occurrence' : 'Confirm and generate') %></button>
+  </form>
+</section>

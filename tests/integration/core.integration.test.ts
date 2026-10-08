@@ -17,7 +17,7 @@ import {
   getMonthlyCashflowTotals,
   getMonthlyExpenseTotalsByCategory
 } from "../../src/queries/reporting.js";
-import { buildUserBackup, restoreUserBackup } from "../../src/services/backup.js";
+import { buildUserBackup, currentBackupSchemaVersion, previewBackupJson, restoreUserBackup } from "../../src/services/backup.js";
 import { getInvestmentReport } from "../../src/services/investmentSummary.js";
 import { resetUserPasswordByEmail } from "../../src/services/passwordRecovery.js";
 import { createHolding } from "../../src/services/holdings.js";
@@ -27,7 +27,10 @@ import {
   listInvestmentTransactionPage,
   updateInvestmentTransaction
 } from "../../src/services/investmentTransactions.js";
-import { createTransaction } from "../../src/services/transactions.js";
+import { createTransaction, updateTransaction } from "../../src/services/transactions.js";
+import { createRule, previewRuleApplications } from "../../src/services/rules.js";
+import { generateRecurringTransaction } from "../../src/services/recurring.js";
+import { matchRuleForText } from "../../src/lib/ruleMatching.js";
 
 const testIdPrefix = "integration-test-";
 const createdUserIds: string[] = [];
@@ -140,6 +143,77 @@ afterAll(async () => {
 });
 
 describe("database-backed finance behavior", () => {
+  it("keeps legacy inert rules importable after export and reimport", async () => {
+    const user = await createUser();
+    const category = await prisma.category.create({ data: { userId: user.id, name: "Legacy rule category", type: "expense" } });
+    await prisma.rule.createMany({ data: [
+      { userId: user.id, categoryId: category.id, name: "Active whitespace", matchText: "   ", isActive: true },
+      { userId: user.id, categoryId: category.id, name: "Inactive line breaks", matchText: " \r\n\t ", isActive: false }
+    ] });
+    const legacy = await buildUserBackup(user.id);
+    legacy.schemaVersion = 9;
+    await restoreUserBackup(user.id, JSON.stringify(legacy));
+    const exported = await buildUserBackup(user.id);
+    expect(previewBackupJson(JSON.stringify(exported)).ruleCount).toBe(2);
+    expect(matchRuleForText({ description: "Any merchant", notes: " \r\n\t " }, exported.rules)).toBeNull();
+    await restoreUserBackup(user.id, JSON.stringify(exported));
+    const reexported = await buildUserBackup(user.id);
+    expect(reexported.rules).toEqual(exported.rules);
+  });
+
+  it("shares rule matching across creation, recurring generation, preview, and versioned restore", async () => {
+    const [user, otherUser] = await Promise.all([createUser(), createUser()]);
+    const account = await createAccount(user.id, "rule-cash", 10_000);
+    const [category, manualCategory, otherCategory] = await Promise.all([
+      prisma.category.create({ data: { userId: user.id, name: "Rule food", type: "expense" } }),
+      prisma.category.create({ data: { userId: user.id, name: "Manual food", type: "expense" } }),
+      prisma.category.create({ data: { userId: otherUser.id, name: "Other food", type: "expense" } })
+    ]);
+    const tag = await prisma.tag.create({ data: { userId: user.id, name: "household" } });
+    await createRule({ userId: otherUser.id, name: "Other user", matchText: "aldi", categoryId: otherCategory.id, tagIds: [], isActive: true });
+    await createRule({ userId: user.id, name: "Inactive", matchText: "aldi", categoryId: manualCategory.id, tagIds: [], isActive: false });
+    await createRule({ userId: user.id, name: "Supermarkets", matchText: "lidl, aldi", categoryId: category.id, tagIds: [tag.id], isActive: true });
+    const entry = {
+      userId: user.id, type: "expense" as const, date: new Date("2026-10-02T00:00:00.000Z"), amountMinor: 1000,
+      sourceAccountId: account.id, description: "Card payment", notes: "ALDI weekly shopping", tagIds: [tag.id]
+    };
+    const created = await createTransaction(entry);
+    expect(created.categoryId).toBe(category.id);
+    expect(created.appliedRule).toEqual({ name: "Supermarkets", categoryName: "Rule food", addedTagNames: [] });
+    await expect(prisma.transactionTag.count({ where: { transactionId: created.id, userId: user.id } })).resolves.toBe(1);
+    const manual = await createTransaction({ ...entry, categoryId: manualCategory.id, tagIds: [] });
+    expect(manual.appliedRule).toBeNull();
+    await expect(prisma.transactionTag.count({ where: { transactionId: manual.id } })).resolves.toBe(0);
+
+    const recurring = await prisma.recurringTransaction.create({ data: {
+      userId: user.id, name: "Recurring shopping", type: "expense", amountMinor: 500,
+      sourceAccountId: account.id, description: "LIDL", nextDate: entry.date, frequency: "monthly"
+    } });
+    const generated = await generateRecurringTransaction(user.id, recurring.id);
+    expect(generated.categoryId).toBe(category.id);
+    expect(generated.appliedRule?.addedTagNames).toEqual(["household"]);
+    await expect(prisma.recurringTransaction.findUnique({ where: { id: recurring.id } })).resolves.toMatchObject({
+      nextDate: new Date("2026-11-02T00:00:00.000Z")
+    });
+
+    await updateTransaction({ ...entry, transactionId: created.id, tagIds: [] });
+    const applications = await previewRuleApplications(user.id);
+    expect(applications.map((item) => item.transaction.id)).toContain(created.id);
+    const backup = await buildUserBackup(user.id);
+    expect(backup.schemaVersion).toBe(currentBackupSchemaVersion);
+    await restoreUserBackup(user.id, JSON.stringify(backup));
+    await expect(prisma.transaction.findUnique({ where: { id: created.id } })).resolves.toMatchObject({ categoryId: null });
+    await expect(prisma.transactionTag.count({ where: { transactionId: created.id } })).resolves.toBe(0);
+
+    const legacy = JSON.parse(JSON.stringify(backup));
+    legacy.schemaVersion = 9;
+    legacy.rules[1].matchText = 'Smith, "Inc"';
+    await restoreUserBackup(user.id, JSON.stringify(legacy));
+    const restored = await prisma.rule.findUniqueOrThrow({ where: { id: legacy.rules[1].id } });
+    expect(matchRuleForText({ description: 'Smith, "Inc"' }, [restored])).not.toBeNull();
+    expect(matchRuleForText({ description: "Smith" }, [restored])).toBeNull();
+  });
+
   it("enforces investment ownership and value shapes inside PostgreSQL", async () => {
     const [user, otherUser] = await Promise.all([createUser(), createUser()]);
     const [account, cashAccount, otherAccount] = await Promise.all([
@@ -1194,6 +1268,195 @@ describe("Password recovery", () => {
 });
 
 describe("Fastify authentication boundary", () => {
+  it("quickly creates user-owned taxonomy with CSRF, localized errors, and duplicate protection", async () => {
+    const password = "quick-taxonomy-integration-2026";
+    const [user, otherUser] = await Promise.all([createUser(password), createUser()]);
+    await prisma.user.update({ where: { id: user.id }, data: { language: "it" } });
+    const account = await createAccount(user.id, "quick-taxonomy", 10_000);
+    const parent = await prisma.category.create({ data: { userId: user.id, name: "Household", type: "expense" } });
+    const foreignParent = await prisma.category.create({ data: { userId: otherUser.id, name: "Household", type: "expense" } });
+
+    const loginPage = await app.inject({ method: "GET", url: "/login" });
+    const csrfCookie = responseCookie(loginPage, "pennyworth_csrf");
+    const csrfToken = loginPage.body.match(/name="csrfToken" value="([^"]+)"/)?.[1] ?? "";
+    const login = await app.inject({ method: "POST", url: "/login", headers: { cookie: csrfCookie, "content-type": "application/x-www-form-urlencoded" }, payload: new URLSearchParams({ csrfToken, email: user.email, password }).toString() });
+    const cookie = `${csrfCookie}; ${responseCookie(login, sessionCookieName)}`;
+    const post = (url: string, values: Record<string, string>, token = csrfToken, cookies = cookie) => app.inject({
+      method: "POST", url, headers: { cookie: cookies, "content-type": "application/x-www-form-urlencoded" },
+      payload: new URLSearchParams({ csrfToken: token, ...values }).toString()
+    });
+
+    for (const url of ["/categories/quick", "/tags/quick"]) {
+      expect((await post(url, { name: "Denied", type: "expense" }, "")).statusCode).toBe(403);
+      expect((await post(url, { name: "Denied", type: "expense" }, "incorrect")).statusCode).toBe(403);
+      const anonymous = await post(url, { name: "Denied", type: "expense" }, csrfToken, csrfCookie);
+      expect(anonymous.statusCode).toBe(302);
+      expect(anonymous.headers.location).toBe("/login");
+    }
+    const invalidParent = await post("/categories/quick", { name: "Food", type: "expense", parentId: foreignParent.id });
+    expect(invalidParent.statusCode).toBe(400);
+    expect(invalidParent.json()).toEqual({ error: "Scegli una categoria principale valida." });
+    expect((await post("/categories/quick", { name: "Food", type: "transfer" })).statusCode).toBe(400);
+    expect((await post("/categories/quick", { name: "Food", type: "expense", color: "red" })).statusCode).toBe(400);
+    expect((await post("/categories/quick", { name: "Food", type: "expense", icon: "<svg>" })).statusCode).toBe(400);
+    const emptyTag = await post("/tags/quick", { name: "  " });
+    expect(emptyTag.statusCode).toBe(400);
+    expect(emptyTag.json()).toEqual({ error: "Il nome dell'etichetta è obbligatorio." });
+
+    const categoryName = "Food <img src=x> $&";
+    const createdCategory = await post("/categories/quick", {
+      name: ` ${categoryName} `, type: "expense", parentId: parent.id, color: "#AABBCC", icon: "food", userId: otherUser.id
+    });
+    expect(createdCategory.statusCode).toBe(201);
+    expect(createdCategory.headers["content-type"]).toContain("application/json");
+    const category = createdCategory.json().category as { id: string; name: string; type: string };
+    expect(Object.keys(category).sort()).toEqual(["id", "name", "type"]);
+    expect(category).toMatchObject({ name: categoryName, type: "expense" });
+    await expect(prisma.category.findUnique({ where: { id: category.id } })).resolves.toMatchObject({
+      userId: user.id, parentId: parent.id, color: "#aabbcc", icon: "food"
+    });
+    const duplicateCategory = await post("/categories/quick", { name: categoryName, type: "expense" });
+    expect(duplicateCategory.statusCode).toBe(409);
+    expect(duplicateCategory.json()).toEqual({ error: "Esiste già una categoria con questo nome.", existing: category });
+
+    const concurrentTags = await Promise.all([
+      post("/tags/quick", { name: "travel", color: "#123456", userId: otherUser.id }),
+      post("/tags/quick", { name: "travel", color: "#123456", userId: otherUser.id })
+    ]);
+    expect(concurrentTags.map((response) => response.statusCode).sort()).toEqual([201, 409]);
+    const tag = concurrentTags.find((response) => response.statusCode === 201)!.json().tag as { id: string; name: string };
+    expect(Object.keys(tag).sort()).toEqual(["id", "name"]);
+    expect(concurrentTags.find((response) => response.statusCode === 409)!.json()).toEqual({
+      error: "Esiste già un'etichetta con questo nome.", existing: tag
+    });
+    await expect(prisma.tag.count({ where: { userId: user.id, name: "travel" } })).resolves.toBe(1);
+    await expect(prisma.tag.count({ where: { userId: otherUser.id } })).resolves.toBe(0);
+    await prisma.tag.create({ data: { userId: otherUser.id, name: "travel" } });
+
+    await createRule({ userId: user.id, name: "Merchant", matchText: "merchant", categoryId: parent.id, tagIds: [], isActive: true });
+    const transactionResponse = await post("/transactions", {
+      type: "expense", date: "2026-10-05", amount: "12.34", sourceAccountId: account.id,
+      categoryId: category.id, tagIds: tag.id, description: "Merchant quick entry"
+    });
+    expect(transactionResponse.statusCode).toBe(302);
+    const transaction = await prisma.transaction.findFirst({ where: { userId: user.id }, include: { tags: true } });
+    expect(transaction).toMatchObject({ categoryId: category.id, amountMinor: 1234 });
+    expect(transaction?.tags.map((item) => item.tagId)).toEqual([tag.id]);
+    const page = await app.inject({ method: "GET", url: "/transactions", headers: { cookie } });
+    expect(page.statusCode).toBe(200);
+    expect(page.body).toContain("Food &lt;img src=x&gt; $&amp;");
+    expect(page.body).toContain("Dettagli facoltativi");
+    expect(page.body).not.toContain("Food <img src=x>");
+
+    await prisma.user.update({ where: { id: user.id }, data: { mustChangePassword: true } });
+    const passwordRequired = await post("/tags/quick", { name: "Denied" });
+    expect(passwordRequired.statusCode).toBe(302);
+    expect(passwordRequired.headers.location).toBe("/settings/security?required=1");
+    await prisma.user.update({ where: { id: user.id }, data: { mustChangePassword: false, sessionVersion: { increment: 1 } } });
+    expect((await post("/tags/quick", { name: "Denied" })).headers.location).toBe("/login");
+    await expect(prisma.tag.count({ where: { name: "Denied", userId: user.id } })).resolves.toBe(0);
+  });
+
+  it("recovers quick taxonomy after a discarded creation response without duplicating or overwriting records", async () => {
+    const password = "lost-response-integration-2026";
+    // Keep this scenario independent of other tests' per-IP login rate limit.
+    const remoteAddress = "127.0.0.2";
+    const [user, otherUser] = await Promise.all([createUser(password), createUser()]);
+    const loginPage = await app.inject({ method: "GET", url: "/login", remoteAddress });
+    const csrfCookie = responseCookie(loginPage, "pennyworth_csrf");
+    const csrfToken = loginPage.body.match(/name="csrfToken" value="([^"]+)"/)?.[1] ?? "";
+    const login = await app.inject({ method: "POST", url: "/login", remoteAddress, headers: { cookie: csrfCookie, "content-type": "application/x-www-form-urlencoded" }, payload: new URLSearchParams({ csrfToken, email: user.email, password }).toString() });
+    expect(login.statusCode).toBe(302);
+    const cookie = `${csrfCookie}; ${responseCookie(login, sessionCookieName)}`;
+    const post = (url: string, values: Record<string, string>) => app.inject({
+      method: "POST", url, remoteAddress, headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+      payload: new URLSearchParams({ csrfToken, ...values }).toString()
+    });
+
+    const name = "Interrupted <literal> creation";
+    const parent = await prisma.category.create({ data: { userId: user.id, name: "Parent", type: "expense" } });
+    const foreignCategory = await prisma.category.create({ data: { userId: otherUser.id, name, type: "income" } });
+    const foreignTag = await prisma.tag.create({ data: { userId: otherUser.id, name } });
+    // Deliberately discard both successful responses: the browser never learns their IDs.
+    expect((await post("/categories/quick", { name, type: "expense", parentId: parent.id, icon: "food", color: "#123456" })).statusCode).toBe(201);
+    expect((await post("/tags/quick", { name, color: "#123456" })).statusCode).toBe(201);
+    const category = await prisma.category.findUniqueOrThrow({ where: { userId_name: { userId: user.id, name } } });
+    const tag = await prisma.tag.findUniqueOrThrow({ where: { userId_name: { userId: user.id, name } } });
+
+    // Retrying with different details offers the saved record, without equating or updating it.
+    const categoryRetry = await post("/categories/quick", { name: ` ${name} `, type: "income", icon: "other", color: "#abcdef", userId: otherUser.id });
+    expect(categoryRetry.statusCode).toBe(409);
+    expect(categoryRetry.json()).toEqual({ error: "A category with that name already exists.", existing: { id: category.id, name, type: "expense" } });
+    expect(categoryRetry.json().existing.id).not.toBe(foreignCategory.id);
+    const tagRetry = await post("/tags/quick", { name: ` ${name} `, color: "#abcdef", userId: otherUser.id });
+    expect(tagRetry.statusCode).toBe(409);
+    expect(tagRetry.json()).toEqual({ error: "A tag with that name already exists.", existing: { id: tag.id, name } });
+    expect(tagRetry.json().existing.id).not.toBe(foreignTag.id);
+    await expect(prisma.category.findUnique({ where: { id: category.id } })).resolves.toEqual(category);
+    await expect(prisma.tag.findUnique({ where: { id: tag.id } })).resolves.toEqual(tag);
+    await expect(prisma.category.count({ where: { userId: user.id, name } })).resolves.toBe(1);
+    await expect(prisma.tag.count({ where: { userId: user.id, name } })).resolves.toBe(1);
+  });
+
+  it("switches user-owned rules from the list without changing settings or saved transactions", async () => {
+    const password = "rule-activation-integration-2026";
+    const [user, otherUser] = await Promise.all([createUser(password), createUser()]);
+    const account = await createAccount(user.id, "rule-activation", 10_000);
+    const [category, otherCategory] = await Promise.all([
+      prisma.category.create({ data: { userId: user.id, name: "Subscriptions", type: "expense" } }),
+      prisma.category.create({ data: { userId: otherUser.id, name: "Other subscriptions", type: "expense" } })
+    ]);
+    const tag = await prisma.tag.create({ data: { userId: user.id, name: "Subscription" } });
+    const rule = await createRule({ userId: user.id, name: "Streaming", matchText: "netflix, spotify", categoryId: category.id, tagIds: [tag.id], isActive: true });
+    const otherRule = await createRule({ userId: otherUser.id, name: "Private", matchText: "netflix", categoryId: otherCategory.id, tagIds: [], isActive: true });
+    const original = await prisma.rule.findUniqueOrThrow({ where: { id: rule.id }, include: { tags: true } });
+
+    const loginPage = await app.inject({ method: "GET", url: "/login" });
+    const csrfCookie = responseCookie(loginPage, "pennyworth_csrf");
+    const csrfToken = loginPage.body.match(/name="csrfToken" value="([^"]+)"/)?.[1] ?? "";
+    const login = await app.inject({ method: "POST", url: "/login", headers: { cookie: csrfCookie, "content-type": "application/x-www-form-urlencoded" }, payload: new URLSearchParams({ csrfToken, email: user.email, password }).toString() });
+    expect(login.statusCode).toBe(302);
+    const cookie = `${csrfCookie}; ${responseCookie(login, sessionCookieName)}`;
+    const postState = (ruleId: string, isActive: string, token = csrfToken) => app.inject({
+      method: "POST", url: `/rules/${ruleId}/active`,
+      headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+      payload: new URLSearchParams({ csrfToken: token, isActive }).toString()
+    });
+
+    expect((await postState(rule.id, "false", "invalid-token")).statusCode).toBe(403);
+    expect((await postState(rule.id, "invalid")).statusCode).toBe(400);
+    expect((await postState(otherRule.id, "false")).statusCode).toBe(404);
+    await expect(prisma.rule.findUnique({ where: { id: otherRule.id } })).resolves.toMatchObject({ isActive: true });
+    await expect(prisma.rule.findUnique({ where: { id: rule.id } })).resolves.toMatchObject({ isActive: true });
+
+    const disabled = await postState(rule.id, "false");
+    expect(disabled.statusCode).toBe(302);
+    expect(disabled.headers.location).toBe("/rules");
+    expect((await postState(rule.id, "false")).statusCode).toBe(302);
+    const afterDisable = await prisma.rule.findUniqueOrThrow({ where: { id: rule.id }, include: { tags: true } });
+    expect({ ...afterDisable, updatedAt: original.updatedAt }).toEqual({ ...original, isActive: false });
+    const disabledList = await app.inject({ method: "GET", url: "/rules", headers: { cookie } });
+    expect(disabledList.body).toContain('aria-label="Enable rule: Streaming"');
+
+    const entry = { userId: user.id, type: "expense" as const, date: new Date("2026-10-02T00:00:00.000Z"), amountMinor: 1000, sourceAccountId: account.id, description: "NETFLIX", tagIds: [] };
+    const unmatched = await createTransaction(entry);
+    expect(unmatched.categoryId).toBeNull();
+    expect(await previewRuleApplications(user.id)).toEqual([]);
+
+    expect((await postState(rule.id, "true")).statusCode).toBe(302);
+    expect((await postState(rule.id, "true")).statusCode).toBe(302);
+    const afterEnable = await prisma.rule.findUniqueOrThrow({ where: { id: rule.id }, include: { tags: true } });
+    expect({ ...afterEnable, updatedAt: original.updatedAt }).toEqual(original);
+    const enabledList = await app.inject({ method: "GET", url: "/rules", headers: { cookie } });
+    expect(enabledList.body).toContain('aria-label="Disable rule: Streaming"');
+    await expect(prisma.transaction.findUnique({ where: { id: unmatched.id } })).resolves.toMatchObject({ categoryId: null });
+    await expect(prisma.transactionTag.count({ where: { transactionId: unmatched.id } })).resolves.toBe(0);
+    const matched = await createTransaction(entry);
+    expect(matched.categoryId).toBe(category.id);
+    await expect(prisma.transactionTag.findMany({ where: { transactionId: matched.id } })).resolves.toMatchObject([{ tagId: tag.id }]);
+    expect((await previewRuleApplications(user.id)).map((application) => application.transaction.id)).toEqual([unmatched.id]);
+  });
+
   it("requires CSRF for login and accepts a signed authenticated session", async () => {
     const password = "integration-password-2026";
     const user = await createUser(password);
@@ -1367,7 +1630,7 @@ describe("Fastify authentication boundary", () => {
       prisma.transaction.count({ where: { userId: user.id, description: "Imported route expense" } })
     ).resolves.toBe(1);
 
-    const deleteResponse = await app.inject({
+    const deletePreview = await app.inject({
       method: "POST",
       url: `/transactions/${transaction.id}/delete`,
       headers: {
@@ -1375,6 +1638,17 @@ describe("Fastify authentication boundary", () => {
         "content-type": "application/x-www-form-urlencoded"
       },
       payload: new URLSearchParams({ csrfToken: csrfToken ?? "" }).toString()
+    });
+
+    expect(deletePreview.statusCode).toBe(200);
+    expect(deletePreview.body).toContain("Confirm deletion");
+    await expect(prisma.transaction.findUnique({ where: { id: transaction.id } })).resolves.not.toBeNull();
+
+    const deleteResponse = await app.inject({
+      method: "POST",
+      url: `/transactions/${transaction.id}/delete`,
+      headers: { cookie: authenticatedCookie, "content-type": "application/x-www-form-urlencoded" },
+      payload: new URLSearchParams({ csrfToken: csrfToken ?? "", confirmDelete: "yes" }).toString()
     });
 
     expect(deleteResponse.statusCode).toBe(302);
@@ -1417,6 +1691,14 @@ describe("Administrator-managed users", () => {
 
     expect(forbiddenUsersPage.statusCode).toBe(403);
 
+    const forbiddenApplicationPage = await app.inject({
+      method: "GET",
+      url: "/settings/application",
+      headers: { cookie: `${memberCsrfCookie}; ${memberSessionCookie}` }
+    });
+    expect(forbiddenApplicationPage.statusCode).toBe(403);
+    expect(forbiddenApplicationPage.body).not.toContain("Update available");
+
     const adminLoginPage = await app.inject({ method: "GET", url: "/login" });
     const adminCsrfCookie = responseCookie(adminLoginPage, "pennyworth_csrf");
     const adminCsrfToken = adminLoginPage.body.match(/name="csrfToken" value="([^"]+)"/)?.[1] ?? "";
@@ -1432,6 +1714,9 @@ describe("Administrator-managed users", () => {
     });
     const adminSessionCookie = responseCookie(adminLogin, sessionCookieName);
     const adminCookies = `${adminCsrfCookie}; ${adminSessionCookie}`;
+    const applicationPage = await app.inject({ method: "GET", url: "/settings/application", headers: { cookie: adminCookies } });
+    expect(applicationPage.statusCode).toBe(200);
+    expect(applicationPage.body).toContain("Application updates");
     const newEmail = `${integrationId("managed-member")}@pennyworth.local`;
     createdManagedUserEmails.push(newEmail);
     const createResponse = await app.inject({

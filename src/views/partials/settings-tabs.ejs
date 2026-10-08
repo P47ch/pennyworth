@@ -2,6 +2,7 @@
   <a href="/settings/preferences" class="<%= currentPath === "/settings/preferences" ? "is-active" : "" %>"><%= t("Preferences") %></a>
   <a href="/settings/security" class="<%= currentPath.startsWith("/settings/security") ? "is-active" : "" %>"><%= t("Security") %></a>
   <% if (currentUser.role === "admin") { %>
+    <a href="/settings/application" class="<%= currentPath === "/settings/application" ? "is-active" : "" %>"><%= t("Application") %></a>
     <a href="/settings/users" class="<%= currentPath.startsWith("/settings/users") ? "is-active" : "" %>"><%= t("Users") %></a>
   <% } %>
 </nav>
