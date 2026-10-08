@@ -3,7 +3,7 @@ title: Testing and Performance
 type: verification
 status: current
 updated: 2026-10-08
-source_ids: [package-manifest, application-source, test-suite, ci-workflow, operational-scripts, database-schema, source-map-js-advisory, dependabot-docs]
+source_ids: [package-manifest, application-source, test-suite, ci-workflow, release-0-9-0-alpha-1, operational-scripts, database-schema, source-map-js-advisory, dependabot-docs]
 tags: [testing, integration, accessibility, performance, ci]
 ---
 
@@ -45,7 +45,7 @@ The backup rehearsal exposed transfer-fee `updatedAt` drift during relinking. Ve
 
 **Podman limitation:** the local Windows Podman 5.7.1 WSL VM could not complete a runtime smoke test because its user-session bus was unavailable, preventing rootless DNS/network startup. Static Compose validation passed; runtime compatibility on this host is not verified. Temporary socket services and test resources were used without changing the configured default connection or rootful setting. Repair that VM or repeat the smoke test on the intended Podman host before deploying there.
 
-These are local working-tree results. CI on the committed release and resulting `main` merge commit remains required before tagging. The release has not been tagged or published.
+These are local working-tree results. The prepared release commit `7adf9dd` was subsequently merged into `main` as `3a6aeaa27ea71599e1b3d410714e4312286bc3a8`, whose [GitHub Actions CI run passed](https://github.com/P47ch/pennyworth/actions/runs/37801932900). The annotated tag `v0.9.0-alpha.1` targets that verified commit, and the matching [GitHub prerelease](https://github.com/P47ch/pennyworth/releases/tag/v0.9.0-alpha.1) was published on 2026-10-08.
 
 Removed the disposable test databases, containers, volumes, release-test images, and temporary validation files after verification. Returned the Podman VM to its original stopped state. The original Docker development app and PostgreSQL remained running; app readiness returned 200 after cleanup.
 
@@ -97,7 +97,7 @@ The 2026-10-06 recurring-branch CI failure occurred at `npm audit --audit-level=
 
 ### Dependency maintenance follow-up
 
-Planned for a separate change after the recurring PR merges; repository automation is not configured yet:
+Planned for a separate change following the 0.9.0-alpha.1 release; repository automation is not configured yet:
 
 - Add weekly Dependabot version-update PRs for npm and GitHub Actions, targeting `develop` for normal development updates.
 - Group compatible patch/minor updates into small runtime and development-tool groups; keep paired Prisma packages aligned and major upgrades separate for review.
@@ -226,6 +226,7 @@ The bulk benchmark requires the seeded `performance@pennyworth.local` user, prev
 - [`application-source`](../sources.md#sourceapplication-source)
 - [`test-suite`](../sources.md#sourcetest-suite)
 - [`ci-workflow`](../sources.md#sourceci-workflow)
+- [`release-0-9-0-alpha-1`](../sources.md#sourcerelease-0-9-0-alpha-1)
 - [`operational-scripts`](../sources.md#sourceoperational-scripts)
 - [`database-schema`](../sources.md#sourcedatabase-schema)
 - [`source-map-js-advisory`](../sources.md#sourcesource-map-js-advisory)

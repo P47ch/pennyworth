@@ -2,7 +2,7 @@
 title: Pennyworth Source Map
 type: source-map
 status: current
-updated: 2026-10-06
+updated: 2026-10-08
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [sources, provenance]
 ---
@@ -45,6 +45,13 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 - Kind: repository policy and release history
 - Authority: application version, pre-v1 increment rules, release procedure, compatibility notes, and published change history
 - Covers: Semantic Versioning, prerelease stages, release checks, Git tags, changelog maintenance, and separation from backup-schema and database-migration versions
+
+## source:release-0-9-0-alpha-1
+
+- Location: [GitHub prerelease v0.9.0-alpha.1](https://github.com/P47ch/pennyworth/releases/tag/v0.9.0-alpha.1), [tagged main commit](https://github.com/P47ch/pennyworth/commit/3a6aeaa27ea71599e1b3d410714e4312286bc3a8), [main PR #16](https://github.com/P47ch/pennyworth/pull/16), [develop PR #17](https://github.com/P47ch/pennyworth/pull/17), and [main CI run](https://github.com/P47ch/pennyworth/actions/runs/37801932900)
+- Kind: published repository release and dated verification, inspected on 2026-10-08
+- Authority: GitHub publication metadata, branch merge history, CI outcome, and annotated tag target
+- Covers: non-draft alpha prerelease published at 15:50:41 UTC, release commit preserved in main and develop, successful CI on the tagged main commit, and release notes with upgrade and compatibility requirements
 
 ## source:database-schema
 
