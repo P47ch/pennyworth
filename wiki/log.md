@@ -364,3 +364,13 @@ All three Compose profiles parsed with Docker and Podman's provider. The local P
 ## [2026-10-08] lint | Close release verification rehearsal
 
 Removed only the verified release-test containers, disposable database volumes, temporary images, SQL/schema fixtures, and validation tools. Returned the previously stopped Podman VM to its original state. The original Docker development app and PostgreSQL remained running, and readiness returned 200. Verified version/lock agreement, unchanged dependency metadata and published backup artifacts, preserved historical changelog/wiki entries, and unchanged licensing. Final wiki lint and documentation/source whitespace checks passed. Release changes remain uncommitted.
+
+## [2026-10-08] source-sync | Record v0.9.0-alpha.1 publication
+
+Verified [Pennyworth v0.9.0-alpha.1](https://github.com/P47ch/pennyworth/releases/tag/v0.9.0-alpha.1) is published as a non-draft GitHub prerelease at 15:50:41 UTC. Release commit `7adf9dd` is preserved by main PR #16 and develop PR #17. Main commit `3a6aeaa27ea71599e1b3d410714e4312286bc3a8` passed [CI](https://github.com/P47ch/pennyworth/actions/runs/37801932900), and annotated tag object `e4a9523fbf806a8ddf943cbd2bd81810b59049db` targets that exact commit. Issues #5, #6, #7, and #8 are closed.
+
+Synchronized README, release management, product brief/status, verification guidance, index, and source provenance with the published result. Prepared this documentation follow-up on `chore/release-0.9.0-alpha.1-status` from updated develop, retaining the published tag and application version. Preserved all historical wiki entries, upgrade/backup requirements, and the unresolved local Podman runtime verification limitation.
+
+## [2026-10-08] lint | Reconcile published release status
+
+Wiki lint passed with 22 pages, 28 source IDs, and 325 internal links. Checked current release pages against the published GitHub metadata, merged release history, successful main CI, and annotated tag target. Removed stale pending-publication claims while preserving historical log entries, the local Podman limitation, and the published release contents.

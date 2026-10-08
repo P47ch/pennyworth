@@ -4,7 +4,7 @@ Pennyworth is a private, self-hosted personal-finance accounting application. It
 
 The application runs on infrastructure you control, stores its data in PostgreSQL, and does not connect to banks, brokers, exchanges, analytics services, or market-data providers. One installation can have an administrator and trusted family members, but every user has a separate financial ledger. There are no shared accounts or household-wide reports.
 
-> **Development status:** The current application version is **v0.9.0-alpha.1**. Pennyworth is under active development and has not reached a stable v1.0 release. Features, behavior, and data structures may still change, so keep tested backups and review the [changelog](CHANGELOG.md) before updating. Work toward a reliable v1.0 is progressing as quickly as possible without compromising financial correctness or data safety.
+> **Development status:** The current application version is [**v0.9.0-alpha.1**](https://github.com/P47ch/pennyworth/releases/tag/v0.9.0-alpha.1), published as an alpha prerelease on 2026-10-08. Pennyworth is under active development and has not reached a stable v1.0 release. Features, behavior, and data structures may still change, so keep tested backups and review the [changelog](CHANGELOG.md) before updating. Work toward a reliable v1.0 is progressing as quickly as possible without compromising financial correctness or data safety.
 
 ## What Pennyworth does
 

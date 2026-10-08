@@ -3,7 +3,7 @@ title: Product Status and Roadmap
 type: status
 status: current
 updated: 2026-10-08
-source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy, package-manifest, issue-6, issue-8, issue-8-fees, issue-8-help]
+source_ids: [application-source, database-schema, migrations, test-suite, ci-workflow, container-definitions, project-contract, release-policy, release-0-9-0-alpha-1, package-manifest, issue-6, issue-8, issue-8-fees, issue-8-help]
 tags: [status, roadmap, verification]
 ---
 
@@ -13,7 +13,7 @@ This page separates implemented behavior, dated verification evidence, and genui
 
 ## Release status
 
-The manifest version is `0.9.0-alpha.1`; its [release notes](../../CHANGELOG.md#090-alpha1---2026-10-08) and current-version documentation are prepared. Local automated release checks, browser checks, Docker deployment smoke tests, and backup recovery rehearsals passed on 2026-10-08. The local Podman VM could not complete runtime verification. Merging into `main` and `develop`, CI on the final release commit, tagging, and GitHub prerelease publication remain pending. See [release management](../operations/releases.md#current-release-preparation).
+The manifest version is `0.9.0-alpha.1`, published as a [GitHub prerelease](https://github.com/P47ch/pennyworth/releases/tag/v0.9.0-alpha.1) on 2026-10-08. The release commit is preserved in both `main` and `develop`, and the annotated tag targets the final `main` commit that passed CI. Local automated release checks, browser checks, Docker deployment smoke tests, and backup recovery rehearsals passed on the same date. The local Podman VM could not complete runtime verification. See the [release notes](../../CHANGELOG.md#090-alpha1---2026-10-08) and [release management](../operations/releases.md#current-release).
 
 Pennyworth remains an actively developed alpha preview. Application contracts and upgrade behavior are still being stabilized. Operators should expect compatible migrations where practical but must keep tested JSON and PostgreSQL backups and review release changes before updating, including the four migrations and schema-version-12 backup compatibility documented for this release.
 
@@ -68,7 +68,7 @@ Follow-up verification on 2026-10-02 passed 231 unit tests across 35 files, both
 
 ## Current focus
 
-Finish the `0.9.0-alpha.1` release using the [release checklist](../operations/releases.md#prepare-a-release). [Local release verification](../operations/testing-and-performance.md#090-alpha1-release-verification) records passing checks and the local Podman VM limitation. Verify CI on the committed release and final `main` merge before publication; repeat Podman runtime checks on a working host before deploying with that engine. The dated feature evidence below records prior validation.
+Validate the published alpha on the intended self-hosted server and continue addressing reported defects. [Release verification](../operations/testing-and-performance.md#090-alpha1-release-verification) records passing local checks, successful main CI, and the local Podman VM limitation. Repeat Podman runtime checks on a working host before deploying with that engine. The dated feature evidence below records prior validation.
 
 Issue #8 recurring top-ups was verified on 2026-10-05 with 253 unit tests, 30 PostgreSQL/Fastify integration tests in a disposable database, 30 recurring browser configurations, both TypeScript checks, production build, Prisma validation, backup schema/export compatibility checks, and wiki lint. The running test container passed an authenticated 17-route desktop/mobile accessibility sweep and live preview/help checks using a temporary isolated user. Its migration is applied and update checking is enabled at the user's request. Fixed/target-balance transfers and source/destination fee choices are current behavior; generation remains manual. See [testing and performance](../operations/testing-and-performance.md#recurring-form-and-help-checks).
 
@@ -97,7 +97,7 @@ High-value product work not currently implemented:
 
 Quick category/tag creation from issue #6 is implemented in [manual transaction entry](../features/transactions.md#quick-category-and-tag-creation-issue-6). Extending it to editing, recurring forms, rules, and CSV import remains future work.
 
-After the recurring PR merges, add dependency maintenance in a separate PR: weekly Dependabot version updates for npm/GitHub Actions, small compatible-update groups, security alerts and fixes for maintained branches, required CI/review, and a scheduled audit. No update automation is configured yet; the [maintenance plan](../operations/testing-and-performance.md#dependency-maintenance-follow-up) records scope and Dependabot's default-branch security behavior.
+Add dependency maintenance in a separate PR: weekly Dependabot version updates for npm/GitHub Actions, small compatible-update groups, security alerts and fixes for maintained branches, required CI/review, and a scheduled audit. No update automation is configured yet; the [maintenance plan](../operations/testing-and-performance.md#dependency-maintenance-follow-up) records scope and Dependabot's default-branch security behavior.
 
 ## Removed stale backlog
 
@@ -121,6 +121,7 @@ The former task page listed dashboard budget state, recurring templates, categor
 - [`container-definitions`](../sources.md#sourcecontainer-definitions)
 - [`project-contract`](../sources.md#sourceproject-contract)
 - [`release-policy`](../sources.md#sourcerelease-policy)
+- [`release-0-9-0-alpha-1`](../sources.md#sourcerelease-0-9-0-alpha-1)
 - [`package-manifest`](../sources.md#sourcepackage-manifest)
 - [`issue-6`](../sources.md#sourceissue-6)
 - [`issue-8`](../sources.md#sourceissue-8)
