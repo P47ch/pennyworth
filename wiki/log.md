@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Log
 type: log
 status: current
-updated: 2026-10-08
+updated: 2026-10-13
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [log, audit]
 ---
@@ -374,3 +374,15 @@ Synchronized README, release management, product brief/status, verification guid
 ## [2026-10-08] lint | Reconcile published release status
 
 Wiki lint passed with 22 pages, 28 source IDs, and 325 internal links. Checked current release pages against the published GitHub metadata, merged release history, successful main CI, and annotated tag target. Removed stale pending-publication claims while preserving historical log entries, the local Podman limitation, and the published release contents.
+
+## [2026-10-13] source-sync | Require browser and server form validation
+
+Implemented the user's permanent requirement on `fix/browser-server-validation`: every new or changed form must manage browser and server validation together. Updated `AGENTS.md`, canonical security/interface/development/verification pages, source provenance, and the index. Added browser-safe TypeScript contracts, a generated browser module checked for drift, native constraints, conditional/cross-field checks, localized messages, and safe POST field-shape validation. Covered create/edit forms, quick taxonomy, transfers, recurring fees and targets, quantities, dates, categories and parent hierarchies, preferences, security, backup input, CSV mapping, and filters. Normal server-rejected drafts retain text and selections; secrets remain cleared. Database ownership, uniqueness, financial state, concurrency, and signed confirmations remain authoritative at write time.
+
+Extended CI and regression coverage. Local verification passed 311 unit tests across 39 files, all 56 PostgreSQL/Fastify integration tests, 132 browser/page/server validation scenarios, existing quick-entry and recurring browser suites, application/test TypeScript checks, and the production build. Validation fixtures used the separate `pennyworth_validation_test` database with reserved fixture IDs and cleanup; no normal financial data was changed. Preserved application version 0.9.0-alpha.1, backup schema 12 and all published backup artifacts, existing migrations, dependencies, and MIT licensing.
+
+## [2026-10-13] source-sync | Fix form validation review regressions
+
+CSV file reads now trigger browser revalidation after filling the source textarea. Quick-category creation and duplicate recovery return the saved `parentId`; inserted options retain that relationship so new categories can become parents without a reload. CSV mapping extraction is separate from validation, allowing rejected drafts to render the correction form with source text, defaults, and deliberately unmapped columns preserved. Updated canonical transaction, interface, verification, index, and source-map pages alongside the fixes.
+
+Regression coverage exercises real file upload, quick parent/child creation, recovered parent metadata, invalid mapping alternatives, and correction with JavaScript disabled. Verification passed all 311 unit tests, all 56 PostgreSQL/Fastify integration tests, eight quick-entry browser fixtures with accessibility checks, 137 browser/page/server validation scenarios, both TypeScript checks, and the production build. Database verification used the separate `pennyworth_validation_review_test` database in a disposable PostgreSQL container; tests removed their fixture users. Application version, backup format, migrations, dependencies, and licensing remain unchanged.

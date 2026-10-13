@@ -2,7 +2,7 @@
 <section class="panel">
   <div class="panel-heading"><h2>Add recurring transaction</h2><span class="muted">Scheduled templates, confirmed manually</span></div>
   <% if (error) { %><p class="error" role="alert"><%= t(error) %></p><% } %>
-  <form method="post" action="/recurring" class="form-grid transaction-form" data-transaction-form data-recurring-form>
+  <form method="post" action="/recurring" class="form-grid transaction-form" data-transaction-form data-recurring-form data-validation="recurring">
     <%- include('form.ejs', { submitLabel: 'Add recurring' }) %>
   </form>
 </section>
@@ -23,7 +23,7 @@
         <td data-label="Actions"><div class="row-actions">
           <% if (item.isActive) { %><a class="action-link" href="/recurring/<%= item.id %>/preview"><%= t('Preview') %></a><% } %>
           <a class="action-link" href="/recurring/<%= item.id %>/edit">Edit</a>
-          <form method="post" action="/recurring/<%= item.id %>/delete"><input type="hidden" name="csrfToken" value="<%= csrfToken %>"><button class="action-link button-danger" type="submit">Delete</button></form>
+          <form method="post" action="/recurring/<%= item.id %>/delete" data-validation="action"><input type="hidden" name="csrfToken" value="<%= csrfToken %>"><button class="action-link button-danger" type="submit">Delete</button></form>
         </div></td>
       </tr><% } %></tbody>
     </table></div>

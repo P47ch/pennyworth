@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import { parseMoneyToMinorUnits } from "../finance/money.js";
 import {
@@ -31,6 +32,7 @@ function formatQuantity(value: { toString(): string }) {
 }
 
 function validateHoldingInput(body: ReturnType<typeof formBody>) {
+  assertForm("holding", body);
   const accountId = field(body, "accountId");
   const assetId = field(body, "assetId");
   const quantity = parseQuantity(field(body, "quantity"));

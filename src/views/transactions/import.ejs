@@ -11,8 +11,8 @@
     <h2>CSV source</h2>
     <span class="muted">Headers: date, type, amount, account, destination_account, category, tags, description, notes</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/transactions/import/map" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/transactions/import/map" class="form-grid" data-validation="csv">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label class="full-width">
       CSV file

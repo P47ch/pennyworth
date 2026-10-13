@@ -11,7 +11,7 @@
     <h2>Backup contents</h2>
     <span class="muted">Review before replacing data</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
   <% if (preview) { %>
     <div class="list-stack">
       <div class="list-row">
@@ -63,7 +63,7 @@
     <span class="muted">This replaces current data for your user</span>
   </div>
   <p class="error">Restore deletes your current accounts, categories, tags, transactions, budgets, rules, recurring templates, assets, asset prices, holdings, and investment transactions before importing this backup.</p>
-  <form method="post" action="/settings/restore/confirm" class="form-grid">
+  <form method="post" action="/settings/restore/confirm" class="form-grid" data-validation="restoreConfirm">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <input type="hidden" name="backupPayloadBase64" value="<%= backupPayloadBase64 %>">
     <input type="hidden" name="restorePreviewBase64" value="<%= restorePreviewBase64 %>">
@@ -76,7 +76,7 @@
     <% } %>
     <label>
       Type RESTORE
-      <input name="confirmation" autocomplete="off" required>
+      <input name="confirmation" autocomplete="off" required pattern="\s*RESTORE\s*">
     </label>
     <button class="button-danger" type="submit" <%= preview ? "" : "disabled" %>>Restore backup</button>
   </form>

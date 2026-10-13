@@ -13,16 +13,16 @@ describe("shared taxonomy validation", () => {
   });
 
   it.each([
-    [{ name: " ", type: "expense" }, "Category name is required."],
-    [{ name: "Food", type: "transfer" }, "Choose a valid category type."],
+    [{ name: " ", type: "expense" }, "Complete this field."],
+    [{ name: "Food", type: "transfer" }, "Choose a valid option."],
     [{ name: "Food", type: "expense", color: "red" }, "Choose a valid color."],
-    [{ name: "Food", type: "expense", icon: "<svg>" }, "Choose a valid icon."]
+    [{ name: "Food", type: "expense", icon: "<svg>" }, "Choose a valid option."]
   ])("rejects invalid category fields", (body, message) => {
     expect(() => validateCategoryInput(body)).toThrow(message);
   });
 
   it("rejects empty tag names and non-string JSON values without an internal exception", () => {
-    expect(() => validateTagInput({ name: " " })).toThrow("Tag name is required.");
+    expect(() => validateTagInput({ name: " " })).toThrow("Complete this field.");
     expect(() => validateTagInput(formBody({ name: 42 }))).toThrow(TaxonomyValidationError);
     expect(() => validateCategoryInput(formBody({ name: "Food", type: {}, color: "#2563eb" }))).toThrow(TaxonomyValidationError);
   });

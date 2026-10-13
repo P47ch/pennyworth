@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import {
   applyRuleApplications,
@@ -26,6 +27,7 @@ function ruleFormValues(body: ReturnType<typeof formBody>) {
 }
 
 function validateRuleInput(body: ReturnType<typeof formBody>) {
+  assertForm("rule", body);
   const values = ruleFormValues(body);
   const name = values.name.trim();
   const matchText = values.matchText.trim();

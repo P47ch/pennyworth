@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Flexible labels</p>
@@ -10,16 +12,16 @@
     <h2>Add tag</h2>
     <span class="muted">Reusable transaction labels</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/tags" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/tags" class="form-grid" data-validation="tag">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
-      <input name="name" required>
+      <input name="name" required pattern="\s*\S[\s\S]*" value="<%= formValue('name', "") %>">
     </label>
     <label>
       Color
-      <input class="taxonomy-color-input" type="color" name="color" value="#2563eb">
+      <input class="taxonomy-color-input" type="color" name="color" value="<%= formValue('color', "#2563eb") %>">
     </label>
     <button type="submit">Add tag</button>
   </form>
@@ -53,7 +55,7 @@
               <td data-label="Actions">
                 <div class="row-actions">
                   <a class="action-link" href="/tags/<%= tag.id %>/edit">Edit</a>
-                  <form method="post" action="/tags/<%= tag.id %>/delete">
+                  <form method="post" action="/tags/<%= tag.id %>/delete" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-danger" type="submit">Delete</button>
                   </form>

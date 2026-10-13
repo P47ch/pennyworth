@@ -2,7 +2,7 @@
 title: Security and Privacy
 type: security
 status: current
-updated: 2026-10-07
+updated: 2026-10-13
 source_ids: [project-contract, application-source, database-schema, migrations, container-definitions, environment-template, test-suite, owasp-password-storage, node-crypto, fastify-multipart, github-rest-releases]
 tags: [security, privacy, authentication, integrity, encryption]
 ---
@@ -10,6 +10,14 @@ tags: [security, privacy, authentication, integrity, encryption]
 # Security and Privacy
 
 Pennyworth stores sensitive financial data. Its current deployment model assumes a private, trusted home LAN with no public port forwarding. Remote clients must enter through an authenticated encrypted VPN.
+
+## Browser and server validation
+
+Every implementation must manage both layers. The shared TypeScript contracts in `src/lib/formValidation.ts` validate field shapes, required and conditional inputs, amounts and precision, dates, enums, confirmations, and cross-field rules. Routes invoke these contracts before parsing or writing; the browser uses a generated copy of the same module plus native HTML constraints. `AGENTS.md` makes this mandatory for future work. [Interface behavior](../features/interface-and-accessibility.md#form-validation) and [verification](../operations/testing-and-performance.md#browser-and-server-validation-checks) describe the corresponding controls and checks.
+
+All POST bodies also reject non-text fields and repeated scalar inputs before route logic. Tags and menu selections may contain multiple text values; restore accepts one bounded file. Repeated deletion confirmations retain the existing safe review behavior. Server checks remain effective with JavaScript disabled or when a request bypasses the form.
+
+Database-dependent checks remain authoritative at the time of writing: authentication, CSRF, ownership, uniqueness, category compatibility, available positions, signed previews, and concurrency safeguards. Browser choices use the rendered owned records and category types, but cannot prove that this state remains current. Backup/CSV previews still validate the complete record graph and rows on the server; browser checks validate the submitted fields, source choice, basic file/JSON syntax, limits, and mapping requirements. This does not change the published backup format or its compatibility rules.
 
 ## Authentication and sessions
 

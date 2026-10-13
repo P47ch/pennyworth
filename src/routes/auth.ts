@@ -1,3 +1,4 @@
+import { assertForm, FormValidationError, validateForm } from "../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import { clearSessionCookie, getSessionData, setSessionCookie } from "../lib/session.js";
 import { loadConfig } from "../lib/config.js";
@@ -134,7 +135,7 @@ export async function authRoutes(app: FastifyInstance) {
       const user = email ? await findUserByEmail(email) : null;
       const validPassword = await verifyPassword(password, user?.passwordHash ?? dummyPasswordHash);
 
-      if (!user || !user.isActive || !validPassword) {
+      if (validateForm("login", body).length || !user || !user.isActive || !validPassword) {
         return reply.code(401).view("auth/login.ejs", {
           title: "Login",
           hideNav: true,
@@ -175,6 +176,7 @@ export async function authRoutes(app: FastifyInstance) {
     const confirmPassword = field(body, "confirmPassword");
 
     try {
+      assertForm("password", body);
       if (!(await verifyPassword(currentPassword, user.passwordHash))) {
         throw new Error("Current password is incorrect.");
       }
@@ -212,6 +214,7 @@ export async function authRoutes(app: FastifyInstance) {
     const body = formBody(request.body);
 
     try {
+      assertForm("backupRestore", body, { backupFileBytes: Buffer.isBuffer(body.backupFile) ? body.backupFile.length : 0 });
       const input = await restoreInput(backupPayloadFromRequest(request.body), field(body, "backupPassphrase"));
       const preview = previewBackupJson(input.backupJson);
       const serializedPreview = JSON.stringify(preview);
@@ -251,6 +254,7 @@ export async function authRoutes(app: FastifyInstance) {
     let preview: ReturnType<typeof previewBackupJson> | null = null;
 
     try {
+      assertForm("restoreConfirm", body);
       if (confirmation !== "RESTORE") {
         throw new Error("Type RESTORE to confirm.");
       }
@@ -317,6 +321,7 @@ export async function authRoutes(app: FastifyInstance) {
     }
 
     try {
+      assertForm("backupExport", body);
       const backup = await buildUserBackup(user.id);
       const encryptedBackup = await encryptBackupJson(JSON.stringify(backup), passphrase);
       const date = new Date().toISOString().slice(0, 10);
@@ -327,7 +332,7 @@ export async function authRoutes(app: FastifyInstance) {
         .header("Content-Disposition", `attachment; filename="pennyworth-backup-${date}.pwb"`)
         .send(encryptedBackup);
     } catch (error) {
-      const formError = knownEncryptedBackupFormError(error);
+      const formError = error instanceof FormValidationError ? error.message : knownEncryptedBackupFormError(error);
 
       if (!formError) {
         throw error;

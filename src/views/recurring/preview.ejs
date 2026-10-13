@@ -4,9 +4,9 @@
   <% if (error) { %><p class="error" role="alert"><%= t(error) %></p><% } %>
   <p><%= preview.recurring.nextDate.toISOString().slice(0, 10) %> · <%= typeLabel(preview.recurring.type) %> · <%= preview.recurring.sourceAccount?.name %><% if (preview.recurring.destinationAccount) { %> → <%= preview.recurring.destinationAccount.name %><% } %></p>
   <% if (preview.recurring.type === 'transfer') { %>
-    <form method="post" action="/recurring/<%= preview.recurring.id %>/preview" class="form-grid">
+    <form method="post" action="/recurring/<%= preview.recurring.id %>/preview" class="form-grid" data-validation="fee">
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
-      <label>Fee amount<input name="feeAmount" inputmode="decimal" value="<%= (preview.requestedFeeAmountMinor / 100).toFixed(2) %>" required></label>
+      <label>Fee amount<input name="feeAmount" inputmode="decimal" value="<%= (preview.requestedFeeAmountMinor / 100).toFixed(2) %>" pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*"></label>
       <div class="field-hint" data-field-hint="fee-account">
         <label for="recurring-fee-account" class="field-hint-label"><%= t("Fee account") %></label>
         <span id="recurring-fee-account-hint" class="field-hint-content" role="tooltip"><%= t("Choose which account pays the fee. Source account: added to the transfer debit. Destination account: deducted from the money received.") %></span>
@@ -32,7 +32,7 @@
   </dl>
   <p class="muted">This records accounting entries. It does not send money.</p>
   <% if (preview.transferAmountMinor === 0) { %><p>No top-up is needed. Skipping advances the schedule without a transfer or fee.</p><% } %>
-  <form method="post" action="/recurring/<%= preview.recurring.id %>/<%= preview.transferAmountMinor === 0 ? 'skip' : 'generate' %>">
+  <form method="post" action="/recurring/<%= preview.recurring.id %>/<%= preview.transferAmountMinor === 0 ? 'skip' : 'generate' %>" data-validation="fee">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <input type="hidden" name="expectedDate" value="<%= preview.recurring.nextDate.toISOString() %>">
     <input type="hidden" name="expectedRevision" value="<%= preview.recurring.updatedAt.toISOString() %>">

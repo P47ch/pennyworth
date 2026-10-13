@@ -1,3 +1,4 @@
+import { assertForm } from "../../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import { listAccountsWithBalances } from "../../services/accounts.js";
 import { listActiveRules } from "../../services/rules.js";
@@ -85,6 +86,7 @@ export async function transactionImportRoutes(app: FastifyInstance) {
     const csvText = field(body, "csvText").trim();
 
     try {
+      assertForm("csv", body);
       const [headers, accounts] = await Promise.all([
         Promise.resolve(detectTransactionImportHeaders(csvText)),
         listAccountsWithBalances(user.id)
@@ -115,9 +117,11 @@ export async function transactionImportRoutes(app: FastifyInstance) {
     const body = formBody(request.body);
     const csvText = field(body, "csvText").trim();
     const mappedCsvText = field(body, "mappedCsvText").trim();
+    const mapping = importMappingFromBody(body);
 
     try {
-      const normalizedCsvText = mappedCsvText || applyTransactionImportMapping(csvText, importMappingFromBody(body));
+      if (!mappedCsvText) assertForm("importMapping", body);
+      const normalizedCsvText = mappedCsvText || applyTransactionImportMapping(csvText, mapping);
       const preview = await previewImportForUser(user.id, normalizedCsvText);
       const importBatchId =
         preview.errorCount === 0 ? await createTransactionImportBatch(user.id, normalizedCsvText) : null;
@@ -148,7 +152,7 @@ export async function transactionImportRoutes(app: FastifyInstance) {
           mappingOptions: buildTransactionImportMappingOptions(headers),
           accounts,
           transactionTypes,
-          mapping: importMappingFromBody(body),
+          mapping,
           error: error instanceof Error ? error.message : "Could not preview CSV import."
         });
       }
@@ -170,6 +174,7 @@ export async function transactionImportRoutes(app: FastifyInstance) {
     const includeDuplicates = duplicateMode === "include" || field(body, "includeDuplicates") === "yes";
 
     try {
+      assertForm("importConfirm", body);
       const preview = await previewImportForUser(user.id, csvText);
       await persistTransactionImport(user.id, importBatchId, csvText, preview, includeDuplicates);
 

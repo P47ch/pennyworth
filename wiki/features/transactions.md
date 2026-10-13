@@ -2,7 +2,7 @@
 title: Transactions and CSV
 type: feature
 status: current
-updated: 2026-10-07
+updated: 2026-10-13
 source_ids: [project-contract, application-source, finance-source, query-source, database-schema, migrations, test-suite, issue-6]
 tags: [transactions, csv, ledger]
 ---
@@ -33,11 +33,11 @@ Manual transaction quick entry implements [issue #6](https://github.com/P47ch/pe
 
 - Opening, cancelling, and handling errors keep the draft and existing selected tags in the current page; the financial draft is not persisted in browser storage.
 - A category requires a name and defaults to the current income/expense type, with `both` also available. Parent, color, and the approved icon picker are under optional details. Color defaults to `#2563eb` and icon to `other`, matching the normal category form. A tag requires a name and offers a color.
-- Saving immediately persists the category/tag, even if the transaction is later abandoned. The new category is selected, or the new tag is checked without clearing existing selections. Filter controls and category-parent choices also receive the new record.
+- Saving immediately persists the category/tag, even if the transaction is later abandoned. The new category is selected, or the new tag is checked without clearing existing selections. Filter controls and category-parent choices also receive the new record, including its saved parent relationship so it can become a parent in the same page without reloading.
 - Category options follow the selected transaction type; changing type clears an incompatible selection. Transfers have no category action, while tag creation remains available. Transaction services independently recheck compatibility and ownership on save.
 - Selecting a newly created category skips automatic rules, including rule tags. Creating only a tag retains the existing uncategorized-expense rule behavior.
 
-`POST /categories/quick` and `POST /tags/quick` reuse taxonomy services and the shared input validators in `src/routes/taxonomyInput.ts`. Success returns HTTP 201 with `{ category: { id, name, type } }` or `{ tag: { id, name } }`. Expected validation errors return localized HTTP 400 responses. The per-user name uniqueness constraint produces HTTP 409 on duplicates, including concurrent submissions, with `{ error, existing }`: `existing` contains the same minimal fields as a successful creation, looked up by the authenticated user and validated, trimmed name. It can be `null` if the conflicting record was deleted before lookup. Unexpected failures return a generic HTTP 500 message without database details.
+`POST /categories/quick` and `POST /tags/quick` reuse taxonomy services and the shared input validators in `src/routes/taxonomyInput.ts`. Success returns HTTP 201 with `{ category: { id, name, type, parentId } }` or `{ tag: { id, name } }`. Category `parentId` is `null` for a root category. Expected validation errors return localized HTTP 400 responses. The per-user name uniqueness constraint produces HTTP 409 on duplicates, including concurrent submissions, with `{ error, existing }`: `existing` contains the same minimal fields as a successful creation, including the saved parent relationship, looked up by the authenticated user and validated, trimmed name. It can be `null` if the conflicting record was deleted before lookup. Unexpected failures return a generic HTTP 500 message without database details.
 
 If creation was saved but its response was lost, truncated, or timed out, retrying the unchanged name retrieves the existing record. The dialog offers an explicit **Use existing** action and explains that saved details are retained, even if the requested type, parent, color, or icon differs. No selection or update happens automatically. The action selects a compatible category or checks the tag while preserving the other draft fields and existing tags. An incompatible category instead gets a localized explanation and no recovery action. Editing dialog fields, submitting again, or reopening clears the previous recovery candidate; compatibility is checked again when selecting it.
 
@@ -58,6 +58,8 @@ date,type,amount_minor,account,destination_account,category,tags,description,not
 CSV quoting handles commas, quotes, and newlines. User-controlled text beginning with spreadsheet formula prefixes is exported as literal text to reduce formula-injection risk.
 
 ## CSV import
+
+Loading a CSV file fills the source textarea and triggers its shared browser validator after the asynchronous read completes. Invalid column mappings return HTTP 400 with the correction form, source CSV, selected defaults, and deliberately unmapped columns retained. The server validates the mapping before applying it; extracting a rejected draft for display does not repeat validation. This correction flow also works with JavaScript disabled.
 
 Import accepts pasted CSV or a local file read in the browser. The raw upload is not stored separately. Supported normalized columns are:
 

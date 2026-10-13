@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Automation</p>
@@ -15,22 +17,22 @@
     <span class="badge <%= rule.isActive ? "badge-active" : "badge-muted" %>"><%= rule.isActive ? "active" : "inactive" %></span>
   </div>
   <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
-  <form method="post" action="/rules/<%= rule.id %>" class="form-grid rules-form">
+  <form method="post" action="/rules/<%= rule.id %>" class="form-grid rules-form" data-validation="rule">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
-      <input name="name" value="<%= rule.name %>" required>
+      <input name="name" value="<%= formValue('name', rule.name) %>" required pattern="\s*\S[\s\S]*">
     </label>
     <label>
       Match text
-      <input name="matchText" value="<%= rule.matchText %>" placeholder="netflix, spotify, amazon prime" aria-describedby="rule-match-hint" required>
+      <input name="matchText" value="<%= formValue('matchText', rule.matchText) %>" placeholder="netflix, spotify, amazon prime" aria-describedby="rule-match-hint" required pattern="\s*\S[\s\S]*">
       <small class="muted" id="rule-match-hint">Separate alternatives with commas. Any matching term applies the rule; spaces within a term form a phrase.</small>
     </label>
     <label>
       Category
       <select name="categoryId" required>
         <% for (const category of categories) { %>
-          <option value="<%= category.id %>" <%= rule.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
+          <option value="<%= category.id %>" <%= (formSelected('categoryId', category.id, (rule.categoryId === category.id ? "selected" : ""))) ? 'selected' : '' %>><%= category.name %></option>
         <% } %>
       </select>
     </label>
@@ -40,14 +42,14 @@
         <% const selectedTagIds = new Set(rule.tags.map((item) => item.tagId)); %>
         <% for (const tag of tags) { %>
           <label>
-            <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= selectedTagIds.has(tag.id) ? "checked" : "" %>>
+            <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= formSelected('tagIds', tag.id, (selectedTagIds.has(tag.id) ? "checked" : "")) ? 'checked' : '' %>>
             <%= tag.name %>
           </label>
         <% } %>
       </div>
     </fieldset>
     <label class="checkbox-row">
-      <input type="checkbox" name="isActive" <%= rule.isActive ? "checked" : "" %>>
+      <input type="checkbox" name="isActive" <%= formSelected('isActive', "on", (rule.isActive ? "checked" : "")) ? 'checked' : '' %>>
       Active
     </label>
     <button type="submit">Save changes</button>

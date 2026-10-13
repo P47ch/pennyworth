@@ -2,7 +2,7 @@
 title: Pennyworth Source Map
 type: source-map
 status: current
-updated: 2026-10-08
+updated: 2026-10-13
 source_ids: [llm-wiki-pattern, project-contract]
 tags: [sources, provenance]
 ---
@@ -125,10 +125,10 @@ Source IDs are stable handles used in page frontmatter and `## Sources` sections
 
 ## source:test-suite
 
-- Location: [`../tests/`](../tests/), [`../scripts/a11y-audit.mjs`](../scripts/a11y-audit.mjs), [`../scripts/quick-taxonomy-browser.ts`](../scripts/quick-taxonomy-browser.ts), and [`../scripts/recurring-browser.ts`](../scripts/recurring-browser.ts)
+- Location: [`../tests/`](../tests/), [`../scripts/a11y-audit.mjs`](../scripts/a11y-audit.mjs), [`../scripts/quick-taxonomy-browser.ts`](../scripts/quick-taxonomy-browser.ts), [`../scripts/recurring-browser.ts`](../scripts/recurring-browser.ts), and [`../scripts/validation-browser.ts`](../scripts/validation-browser.ts)
 - Kind: executable verification
 - Authority: tested behavior and regression coverage; passing status must be dated separately
-- Covers: finance, configuration, CSV, backup, authentication, queries, integration boundaries, accessibility, and quick-entry dialog behavior including interrupted-response recovery, and recurring form/help behavior
+- Covers: finance, configuration, CSV uploads and rejected mapping correction, backup, authentication, queries, integration boundaries, accessibility, quick-entry dialog behavior including parent metadata and interrupted-response recovery, and recurring form/help behavior
 
 ## source:ci-workflow
 

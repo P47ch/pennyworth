@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { RecurringFrequency, TransactionType } from "@prisma/client";
 import { parseMoneyToMinorUnits } from "../finance/money.js";
 import type { RecurringAmountMode, RecurringFeeAccount } from "../finance/recurring.js";
@@ -26,7 +27,8 @@ export function recurringFormValues(timeZone: string, body?: Body) {
     nextDate: body ? field(body, "nextDate") : todayDateInput(timeZone), isActive: body ? field(body, "isActive") === "on" : true
   };
 }
-export function validateRecurringInput(body: Body) {
+export function validateRecurringInput(body: Body, originalName?: string) {
+  assertForm("recurring", body, { originalName });
   const type = field(body, "type") as TransactionType;
   if (!transactionTypes.includes(type)) throw new Error("Choose a valid transaction type.");
   const amountMode = (field(body, "amountMode") || "fixed") as RecurringAmountMode;

@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Money locations</p>
@@ -11,32 +13,32 @@
     <h2><%= account.name %></h2>
     <span class="badge <%= account.isActive ? "badge-active" : "badge-muted" %>"><%= account.isActive ? "Active" : "Inactive" %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/accounts/<%= account.id %>" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/accounts/<%= account.id %>" class="form-grid" data-validation="account">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
-      <input name="name" value="<%= account.name %>" required>
+      <input name="name" value="<%= formValue('name', account.name) %>" required pattern="\s*\S[\s\S]*">
     </label>
     <label>
       Type
       <select name="type" required>
         <% for (const type of accountTypes) { %>
-          <option value="<%= type %>" <%= account.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
+          <option value="<%= type %>" <%= (formSelected('type', type, (account.type === type ? "selected" : ""))) ? 'selected' : '' %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
     <label>
       Currency
-      <input name="currency" value="<%= account.currency %>" maxlength="3" readonly required>
+      <input name="currency" value="<%= formValue('currency', account.currency) %>" maxlength="3" readonly required pattern="[A-Za-z]{3}">
     </label>
     <label>
       Opening balance
-      <input name="openingBalance" inputmode="decimal" value="<%= (account.openingBalanceMinor / 100).toFixed(2) %>" required>
+      <input name="openingBalance" inputmode="decimal" value="<%= formValue('openingBalance', (account.openingBalanceMinor / 100).toFixed(2)) %>" required pattern="\s*-?[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <label>
       Institution
-      <input name="institution" value="<%= account.institution || "" %>">
+      <input name="institution" value="<%= formValue('institution', account.institution || "") %>">
     </label>
     <button type="submit">Save changes</button>
   </form>

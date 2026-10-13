@@ -7,7 +7,7 @@
 
 <%- include("../partials/settings-tabs.ejs") %>
 
-<form method="post" action="/settings/preferences">
+<form method="post" action="/settings/preferences" data-validation="preferences">
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
 
   <section class="panel">

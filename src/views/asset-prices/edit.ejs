@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Investments</p>
@@ -11,24 +13,24 @@
     <h2><%= assetPrice.asset.symbol %></h2>
     <span class="badge badge-muted"><%= formatDateInput(assetPrice.date) %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/asset-prices/<%= assetPrice.id %>" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/asset-prices/<%= assetPrice.id %>" class="form-grid" data-validation="price">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Asset
       <select name="assetId" required>
         <% for (const asset of assets) { %>
-          <option value="<%= asset.id %>" <%= assetPrice.assetId === asset.id ? "selected" : "" %>><%= asset.symbol %> - <%= asset.name %> (<%= asset.currency %>)</option>
+          <option value="<%= asset.id %>" <%= (formSelected('assetId', asset.id, (assetPrice.assetId === asset.id ? "selected" : ""))) ? 'selected' : '' %>><%= asset.symbol %> - <%= asset.name %> (<%= asset.currency %>)</option>
         <% } %>
       </select>
     </label>
     <label>
       Date
-      <input type="date" name="date" value="<%= formatDateInput(assetPrice.date) %>" required>
+      <input type="date" name="date" value="<%= formValue('date', formatDateInput(assetPrice.date)) %>" required>
     </label>
     <label>
       Price
-      <input name="price" inputmode="decimal" value="<%= (assetPrice.priceMinor / 100).toFixed(2) %>" required>
+      <input name="price" inputmode="decimal" value="<%= formValue('price', (assetPrice.priceMinor / 100).toFixed(2)) %>" required pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <button type="submit">Save changes</button>
   </form>

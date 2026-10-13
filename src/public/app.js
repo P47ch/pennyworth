@@ -76,6 +76,7 @@ if (csvFileInput && csvTextarea) {
     }
 
     csvTextarea.value = await file.text();
+    csvTextarea.dispatchEvent(new Event("input", { bubbles: true }));
   });
 }
 
@@ -231,6 +232,7 @@ if (transactionForm) {
     if (destinationField && destinationSelect) {
       destinationField.hidden = !isTransfer;
       destinationSelect.disabled = !isTransfer;
+      destinationSelect.required = isTransfer;
     }
 
     if (categoryField && categorySelect) {

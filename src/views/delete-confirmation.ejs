@@ -24,7 +24,7 @@
   <% } %>
   <div class="row-actions">
     <a class="action-link" href="<%= cancelHref %>">Cancel</a>
-    <form method="post" action="<%= deleteAction %>">
+    <form method="post" action="<%= deleteAction %>" data-validation="action">
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
       <button class="action-link button-danger" type="submit" name="confirmDelete" value="yes">Confirm deletion</button>
     </form>

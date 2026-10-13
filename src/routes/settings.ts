@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import { avatarChoices, isAvatarKey } from "../lib/avatar.js";
 import {
@@ -77,6 +78,7 @@ export async function settingsRoutes(app: FastifyInstance, options: SettingsRout
     const visibleMenuItems = fields(body, "visibleMenuItems");
 
     try {
+      assertForm("preferences", body);
       if (!isLanguage(language)) {
         throw new Error("Unsupported language.");
       }

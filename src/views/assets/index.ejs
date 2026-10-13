@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Investments</p>
@@ -10,31 +12,31 @@
     <h2>Add asset</h2>
     <span class="muted">Manual catalog, no market data</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/assets" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/assets" class="form-grid" data-validation="asset">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Symbol
-      <input name="symbol" placeholder="VWCE, AAPL, BTC" required>
+      <input name="symbol" placeholder="VWCE, AAPL, BTC" required pattern="\s*\S[\s\S]*" value="<%= formValue('symbol', "") %>">
     </label>
     <label>
       Name
-      <input name="name" placeholder="Vanguard FTSE All-World" required>
+      <input name="name" placeholder="Vanguard FTSE All-World" required pattern="\s*\S[\s\S]*" value="<%= formValue('name', "") %>">
     </label>
     <label>
       Type
       <select name="type" required>
         <% for (const type of assetTypes) { %>
-          <option value="<%= type %>"><%= typeLabel(type) %></option>
+          <option value="<%= type %>" <%= (formSelected('type', type, false)) ? 'selected' : '' %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
     <label>
       Currency
-      <input name="currency" value="<%= primaryCurrency %>" maxlength="3" readonly required>
+      <input name="currency" value="<%= formValue('currency', primaryCurrency) %>" maxlength="3" readonly required pattern="[A-Za-z]{3}">
     </label>
     <label class="checkbox-row">
-      <input type="checkbox" name="isActive" checked>
+      <input type="checkbox" name="isActive" <%= formSelected('isActive', "on", true) ? 'checked' : '' %>>
       Active
     </label>
     <button type="submit">Add asset</button>
@@ -75,7 +77,7 @@
               <td data-label="Actions">
                 <div class="row-actions">
                   <a class="action-link" href="/assets/<%= asset.id %>/edit">Edit</a>
-                  <form method="post" action="/assets/<%= asset.id %>/delete">
+                  <form method="post" action="/assets/<%= asset.id %>/delete" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-danger" type="submit">Delete</button>
                   </form>

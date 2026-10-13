@@ -1,3 +1,4 @@
+import { assertSubmittedFields, formDraftHelpers } from "./routes/form.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cookie from "@fastify/cookie";
@@ -187,6 +188,7 @@ export async function buildApp() {
     reply.locals = {
       ...(reply.locals ?? {}),
       csrfToken,
+      ...formDraftHelpers(request.method === "POST" ? request.body : undefined),
       appVersion: applicationVersion,
       currentPath: url.split("?")[0],
       todayInputValue: todayDateInput(config.timeZone),
@@ -207,6 +209,8 @@ export async function buildApp() {
     if (request.method === "POST" && !validateCsrfToken(request)) {
       return reply.code(403).send("Invalid CSRF token.");
     }
+
+    if (request.method === "POST") assertSubmittedFields(request.body, url.split("?")[0] === "/settings/restore/preview");
 
     if (url.startsWith("/login")) {
       return;

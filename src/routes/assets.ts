@@ -1,3 +1,5 @@
+import { loadConfig } from "../lib/config.js";
+import { assertForm } from "../lib/formValidation.js";
 import type { AssetType } from "@prisma/client";
 import type { FastifyInstance } from "fastify";
 import { assetTypes, createAsset, deleteAsset, getAssetForUser, listAssets, updateAsset } from "../services/assets.js";
@@ -6,6 +8,7 @@ import { field, formBody } from "./form.js";
 import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 
 function validateAssetInput(body: ReturnType<typeof formBody>) {
+  assertForm("asset", body, { primaryCurrency: loadConfig().primaryCurrency });
   const symbol = field(body, "symbol").trim().toUpperCase();
   const name = field(body, "name").trim();
   const type = field(body, "type") as AssetType;

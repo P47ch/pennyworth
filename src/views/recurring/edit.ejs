@@ -2,7 +2,7 @@
 <section class="panel">
   <div class="panel-heading"><h2><%= recurring.name %></h2><span class="badge <%= recurring.isActive ? 'badge-active' : 'badge-muted' %>"><%= t(recurring.isActive ? 'Active' : 'Inactive') %></span></div>
   <% if (error) { %><p class="error" role="alert"><%= t(error) %></p><% } %>
-  <form method="post" action="/recurring/<%= recurring.id %>" class="form-grid transaction-form" data-transaction-form data-recurring-form>
+  <form method="post" action="/recurring/<%= recurring.id %>" class="form-grid transaction-form" data-transaction-form data-recurring-form data-validation="recurring" data-original-name="<%= recurring.name %>">
     <%- include('form.ejs', { submitLabel: 'Save changes' }) %>
   </form>
 </section>

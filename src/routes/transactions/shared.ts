@@ -1,3 +1,4 @@
+import { assertForm } from "../../lib/formValidation.js";
 import type { TransactionType } from "@prisma/client";
 import { parseMoneyToMinorUnits } from "../../finance/money.js";
 import { loadConfig } from "../../lib/config.js";
@@ -34,6 +35,7 @@ export function transactionFormValues(body?: ReturnType<typeof formBody>) {
 
 export function parseTransactionFilters(query: unknown): TransactionFilterViewModel {
   const params = query && typeof query === "object" ? (query as Record<string, string | undefined>) : {};
+  assertForm("filters", params);
   const type = params.type as TransactionType | undefined;
   const from = params.from ? parseOptionalDate(params.from) : undefined;
   const to = params.to ? parseOptionalDate(params.to) : undefined;
@@ -72,6 +74,7 @@ export function parseTransactionPage(query: unknown): number {
 }
 
 export function validateTransactionInput(body: ReturnType<typeof formBody>) {
+  assertForm("transaction", body);
   const type = field(body, "type") as TransactionType;
   const sourceAccountId = field(body, "sourceAccountId");
   const destinationAccountId = field(body, "destinationAccountId");

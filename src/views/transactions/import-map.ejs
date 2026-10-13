@@ -11,7 +11,7 @@
     <h2>Column mapping</h2>
     <span class="muted"><%= headers.length %> columns detected</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
   <p class="success" data-import-mapping-status hidden></p>
   <form
     method="post"
@@ -19,7 +19,7 @@
     class="form-grid"
     data-import-mapping-form
     data-import-headers="<%= JSON.stringify(headers) %>"
-  >
+   data-validation="importMapping">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <textarea class="visually-hidden" name="csvText" aria-hidden="true" tabindex="-1"><%= csvText %></textarea>
 
@@ -29,7 +29,7 @@
         <select name="<%= option.key %>" <%= option.required ? "required" : "" %>>
           <option value="">Not mapped</option>
           <% for (const header of headers) { %>
-            <option value="<%= header %>" <%= (mapping[option.key] || option.guess) === header ? "selected" : "" %>><%= header %></option>
+            <option value="<%= header %>" <%= (mapping[option.key] ?? option.guess) === header ? "selected" : "" %>><%= header %></option>
           <% } %>
         </select>
       </label>

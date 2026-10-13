@@ -2,7 +2,7 @@
 title: Pennyworth Wiki Index
 type: index
 status: current
-updated: 2026-10-08
+updated: 2026-10-13
 source_ids: [project-contract, application-source, llm-wiki-pattern]
 tags: [index, navigation]
 ---
@@ -10,6 +10,8 @@ tags: [index, navigation]
 # Pennyworth Wiki Index
 
 Read this page first. It catalogs every maintained page and gives agents a bounded route into the knowledge base.
+
+Browser and server form validation are now a mandatory implementation contract. See [form behavior](features/interface-and-accessibility.md#form-validation), [security requirements](architecture/security-and-privacy.md#browser-and-server-validation), and [validation checks](operations/testing-and-performance.md#browser-and-server-validation-checks), including CSV upload/correction and quick-category parent regressions.
 
 ## Operating layer
 

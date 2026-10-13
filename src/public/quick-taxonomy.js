@@ -15,6 +15,7 @@
     }
     option.textContent = record.name;
     option.dataset.categoryType = record.type || "";
+    if (record.type) option.dataset.parentId = record.parentId || "";
     return option;
   };
 
