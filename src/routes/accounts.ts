@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import type { AccountType } from "@prisma/client";
 import { parseMoneyToMinorUnits } from "../finance/money.js";
@@ -18,6 +19,7 @@ import { loadConfig } from "../lib/config.js";
 const primaryCurrency = loadConfig().primaryCurrency;
 
 function validateAccountInput(body: ReturnType<typeof formBody>) {
+  assertForm("account", body, { primaryCurrency });
   const name = field(body, "name").trim();
   const type = field(body, "type") as AccountType;
   const currency = field(body, "currency").trim().toUpperCase() || primaryCurrency;

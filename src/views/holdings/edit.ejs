@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Investments</p>
@@ -11,14 +13,14 @@
     <h2><%= holding.asset.symbol %> in <%= holding.account.name %></h2>
     <span class="badge badge-muted"><%= typeLabel(holding.asset.type) %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/holdings/<%= holding.id %>" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/holdings/<%= holding.id %>" class="form-grid" data-validation="holding">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Account
       <select name="accountId" required>
         <% for (const account of accounts) { %>
-          <option value="<%= account.id %>" <%= holding.accountId === account.id ? "selected" : "" %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
+          <option value="<%= account.id %>" <%= (formSelected('accountId', account.id, (holding.accountId === account.id ? "selected" : ""))) ? 'selected' : '' %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>
@@ -26,21 +28,21 @@
       Asset
       <select name="assetId" required>
         <% for (const asset of assets) { %>
-          <option value="<%= asset.id %>" <%= holding.assetId === asset.id ? "selected" : "" %>><%= asset.symbol %> - <%= asset.name %></option>
+          <option value="<%= asset.id %>" <%= (formSelected('assetId', asset.id, (holding.assetId === asset.id ? "selected" : ""))) ? 'selected' : '' %>><%= asset.symbol %> - <%= asset.name %></option>
         <% } %>
       </select>
     </label>
     <label>
       Quantity
-      <input name="quantity" inputmode="decimal" value="<%= formatQuantity(holding.quantity) %>" required>
+      <input name="quantity" inputmode="decimal" value="<%= formValue('quantity', formatQuantity(holding.quantity)) %>" required pattern="\s*[0-9]+([.,][0-9]{1,8})?\s*">
     </label>
     <label>
       Average cost
-      <input name="averageCost" inputmode="decimal" value="<%= (holding.averageCostMinor / 100).toFixed(2) %>" required>
+      <input name="averageCost" inputmode="decimal" value="<%= formValue('averageCost', (holding.averageCostMinor / 100).toFixed(2)) %>" required pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <label class="span-2">
       Notes
-      <input name="notes" value="<%= holding.notes || "" %>">
+      <input name="notes" value="<%= formValue('notes', holding.notes || "") %>">
     </label>
     <button type="submit">Save changes</button>
   </form>

@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Planning</p>
@@ -11,24 +13,24 @@
     <h2><%- categoryLabel(budget.category) %></h2>
     <span class="muted"><%= budget.month.toISOString().slice(0, 7) %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/budgets/<%= budget.id %>" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/budgets/<%= budget.id %>" class="form-grid" data-validation="budget">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Month
-      <input type="month" name="month" value="<%= budget.month.toISOString().slice(0, 7) %>" required>
+      <input type="month" name="month" value="<%= formValue('month', budget.month.toISOString().slice(0, 7)) %>" required>
     </label>
     <label>
       Category
       <select name="categoryId" required>
         <% for (const category of categories) { %>
-          <option value="<%= category.id %>" <%= budget.categoryId === category.id ? "selected" : "" %>><%= category.name %></option>
+          <option value="<%= category.id %>" <%= (formSelected('categoryId', category.id, (budget.categoryId === category.id ? "selected" : ""))) ? 'selected' : '' %>><%= category.name %></option>
         <% } %>
       </select>
     </label>
     <label>
       Amount
-      <input name="amount" inputmode="decimal" value="<%= (budget.amountMinor / 100).toFixed(2) %>" required>
+      <input name="amount" inputmode="decimal" value="<%= formValue('amount', (budget.amountMinor / 100).toFixed(2)) %>" required pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <button type="submit">Save changes</button>
   </form>

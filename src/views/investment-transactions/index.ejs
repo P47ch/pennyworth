@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Investments</p>
@@ -10,39 +12,39 @@
     <h2>Add transaction</h2>
     <span class="muted">Manual investment history</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
   <% if (accounts.length === 0 || assets.length === 0) { %>
     <div class="empty-state">
       <strong>Investment transactions need an account and an asset</strong>
       <p>Create an investment or crypto account and at least one asset before adding history.</p>
     </div>
   <% } %>
-  <form method="post" action="/investment-transactions" class="form-grid">
+  <form method="post" action="/investment-transactions" class="form-grid" data-validation="investment">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Account
       <select name="accountId" required>
-        <option value="">Choose account</option>
+        <option value="" <%= (formSelected('accountId', "", false)) ? 'selected' : '' %>>Choose account</option>
         <% for (const account of accounts) { %>
-          <option value="<%= account.id %>"><%= account.name %> (<%= typeLabel(account.type) %>)</option>
+          <option value="<%= account.id %>" <%= (formSelected('accountId', account.id, false)) ? 'selected' : '' %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>
     <label>
       Asset
       <select name="assetId" required>
-        <option value="">Choose asset</option>
+        <option value="" <%= (formSelected('assetId', "", false)) ? 'selected' : '' %>>Choose asset</option>
         <% for (const asset of assets) { %>
-          <option value="<%= asset.id %>"><%= asset.symbol %> - <%= asset.name %></option>
+          <option value="<%= asset.id %>" <%= (formSelected('assetId', asset.id, false)) ? 'selected' : '' %>><%= asset.symbol %> - <%= asset.name %></option>
         <% } %>
       </select>
     </label>
     <label>
       Cash account
       <select name="cashAccountId">
-        <option value="">Same as account</option>
+        <option value="" <%= (formSelected('cashAccountId', "", false)) ? 'selected' : '' %>>Same as account</option>
         <% for (const account of cashAccounts) { %>
-          <option value="<%= account.id %>"><%= account.name %> (<%= typeLabel(account.type) %>)</option>
+          <option value="<%= account.id %>" <%= (formSelected('cashAccountId', account.id, false)) ? 'selected' : '' %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>
@@ -50,33 +52,33 @@
       Type
       <select name="type" required>
         <% for (const type of investmentTransactionTypes) { %>
-          <option value="<%= type %>"><%= typeLabel(type) %></option>
+          <option value="<%= type %>" <%= (formSelected('type', type, false)) ? 'selected' : '' %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
     <label>
       Date
-      <input type="date" name="date" value="<%= todayInputValue %>" required>
+      <input type="date" name="date" value="<%= formValue('date', todayInputValue) %>" required>
     </label>
     <label>
       Quantity
-      <input name="quantity" inputmode="decimal" placeholder="Required for buy/sell">
+      <input name="quantity" inputmode="decimal" placeholder="Required for buy/sell" pattern="\s*[0-9]+([.,][0-9]{1,8})?\s*" value="<%= formValue('quantity', "") %>">
     </label>
     <label>
       Unit price
-      <input name="price" inputmode="decimal" placeholder="Required for buy/sell">
+      <input name="price" inputmode="decimal" placeholder="Required for buy/sell" pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*" value="<%= formValue('price', "") %>">
     </label>
     <label>
       Amount
-      <input name="amount" inputmode="decimal" required>
+      <input name="amount" inputmode="decimal" required pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*" value="<%= formValue('amount', "") %>">
     </label>
     <label>
       Cash amount
-      <input name="cashAmount" inputmode="decimal" placeholder="Defaults to amount">
+      <input name="cashAmount" inputmode="decimal" placeholder="Defaults to amount" pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*" value="<%= formValue('cashAmount', "") %>">
     </label>
     <label class="span-2">
       Notes
-      <input name="notes" placeholder="Optional">
+      <input name="notes" placeholder="Optional" value="<%= formValue('notes', "") %>">
     </label>
     <button type="submit" <%= accounts.length === 0 || assets.length === 0 ? "disabled" : "" %>>Add transaction</button>
   </form>
@@ -132,7 +134,7 @@
               <td data-label="Actions">
                 <div class="row-actions">
                   <a class="action-link" href="/investment-transactions/<%= transaction.id %>/edit">Edit</a>
-                  <form method="post" action="/investment-transactions/<%= transaction.id %>/delete">
+                  <form method="post" action="/investment-transactions/<%= transaction.id %>/delete" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-danger" type="submit">Delete</button>
                   </form>

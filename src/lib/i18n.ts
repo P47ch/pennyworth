@@ -1,6 +1,8 @@
 import type { Language } from "./preferences.js";
+import { italianValidationMessages } from "./formValidation.js";
 
 const italian: Record<string, string> = {
+  ...italianValidationMessages,
   "Delete account": "Elimina conto",
   "Delete transaction": "Elimina transazione",
   "Delete category": "Elimina categoria",

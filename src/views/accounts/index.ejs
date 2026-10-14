@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Money locations</p>
@@ -10,32 +12,32 @@
     <h2>Add account</h2>
     <span class="muted">Bank, cash, savings, cards</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/accounts" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/accounts" class="form-grid" data-validation="account">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
-      <input name="name" required>
+      <input name="name" required pattern="\s*\S[\s\S]*" value="<%= formValue('name', "") %>">
     </label>
     <label>
       Type
       <select name="type" required>
         <% for (const type of accountTypes) { %>
-          <option value="<%= type %>"><%= typeLabel(type) %></option>
+          <option value="<%= type %>" <%= (formSelected('type', type, false)) ? 'selected' : '' %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
     <label>
       Currency
-      <input name="currency" value="<%= primaryCurrency %>" maxlength="3" readonly required>
+      <input name="currency" value="<%= formValue('currency', primaryCurrency) %>" maxlength="3" readonly required pattern="[A-Za-z]{3}">
     </label>
     <label>
       Opening balance
-      <input name="openingBalance" inputmode="decimal" value="0.00" required>
+      <input name="openingBalance" inputmode="decimal" value="<%= formValue('openingBalance', "0.00") %>" required pattern="\s*-?[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <label>
       Institution
-      <input name="institution">
+      <input name="institution" value="<%= formValue('institution', "") %>">
     </label>
     <button type="submit">Add account</button>
   </form>
@@ -75,11 +77,11 @@
               <td data-label="Actions">
                 <div class="row-actions">
                   <a class="action-link" href="/accounts/<%= account.id %>/edit">Edit</a>
-                  <form method="post" action="/accounts/<%= account.id %>/toggle-active">
+                  <form method="post" action="/accounts/<%= account.id %>/toggle-active" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-secondary" type="submit"><%= account.isActive ? "Inactivate" : "Reactivate" %></button>
                   </form>
-                  <form method="post" action="/accounts/<%= account.id %>/delete">
+                  <form method="post" action="/accounts/<%= account.id %>/delete" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-danger" type="submit">Delete</button>
                   </form>

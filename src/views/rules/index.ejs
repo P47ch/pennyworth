@@ -14,15 +14,15 @@
     <span class="muted">Match transaction text to a category</span>
   </div>
   <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
-  <form method="post" action="/rules" class="form-grid rules-form">
+  <form method="post" action="/rules" class="form-grid rules-form" data-validation="rule">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
-      <input name="name" value="<%= form.name %>" required>
+      <input name="name" value="<%= form.name %>" required pattern="\s*\S[\s\S]*">
     </label>
     <label>
       Match text
-      <input name="matchText" value="<%= form.matchText %>" placeholder="netflix, spotify, amazon prime" aria-describedby="rule-match-hint" required>
+      <input name="matchText" value="<%= form.matchText %>" placeholder="netflix, spotify, amazon prime" aria-describedby="rule-match-hint" required pattern="\s*\S[\s\S]*">
       <small class="muted" id="rule-match-hint">Separate alternatives with commas. Any matching term applies the rule; spaces within a term form a phrase.</small>
     </label>
     <label>
@@ -86,12 +86,12 @@
             <tr>
               <td data-label="Order">
                 <div class="row-actions">
-                  <form method="post" action="/rules/<%= rule.id %>/move">
+                  <form method="post" action="/rules/<%= rule.id %>/move" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <input type="hidden" name="direction" value="up">
                     <button class="button-secondary" type="submit" <%= index === 0 ? "disabled" : "" %>>Up</button>
                   </form>
-                  <form method="post" action="/rules/<%= rule.id %>/move">
+                  <form method="post" action="/rules/<%= rule.id %>/move" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <input type="hidden" name="direction" value="down">
                     <button class="button-secondary" type="submit" <%= index === rules.length - 1 ? "disabled" : "" %>>Down</button>
@@ -118,12 +118,12 @@
               <td data-label="Actions">
                 <div class="row-actions">
                   <a class="action-link" href="/rules/<%= rule.id %>/edit">Edit</a>
-                  <form method="post" action="/rules/<%= rule.id %>/active">
+                  <form method="post" action="/rules/<%= rule.id %>/active" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <input type="hidden" name="isActive" value="<%= rule.isActive ? 'false' : 'true' %>">
                     <button class="button-secondary" type="submit" aria-label="<%= t(rule.isActive ? 'Disable rule: {name}' : 'Enable rule: {name}', { name: rule.name }) %>"><%= t(rule.isActive ? "Disable" : "Enable") %></button>
                   </form>
-                  <form method="post" action="/rules/<%= rule.id %>/delete">
+                  <form method="post" action="/rules/<%= rule.id %>/delete" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-danger" type="submit">Delete</button>
                   </form>

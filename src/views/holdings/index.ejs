@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Investments</p>
@@ -10,44 +12,44 @@
     <h2>Add manual adjustment</h2>
     <span class="muted">Optional fallback outside investment activity</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
   <% if (accounts.length === 0 || assets.length === 0) { %>
     <div class="empty-state">
       <strong>Manual adjustments need an investment account and an asset</strong>
       <p>Create an investment or crypto account and at least one asset before adding an adjustment.</p>
     </div>
   <% } %>
-  <form method="post" action="/holdings" class="form-grid">
+  <form method="post" action="/holdings" class="form-grid" data-validation="holding">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Account
       <select name="accountId" required>
-        <option value="">Choose account</option>
+        <option value="" <%= (formSelected('accountId', "", false)) ? 'selected' : '' %>>Choose account</option>
         <% for (const account of accounts) { %>
-          <option value="<%= account.id %>"><%= account.name %> (<%= typeLabel(account.type) %>)</option>
+          <option value="<%= account.id %>" <%= (formSelected('accountId', account.id, false)) ? 'selected' : '' %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>
     <label>
       Asset
       <select name="assetId" required>
-        <option value="">Choose asset</option>
+        <option value="" <%= (formSelected('assetId', "", false)) ? 'selected' : '' %>>Choose asset</option>
         <% for (const asset of assets) { %>
-          <option value="<%= asset.id %>"><%= asset.symbol %> - <%= asset.name %></option>
+          <option value="<%= asset.id %>" <%= (formSelected('assetId', asset.id, false)) ? 'selected' : '' %>><%= asset.symbol %> - <%= asset.name %></option>
         <% } %>
       </select>
     </label>
     <label>
       Quantity
-      <input name="quantity" inputmode="decimal" placeholder="12.5" required>
+      <input name="quantity" inputmode="decimal" placeholder="12.5" required pattern="\s*[0-9]+([.,][0-9]{1,8})?\s*" value="<%= formValue('quantity', "") %>">
     </label>
     <label>
       Average cost
-      <input name="averageCost" inputmode="decimal" value="0.00" required>
+      <input name="averageCost" inputmode="decimal" value="<%= formValue('averageCost', "0.00") %>" required pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <label class="span-2">
       Notes
-      <input name="notes" placeholder="Optional">
+      <input name="notes" placeholder="Optional" value="<%= formValue('notes', "") %>">
     </label>
     <button type="submit" <%= accounts.length === 0 || assets.length === 0 ? "disabled" : "" %>>Add adjustment</button>
   </form>
@@ -126,7 +128,7 @@
                 <% if (holding.source === "manual") { %>
                   <div class="row-actions">
                     <a class="action-link" href="/holdings/<%= holding.id %>/edit">Edit</a>
-                    <form method="post" action="/holdings/<%= holding.id %>/delete">
+                    <form method="post" action="/holdings/<%= holding.id %>/delete" data-validation="action">
                       <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                       <button class="button-danger" type="submit">Delete</button>
                     </form>

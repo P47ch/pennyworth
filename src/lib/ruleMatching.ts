@@ -1,63 +1,12 @@
 import { csvEscape } from "./csv.js";
+import { parseRuleMatchText } from "./formValidation.js";
+export { parseRuleMatchText } from "./formValidation.js";
 
 export type AppliedRule = {
   name: string;
   categoryName: string;
   addedTagNames: string[];
 };
-
-export function parseRuleMatchText(input: string): string[] {
-  const terms: string[] = [];
-  const seenTerms = new Set<string>();
-  let term = "";
-  let inQuotes = false;
-  let closedQuote = false;
-
-  function addTerm() {
-    const trimmed = term.trim();
-    if (trimmed && !seenTerms.has(trimmed.toLowerCase())) {
-      terms.push(trimmed);
-      seenTerms.add(trimmed.toLowerCase());
-    }
-    term = "";
-    closedQuote = false;
-  }
-
-  for (let index = 0; index < input.length; index += 1) {
-    const character = input[index];
-
-    if (inQuotes) {
-      if (character === '"' && input[index + 1] === '"') {
-        term += '"';
-        index += 1;
-      } else if (character === '"') {
-        inQuotes = false;
-        closedQuote = true;
-      } else {
-        term += character;
-      }
-    } else if (character === ",") {
-      addTerm();
-    } else if (character === '"') {
-      if (term.trim() || closedQuote) {
-        throw new Error("Quote the whole phrase and double any quotes inside it.");
-      }
-      term = "";
-      inQuotes = true;
-    } else if (closedQuote && character.trim()) {
-      throw new Error("Separate quoted phrases with commas.");
-    } else if (!closedQuote) {
-      term += character;
-    }
-  }
-
-  if (inQuotes) {
-    throw new Error("Match text contains an unclosed quoted phrase.");
-  }
-
-  addTerm();
-  return terms;
-}
 
 export function validateRuleMatchText(input: string): string {
   const terms = parseRuleMatchText(input);

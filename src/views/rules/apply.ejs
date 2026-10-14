@@ -11,7 +11,7 @@
     <h2>Preview</h2>
     <span class="muted"><%= applications.length %> matches</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
   <% if (applications.length === 0) { %>
     <div class="empty-state">
       <strong>No matching uncategorized expenses</strong>
@@ -54,7 +54,7 @@
         </tbody>
       </table>
     </div>
-    <form method="post" action="/rules/apply" class="import-confirm-form">
+    <form method="post" action="/rules/apply" class="import-confirm-form" data-validation="action">
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
       <button type="submit">Apply <%= applications.length %> updates</button>
     </form>

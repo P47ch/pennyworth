@@ -2,7 +2,7 @@
 title: Testing and Performance
 type: verification
 status: current
-updated: 2026-10-08
+updated: 2026-10-13
 source_ids: [package-manifest, application-source, test-suite, ci-workflow, release-0-9-0-alpha-1, operational-scripts, database-schema, source-map-js-advisory, dependabot-docs]
 tags: [testing, integration, accessibility, performance, ci]
 ---
@@ -105,6 +105,19 @@ Planned for a separate change following the 0.9.0-alpha.1 release; repository au
 - Require passing CI and human review before merging dependency updates. Keep `npm audit --audit-level=high` enabled and add a scheduled audit of `develop` to detect new advisories even when no application change is pushed.
 
 See [Dependabot version-update configuration](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates), [grouping](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates), and [branch behavior](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/customizing-dependabot-prs). This is a maintenance plan, not a promise that future vulnerability reports cannot make CI fail.
+
+## Browser and server validation checks
+
+After preparing the guarded disposable `TEST_DATABASE_URL` described below and applying migrations, run:
+
+```bash
+npm run build:validation
+npm run test:validation
+```
+
+The validation audit starts its own Fastify server and Chromium against that database. It creates uniquely named `integration-test-validation-` records, checks rendered create/edit forms and declared fields, exercises desktop/mobile English/Italian recurring validation, conditional investment inputs, security forms, direct HTTP requests bypassing the browser, and a valid comma-decimal submission. Regression checks upload a CSV file, create a child under a newly created category without reloading, and correct a rejected mapping with JavaScript disabled while preserving source text and unmapped choices. The quick-entry fixture suite also loads the shared validator and checks parent metadata after creation and duplicate recovery; PostgreSQL integration tests verify those responses and rejected mapping drafts. The audit closes its server/browser and removes only its own fixture user and associated records. It never runs against a normal or production database.
+
+Unit tests keep domain choices aligned with the contracts, check money boundaries, date/quantity/password rules and malformed payloads, require a validation contract on every form template, and fail when generated browser JavaScript differs from its TypeScript source. CI checks the generated module before rebuilding, then runs the browser/server audit after installing Chromium. Validation changes require both browser and server regression coverage; a passing browser check alone is insufficient.
 
 ## Integration tests
 

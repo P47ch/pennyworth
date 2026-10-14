@@ -1301,7 +1301,7 @@ describe("Fastify authentication boundary", () => {
     expect((await post("/categories/quick", { name: "Food", type: "expense", icon: "<svg>" })).statusCode).toBe(400);
     const emptyTag = await post("/tags/quick", { name: "  " });
     expect(emptyTag.statusCode).toBe(400);
-    expect(emptyTag.json()).toEqual({ error: "Il nome dell'etichetta è obbligatorio." });
+    expect(emptyTag.json()).toEqual({ error: "Compila questo campo." });
 
     const categoryName = "Food <img src=x> $&";
     const createdCategory = await post("/categories/quick", {
@@ -1309,9 +1309,9 @@ describe("Fastify authentication boundary", () => {
     });
     expect(createdCategory.statusCode).toBe(201);
     expect(createdCategory.headers["content-type"]).toContain("application/json");
-    const category = createdCategory.json().category as { id: string; name: string; type: string };
-    expect(Object.keys(category).sort()).toEqual(["id", "name", "type"]);
-    expect(category).toMatchObject({ name: categoryName, type: "expense" });
+    const category = createdCategory.json().category as { id: string; name: string; type: string; parentId: string | null };
+    expect(Object.keys(category).sort()).toEqual(["id", "name", "parentId", "type"]);
+    expect(category).toMatchObject({ name: categoryName, type: "expense", parentId: parent.id });
     await expect(prisma.category.findUnique({ where: { id: category.id } })).resolves.toMatchObject({
       userId: user.id, parentId: parent.id, color: "#aabbcc", icon: "food"
     });
@@ -1386,7 +1386,7 @@ describe("Fastify authentication boundary", () => {
     // Retrying with different details offers the saved record, without equating or updating it.
     const categoryRetry = await post("/categories/quick", { name: ` ${name} `, type: "income", icon: "other", color: "#abcdef", userId: otherUser.id });
     expect(categoryRetry.statusCode).toBe(409);
-    expect(categoryRetry.json()).toEqual({ error: "A category with that name already exists.", existing: { id: category.id, name, type: "expense" } });
+    expect(categoryRetry.json()).toEqual({ error: "A category with that name already exists.", existing: { id: category.id, name, type: "expense", parentId: parent.id } });
     expect(categoryRetry.json().existing.id).not.toBe(foreignCategory.id);
     const tagRetry = await post("/tags/quick", { name: ` ${name} `, color: "#abcdef", userId: otherUser.id });
     expect(tagRetry.statusCode).toBe(409);
@@ -1590,6 +1590,22 @@ describe("Fastify authentication boundary", () => {
       "date,type,amount_minor,account,category,description",
       `2026-06-16,expense,789,${account.name},${category.name},Imported route expense`
     ].join("\n");
+    const importMapping = { dateColumn: "date", typeColumn: "type", amountMinorColumn: "amount_minor", accountColumn: "account", categoryColumn: "category", descriptionColumn: "description" };
+    for (const missingField of ["dateColumn", "typeColumn", "amountMinorColumn", "accountColumn"] as const) {
+      const rejectedMapping = await app.inject({
+        method: "POST", url: "/transactions/import/preview",
+        headers: { cookie: authenticatedCookie, "content-type": "application/x-www-form-urlencoded" },
+        payload: new URLSearchParams({ csrfToken: csrfToken ?? "", csvText: importCsv, ...importMapping, [missingField]: "" }).toString()
+      });
+      expect(rejectedMapping.statusCode).toBe(400);
+      expect(rejectedMapping.body).toContain('data-validation="importMapping"');
+      expect(rejectedMapping.body).toContain("Imported route expense");
+      expect(rejectedMapping.body).toContain('value="description" selected');
+      const rejectedSelect = rejectedMapping.body.match(new RegExp(`<select name="${missingField}"[^>]*>([\\s\\S]*?)</select>`))?.[1];
+      expect(rejectedSelect).toBeDefined();
+      expect(rejectedSelect).not.toContain("selected");
+    }
+    await expect(prisma.transaction.count({ where: { userId: user.id } })).resolves.toBe(1);
     const importPreview = await app.inject({
       method: "POST",
       url: "/transactions/import/preview",

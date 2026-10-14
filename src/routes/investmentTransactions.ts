@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { InvestmentTransactionType } from "@prisma/client";
 import type { FastifyInstance } from "fastify";
 import { parseMoneyToMinorUnits } from "../finance/money.js";
@@ -49,6 +50,7 @@ function parsePage(query: unknown) {
 }
 
 function validateInvestmentTransactionInput(body: ReturnType<typeof formBody>) {
+  assertForm("investment", body);
   const accountId = field(body, "accountId");
   const cashAccountId = field(body, "cashAccountId") || null;
   const assetId = field(body, "assetId");

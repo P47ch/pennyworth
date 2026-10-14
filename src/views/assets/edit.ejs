@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Investments</p>
@@ -11,31 +13,31 @@
     <h2><%= asset.symbol %></h2>
     <span class="badge <%= asset.isActive ? "badge-active" : "badge-muted" %>"><%= asset.isActive ? "active" : "inactive" %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/assets/<%= asset.id %>" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/assets/<%= asset.id %>" class="form-grid" data-validation="asset">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Symbol
-      <input name="symbol" value="<%= asset.symbol %>" required>
+      <input name="symbol" value="<%= formValue('symbol', asset.symbol) %>" required pattern="\s*\S[\s\S]*">
     </label>
     <label>
       Name
-      <input name="name" value="<%= asset.name %>" required>
+      <input name="name" value="<%= formValue('name', asset.name) %>" required pattern="\s*\S[\s\S]*">
     </label>
     <label>
       Type
       <select name="type" required>
         <% for (const type of assetTypes) { %>
-          <option value="<%= type %>" <%= asset.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
+          <option value="<%= type %>" <%= (formSelected('type', type, (asset.type === type ? "selected" : ""))) ? 'selected' : '' %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
     <label>
       Currency
-      <input name="currency" value="<%= asset.currency %>" maxlength="3" readonly required>
+      <input name="currency" value="<%= formValue('currency', asset.currency) %>" maxlength="3" readonly required pattern="[A-Za-z]{3}">
     </label>
     <label class="checkbox-row">
-      <input type="checkbox" name="isActive" <%= asset.isActive ? "checked" : "" %>>
+      <input type="checkbox" name="isActive" <%= formSelected('isActive', "on", (asset.isActive ? "checked" : "")) ? 'checked' : '' %>>
       Active
     </label>
     <button type="submit">Save changes</button>

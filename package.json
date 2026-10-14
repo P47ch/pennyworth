@@ -5,9 +5,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "npm run build:validation && tsx watch src/server.ts",
     "start": "node dist/src/server.js",
-    "build": "tsc",
+    "build": "npm run build:validation && tsc",
+    "build:validation": "node scripts/build-form-validation.mjs",
+    "test:validation": "node scripts/build-form-validation.mjs --check && tsx scripts/validation-browser.ts",
     "test": "vitest run",
     "test:integration": "tsx scripts/run-integration-tests.ts",
     "test:typecheck": "tsc --noEmit -p tsconfig.tests.json",

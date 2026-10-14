@@ -21,7 +21,7 @@
       </div>
     </div>
     <% if (restoreError) { %><p class="error"><%= t(restoreError) %></p><% } %>
-    <form method="post" action="/settings/restore/preview" class="form-grid" enctype="multipart/form-data">
+    <form method="post" action="/settings/restore/preview" class="form-grid" enctype="multipart/form-data" data-validation="backupRestore">
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
       <label class="full-width">
         <%= t("Backup file (.pwb or .json)") %>
@@ -62,7 +62,7 @@
     <% if (usesTrustedPrivateHttp) { %>
       <p class="notice"><%= t("This server uses trusted private HTTP. Encryption protects the downloaded file, but your passphrase still crosses the network. Use HTTPS or a trusted private network/VPN.") %></p>
     <% } %>
-    <form method="post" action="/settings/backup.pwb" class="form-grid">
+    <form method="post" action="/settings/backup.pwb" class="form-grid" data-validation="backupExport">
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
       <label>
         <%= t("Backup passphrase") %>
@@ -85,7 +85,7 @@
   <% if (passwordChangeRequired) { %><p class="notice">Replace the temporary password before continuing.</p><% } %>
   <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
   <% if (success) { %><p class="success"><%= t(success) %></p><% } %>
-  <form method="post" action="/settings/security/password" class="form-grid">
+  <form method="post" action="/settings/security/password" class="form-grid" data-validation="password">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       <%= t("Current password") %>

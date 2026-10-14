@@ -1,3 +1,4 @@
+import { categoryParentError } from "../lib/formValidation.js";
 import type { CategoryType } from "@prisma/client";
 import { prisma } from "../lib/db.js";
 import { assertCategoryTypeChangeCompatible } from "./relationshipValidation.js";
@@ -51,7 +52,7 @@ export async function getCategoryForUser(userId: string, categoryId: string) {
 export async function getCategoryByNameForUser(userId: string, name: string) {
   return prisma.category.findUnique({
     where: { userId_name: { userId, name } },
-    select: { id: true, name: true, type: true }
+    select: { id: true, name: true, type: true, parentId: true }
   });
 }
 
@@ -73,28 +74,8 @@ async function assertValidCategoryParent(
     where: { userId },
     select: { id: true, parentId: true }
   });
-  const parentById = new Map(categories.map((category) => [category.id, category.parentId]));
-
-  if (!parentById.has(parentId)) {
-    throw new TaxonomyValidationError("Choose a valid parent category.");
-  }
-
-  let currentParentId: string | null | undefined = parentId;
-  const visited = new Set<string>();
-
-  while (currentParentId) {
-    if (visited.has(currentParentId)) {
-      throw new TaxonomyValidationError("Category hierarchy contains a cycle.");
-    }
-
-    visited.add(currentParentId);
-
-    if (categoryId && currentParentId === categoryId) {
-      throw new TaxonomyValidationError("A category cannot use one of its children as parent.");
-    }
-
-    currentParentId = parentById.get(currentParentId);
-  }
+  const message = categoryParentError(categoryId, parentId, Object.fromEntries(categories.map(category => [category.id, category.parentId])));
+  if (message) throw new TaxonomyValidationError(message);
 }
 
 export async function updateCategory(input: {

@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Reporting groups</p>
@@ -11,40 +13,40 @@
     <h2><%- categoryLabel(category) %></h2>
     <span class="badge badge-<%= category.type %>"><%= typeLabel(category.type) %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/categories/<%= category.id %>" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/categories/<%= category.id %>" class="form-grid" data-validation="category" data-record-id="<%= category.id %>">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
-      <input name="name" value="<%= category.name %>" required>
+      <input name="name" value="<%= formValue('name', category.name) %>" required pattern="\s*\S[\s\S]*">
     </label>
     <label>
       Type
       <select name="type" required>
         <% for (const type of categoryTypes) { %>
-          <option value="<%= type %>" <%= category.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
+          <option value="<%= type %>" <%= (formSelected('type', type, (category.type === type ? "selected" : ""))) ? 'selected' : '' %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
     <label>
       Parent
       <select name="parentId">
-        <option value="">None</option>
+        <option value="" <%= (formSelected('parentId', "", false)) ? 'selected' : '' %>>None</option>
         <% for (const parentCategory of categories) { %>
-          <option value="<%= parentCategory.id %>" <%= category.parentId === parentCategory.id ? "selected" : "" %>><%= parentCategory.name %></option>
+          <option value="<%= parentCategory.id %>" data-parent-id="<%= parentCategory.parentId || '' %>" <%= (formSelected('parentId', parentCategory.id, (category.parentId === parentCategory.id ? "selected" : ""))) ? 'selected' : '' %>><%= parentCategory.name %></option>
         <% } %>
       </select>
     </label>
     <label>
       Color
-      <input class="taxonomy-color-input" type="color" name="color" value="<%= category.color || "#2563eb" %>">
+      <input class="taxonomy-color-input" type="color" name="color" value="<%= formValue('color', category.color || "#2563eb") %>">
     </label>
     <fieldset class="icon-picker full-width">
       <legend>Icon</legend>
       <div class="icon-choice-grid">
         <% for (const option of categoryIconOptions) { %>
           <label class="icon-choice">
-            <input type="radio" name="icon" value="<%= option.name %>" <%= selectedIcon === option.name ? "checked" : "" %>>
+            <input type="radio" name="icon" value="<%= option.name %>" <%= formSelected('icon', option.name, (selectedIcon === option.name ? "checked" : "")) ? 'checked' : '' %>>
             <span class="icon-choice-card">
               <%- icon(option.name) %>
               <span><%= t(option.label) %></span>
@@ -52,7 +54,7 @@
           </label>
         <% } %>
         <label class="icon-choice">
-          <input type="radio" name="icon" value="" <%= selectedIcon === "" ? "checked" : "" %>>
+          <input type="radio" name="icon" value="" <%= formSelected('icon', "", (selectedIcon === "" ? "checked" : "")) ? 'checked' : '' %>>
           <span class="icon-choice-card">
             <%- icon("no-icon") %>
             <span><%= t("No icon") %></span>

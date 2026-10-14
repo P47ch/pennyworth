@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Investments</p>
@@ -11,14 +13,14 @@
     <h2><%= investmentTransaction.asset.symbol %></h2>
     <span class="badge badge-muted"><%= typeLabel(investmentTransaction.type) %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/investment-transactions/<%= investmentTransaction.id %>" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/investment-transactions/<%= investmentTransaction.id %>" class="form-grid" data-validation="investment">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Account
       <select name="accountId" required>
         <% for (const account of accounts) { %>
-          <option value="<%= account.id %>" <%= investmentTransaction.accountId === account.id ? "selected" : "" %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
+          <option value="<%= account.id %>" <%= (formSelected('accountId', account.id, (investmentTransaction.accountId === account.id ? "selected" : ""))) ? 'selected' : '' %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>
@@ -26,16 +28,16 @@
       Asset
       <select name="assetId" required>
         <% for (const asset of assets) { %>
-          <option value="<%= asset.id %>" <%= investmentTransaction.assetId === asset.id ? "selected" : "" %>><%= asset.symbol %> - <%= asset.name %></option>
+          <option value="<%= asset.id %>" <%= (formSelected('assetId', asset.id, (investmentTransaction.assetId === asset.id ? "selected" : ""))) ? 'selected' : '' %>><%= asset.symbol %> - <%= asset.name %></option>
         <% } %>
       </select>
     </label>
     <label>
       Cash account
       <select name="cashAccountId">
-        <option value="" <%= investmentTransaction.cashAccountId === investmentTransaction.accountId ? "selected" : "" %>>Same as account</option>
+        <option value="" <%= (formSelected('cashAccountId', "", (investmentTransaction.cashAccountId === investmentTransaction.accountId ? "selected" : ""))) ? 'selected' : '' %>>Same as account</option>
         <% for (const account of cashAccounts) { %>
-          <option value="<%= account.id %>" <%= investmentTransaction.cashAccountId !== investmentTransaction.accountId && investmentTransaction.cashAccountId === account.id ? "selected" : "" %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
+          <option value="<%= account.id %>" <%= (formSelected('cashAccountId', account.id, (investmentTransaction.cashAccountId !== investmentTransaction.accountId && investmentTransaction.cashAccountId === account.id ? "selected" : ""))) ? 'selected' : '' %>><%= account.name %> (<%= typeLabel(account.type) %>)</option>
         <% } %>
       </select>
     </label>
@@ -43,33 +45,33 @@
       Type
       <select name="type" required>
         <% for (const type of investmentTransactionTypes) { %>
-          <option value="<%= type %>" <%= investmentTransaction.type === type ? "selected" : "" %>><%= typeLabel(type) %></option>
+          <option value="<%= type %>" <%= (formSelected('type', type, (investmentTransaction.type === type ? "selected" : ""))) ? 'selected' : '' %>><%= typeLabel(type) %></option>
         <% } %>
       </select>
     </label>
     <label>
       Date
-      <input type="date" name="date" value="<%= formatDateInput(investmentTransaction.date) %>" required>
+      <input type="date" name="date" value="<%= formValue('date', formatDateInput(investmentTransaction.date)) %>" required>
     </label>
     <label>
       Quantity
-      <input name="quantity" inputmode="decimal" value="<%= formatQuantity(investmentTransaction.quantity) %>">
+      <input name="quantity" inputmode="decimal" value="<%= formValue('quantity', formatQuantity(investmentTransaction.quantity)) %>" pattern="\s*[0-9]+([.,][0-9]{1,8})?\s*">
     </label>
     <label>
       Unit price
-      <input name="price" inputmode="decimal" value="<%= investmentTransaction.priceMinor === null ? "" : (investmentTransaction.priceMinor / 100).toFixed(2) %>">
+      <input name="price" inputmode="decimal" value="<%= formValue('price', investmentTransaction.priceMinor === null ? "" : (investmentTransaction.priceMinor / 100).toFixed(2)) %>" pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <label>
       Amount
-      <input name="amount" inputmode="decimal" value="<%= (investmentTransaction.amountMinor / 100).toFixed(2) %>" required>
+      <input name="amount" inputmode="decimal" value="<%= formValue('amount', (investmentTransaction.amountMinor / 100).toFixed(2)) %>" required pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <label>
       Cash amount
-      <input name="cashAmount" inputmode="decimal" value="<%= (investmentTransaction.cashAmountMinor / 100).toFixed(2) %>">
+      <input name="cashAmount" inputmode="decimal" value="<%= formValue('cashAmount', (investmentTransaction.cashAmountMinor / 100).toFixed(2)) %>" pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <label class="span-2">
       Notes
-      <input name="notes" value="<%= investmentTransaction.notes || "" %>">
+      <input name="notes" value="<%= formValue('notes', investmentTransaction.notes || "") %>">
     </label>
     <button type="submit">Save changes</button>
   </form>

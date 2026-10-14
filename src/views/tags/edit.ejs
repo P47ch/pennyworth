@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Flexible labels</p>
@@ -11,16 +13,16 @@
     <h2><%= tag.name %></h2>
     <span class="tag"><%= tag.name %></span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/tags/<%= tag.id %>" class="form-grid">
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/tags/<%= tag.id %>" class="form-grid" data-validation="tag">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
-      <input name="name" value="<%= tag.name %>" required>
+      <input name="name" value="<%= formValue('name', tag.name) %>" required pattern="\s*\S[\s\S]*">
     </label>
     <label>
       Color
-      <input class="taxonomy-color-input" type="color" name="color" value="<%= tag.color || "#2563eb" %>">
+      <input class="taxonomy-color-input" type="color" name="color" value="<%= formValue('color', tag.color || "#2563eb") %>">
     </label>
     <button type="submit">Save changes</button>
   </form>

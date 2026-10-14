@@ -1,3 +1,5 @@
+<% const formValue = typeof draftField === 'function' ? draftField : (_name, fallback) => fallback;
+   const formSelected = typeof draftSelected === 'function' ? draftSelected : (_name, _option, fallback) => Boolean(fallback); %>
 <section class="page-heading">
   <div>
     <p class="eyebrow">Investments</p>
@@ -10,31 +12,31 @@
     <h2>Add price</h2>
     <span class="muted">Manual closing price</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
   <% if (assets.length === 0) { %>
     <div class="empty-state">
       <strong>No assets available</strong>
       <p>Create an asset before adding manual prices.</p>
     </div>
   <% } %>
-  <form method="post" action="/asset-prices" class="form-grid">
+  <form method="post" action="/asset-prices" class="form-grid" data-validation="price">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Asset
       <select name="assetId" required>
-        <option value="">Choose asset</option>
+        <option value="" <%= (formSelected('assetId', "", false)) ? 'selected' : '' %>>Choose asset</option>
         <% for (const asset of assets) { %>
-          <option value="<%= asset.id %>"><%= asset.symbol %> - <%= asset.name %> (<%= asset.currency %>)</option>
+          <option value="<%= asset.id %>" <%= (formSelected('assetId', asset.id, false)) ? 'selected' : '' %>><%= asset.symbol %> - <%= asset.name %> (<%= asset.currency %>)</option>
         <% } %>
       </select>
     </label>
     <label>
       Date
-      <input type="date" name="date" value="<%= todayInputValue %>" required>
+      <input type="date" name="date" value="<%= formValue('date', todayInputValue) %>" required>
     </label>
     <label>
       Price
-      <input name="price" inputmode="decimal" placeholder="123.45" required>
+      <input name="price" inputmode="decimal" placeholder="123.45" required pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*" value="<%= formValue('price', "") %>">
     </label>
     <button type="submit" <%= assets.length === 0 ? "disabled" : "" %>>Add price</button>
   </form>
@@ -75,7 +77,7 @@
               <td data-label="Actions">
                 <div class="row-actions">
                   <a class="action-link" href="/asset-prices/<%= assetPrice.id %>/edit">Edit</a>
-                  <form method="post" action="/asset-prices/<%= assetPrice.id %>/delete">
+                  <form method="post" action="/asset-prices/<%= assetPrice.id %>/delete" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-danger" type="submit">Delete</button>
                   </form>

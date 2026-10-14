@@ -61,6 +61,9 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
+      - name: Check generated browser validation
+        run: node scripts/build-form-validation.mjs --check
+
       - name: Run integration tests
         run: npm run test:integration
 
@@ -84,6 +87,9 @@ jobs:
 
       - name: Check recurring forms and help
         run: npm run test:recurring
+
+      - name: Check browser and server validation
+        run: npm run test:validation
 
       - name: Run browser accessibility audit
         run: |

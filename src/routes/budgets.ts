@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import { monthInputValue, parseBudgetMonth } from "../finance/budgets.js";
 import { parseMoneyToMinorUnits } from "../finance/money.js";
@@ -12,6 +13,7 @@ const timeZone = loadConfig().timeZone;
 
 function selectedMonthFromQuery(query: unknown) {
   const params = query && typeof query === "object" ? (query as Record<string, string | undefined>) : {};
+  if (params.month !== undefined) assertForm("month", params);
   return params.month ? parseBudgetMonth(params.month) : currentDateOnly(timeZone);
 }
 
@@ -30,6 +32,7 @@ function selectedMonthFromForm(body: ReturnType<typeof formBody>) {
 }
 
 function validateBudgetInput(body: ReturnType<typeof formBody>) {
+  assertForm("budget", body);
   const categoryId = field(body, "categoryId");
   const amountMinor = parseMoneyToMinorUnits(field(body, "amount"));
 

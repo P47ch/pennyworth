@@ -15,8 +15,8 @@
     <h2>Quick entry</h2>
     <span class="muted">Required fields first, optional details below</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
-  <form method="post" action="/transactions" class="quick-entry transaction-form" data-transaction-form>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
+  <form method="post" action="/transactions" class="quick-entry transaction-form" data-transaction-form data-validation="transaction">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       <span>Type</span>
@@ -32,7 +32,7 @@
     </label>
     <label>
       <span>Amount</span>
-      <input name="amount" inputmode="decimal" placeholder="0.00" value="<%= form.amount %>" required autofocus>
+      <input name="amount" inputmode="decimal" placeholder="0.00" value="<%= form.amount %>" required autofocus pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*">
     </label>
     <label>
       <span data-source-account-text>Account</span>
@@ -113,7 +113,7 @@
       <a href="/transactions">Clear</a>
     </div>
   </div>
-  <form method="get" action="/transactions" class="form-grid">
+  <form method="get" action="/transactions" class="form-grid" data-validation="filters">
     <label>
       Type
       <select name="type">
@@ -220,7 +220,7 @@
               <td data-label="Actions">
                 <div class="row-actions">
                   <a class="action-link" href="/transactions/<%= transaction.id %>/edit">Edit</a>
-                  <form method="post" action="/transactions/<%= transaction.id %>/delete">
+                  <form method="post" action="/transactions/<%= transaction.id %>/delete" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="action-link button-danger" type="submit">Delete</button>
                   </form>

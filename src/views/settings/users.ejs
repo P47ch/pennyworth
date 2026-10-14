@@ -32,11 +32,11 @@
     </div>
   </div>
   <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
-  <form method="post" action="/settings/users" class="form-grid settings-user-form">
+  <form method="post" action="/settings/users" class="form-grid settings-user-form" data-validation="user">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <label>
       Name
-      <input type="text" name="name" value="<%= form.name %>" maxlength="100" autocomplete="off" required>
+      <input type="text" name="name" value="<%= form.name %>" maxlength="100" autocomplete="off" required pattern="\s*\S[\s\S]*">
     </label>
     <label>
       Email
@@ -79,12 +79,12 @@
             <td data-label="Actions">
               <div class="row-actions">
                 <% if (user.id !== currentUser.id) { %>
-                  <form method="post" action="/settings/users/<%= user.id %>/reset-password">
+                  <form method="post" action="/settings/users/<%= user.id %>/reset-password" data-validation="action">
                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                     <button class="button-secondary" type="submit">Reset password</button>
                   </form>
                   <% if (user.role !== "admin") { %>
-                    <form method="post" action="/settings/users/<%= user.id %>/active">
+                    <form method="post" action="/settings/users/<%= user.id %>/active" data-validation="action">
                       <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                       <input type="hidden" name="isActive" value="<%= user.isActive ? "false" : "true" %>">
                       <button class="<%= user.isActive ? "button-danger" : "button-secondary" %>" type="submit"><%= t(user.isActive ? "Deactivate" : "Activate") %></button>

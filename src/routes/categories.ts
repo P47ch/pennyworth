@@ -24,7 +24,7 @@ export async function categoryRoutes(app: FastifyInstance) {
       const input = validateCategoryInput(formBody(request.body));
       try {
         const category = await createCategory({ userId: user.id, ...input });
-        return reply.code(201).send({ category: { id: category.id, name: category.name, type: category.type } });
+        return reply.code(201).send({ category: { id: category.id, name: category.name, type: category.type, parentId: category.parentId } });
       } catch (error) {
         const failure = quickTaxonomyError(error, "category");
         if (failure.statusCode !== 409) throw error;

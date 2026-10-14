@@ -16,7 +16,7 @@ const token = "fixture-csrf-token";
 const server = createServer((request, response) => {
   const url = new URL(request.url ?? "/", "http://localhost");
   response.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'");
-  if (["/public/app.js", "/public/quick-taxonomy.js", "/public/styles.css"].includes(url.pathname)) {
+  if (["/public/app.js", "/public/quick-taxonomy.js", "/public/form-validation.js", "/public/form-validation-core.js", "/public/styles.css"].includes(url.pathname)) {
     response.setHeader("Content-Type", url.pathname.endsWith(".css") ? "text/css" : "application/javascript");
     response.end(readFileSync(path.resolve(`src${url.pathname}`)));
     return;
@@ -37,7 +37,7 @@ const server = createServer((request, response) => {
     pagination: { totalCount: 0 }, transactions: [], primaryCurrency: "EUR"
   });
   response.setHeader("Content-Type", "text/html; charset=utf-8");
-  response.end(`<!doctype html><html lang="${language}" data-theme="${theme}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Quick entry</title><link rel="stylesheet" href="/public/styles.css"><script src="/public/app.js" defer></script></head><body><main>${html}</main></body></html>`);
+  response.end(`<!doctype html><html lang="${language}" data-theme="${theme}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Quick entry</title><link rel="stylesheet" href="/public/styles.css"><script src="/public/app.js" defer></script><script type="module" src="/public/form-validation.js"></script></head><body><main>${html}</main></body></html>`);
 });
 await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
 const address = server.address();
@@ -74,7 +74,7 @@ try {
         const t = createTranslator(language);
         let mode = "success";
         let requests = 0;
-        const persisted = new Map<string, { id: string; name: string; type?: string }>();
+        const persisted = new Map<string, { id: string; name: string; type?: string; parentId?: string | null }>();
         let creations = 0;
         let releaseRequest: (() => void) | undefined;
         await page.route("**/*/quick", async (route: Route) => {
@@ -89,7 +89,7 @@ try {
             if (existing) return route.fulfill({ status: 409, json: {
               error: t(kind === "category" ? "A category with that name already exists." : "A tag with that name already exists."), existing
             } });
-            const record = { id: `recovered-${kind}`, name, ...(kind === "category" ? { type: values.get("type")! } : {}) };
+            const record = { id: `recovered-${kind}`, name, ...(kind === "category" ? { type: values.get("type")!, parentId: values.get("parentId") || null } : {}) };
             persisted.set(key, record);
             creations += 1;
             // Persist, then lose the network response or truncate its JSON body.
@@ -106,9 +106,10 @@ try {
           if (mode === "malformed") return route.fulfill({ status: 200, contentType: "application/json", body: "{" });
           if (mode === "duplicate") return route.fulfill({ status: 409, json: { error: t("A tag with that name already exists.") } });
           if (mode === "busy") await new Promise<void>((resolve) => { releaseRequest = resolve; });
-          return route.fulfill({ status: 201, json: { [kind]: { id: `created-${kind}-${requests}`, name: values.get("name"), ...(kind === "category" ? { type: values.get("type") } : {}) } } });
+          return route.fulfill({ status: 201, json: { [kind]: { id: `created-${kind}-${requests}`, name: values.get("name"), ...(kind === "category" ? { type: values.get("type"), parentId: values.get("parentId") || null } : {}) } } });
         });
         await page.goto(`${baseUrl}/transactions?language=${language}&theme=${theme}&empty=${empty}`);
+        await page.waitForFunction(() => document.querySelector('#quick-category-dialog form')?.getAttribute('data-validation-ready') === 'true');
         const form = page.locator("[data-transaction-form]");
         await form.locator('[name="amount"]').fill("12.34");
         await form.locator('[name="sourceAccountId"]').selectOption("bank");
@@ -149,6 +150,12 @@ try {
         assert.equal(await form.locator('[name="categoryId"] option:checked').textContent(), literalName);
         assert.equal(await form.locator("img").count(), 0);
         assert.equal(await categoryDialog.locator('[name="parentId"] option').last().textContent(), literalName);
+        await categoryButton.click();
+        await categoryDialog.locator('[name="name"]').fill("Child of new category");
+        await categoryDialog.locator("summary").click();
+        await categoryDialog.locator('[name="parentId"]').selectOption("created-category-1");
+        assert(await categoryDialog.locator('form').evaluate(form => (form as HTMLFormElement).checkValidity()), "Quick-created categories must remain valid parents");
+        await categoryDialog.locator('[data-dialog-cancel]').click();
 
         const tagButton = page.locator('[data-quick-taxonomy-open="tag"]');
         const tagDialog = page.locator('#quick-tag-dialog');
@@ -172,7 +179,11 @@ try {
           mode = "lost-response";
           await button.click();
           await dialog.locator('[name="name"]').fill(name);
-          if (kind === "category") await dialog.locator('[name="type"]').selectOption("both");
+          if (kind === "category") {
+            await dialog.locator('[name="type"]').selectOption("both");
+            await dialog.locator("summary").click();
+            await dialog.locator('[name="parentId"]').selectOption("created-category-1");
+          }
           await dialog.locator('button[type="submit"]').click();
           await dialog.locator("[data-quick-taxonomy-error]").waitFor({ state: "visible" });
           assert.equal(creations, beforeCreations + 1);
@@ -204,6 +215,7 @@ try {
           assert.deepEqual(recoveredDraft, kind === "category" ?
             { ...beforeDraft, category: "recovered-category" } : { ...beforeDraft, tags: [...beforeDraft.tags, "recovered-tag"] });
           assert.equal(await form.locator("[data-quick-taxonomy-status]").textContent(), t(kind === "category" ? "Existing category selected." : "Existing tag selected."));
+          if (kind === "category") assert.equal(await dialog.locator('[name="parentId"] option[value="recovered-category"]').getAttribute('data-parent-id'), 'created-category-1');
           assert(await button.evaluate((element) => element === document.activeElement));
           await button.click();
           assert(await useExisting.isHidden(), "A reopened dialog must clear its recovery candidate");

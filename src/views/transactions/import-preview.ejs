@@ -11,7 +11,7 @@
     <h2>Review</h2>
     <span class="muted"><%= preview.validCount %> ready, <%= preview.errorCount %> with errors, <%= preview.duplicateCount %> possible duplicates</span>
   </div>
-  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <% if (error) { %><p class="error"><%= t(error) %></p><% } %>
   <% if (preview.errorCount === 0 && preview.duplicateCount === 0) { %>
     <p class="success">All rows are ready to import.</p>
   <% } else if (preview.errorCount > 0) { %>
@@ -84,7 +84,7 @@
       </tbody>
     </table>
   </div>
-  <form method="post" action="/transactions/import/confirm" class="import-confirm-form">
+  <form method="post" action="/transactions/import/confirm" class="import-confirm-form" data-validation="importConfirm">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
     <input type="hidden" name="importBatchId" value="<%= importBatchId || '' %>">
     <textarea class="visually-hidden" name="csvText" aria-hidden="true" tabindex="-1"><%= csvText %></textarea>

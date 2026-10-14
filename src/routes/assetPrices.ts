@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import { parseMoneyToMinorUnits } from "../finance/money.js";
 import { formatDateOnly, parseDateOnly } from "../lib/dates.js";
@@ -14,6 +15,7 @@ import { field, formBody } from "./form.js";
 import { isDeleteConfirmed, showDeleteConfirmation } from "./deleteConfirmation.js";
 
 function validateAssetPriceInput(body: ReturnType<typeof formBody>) {
+  assertForm("price", body);
   const assetId = field(body, "assetId");
   const date = parseDateOnly(field(body, "date"), "Date must be valid.");
   const priceMinor = parseMoneyToMinorUnits(field(body, "price"));

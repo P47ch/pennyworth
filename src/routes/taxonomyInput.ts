@@ -1,8 +1,17 @@
+import { assertForm, FormValidationError } from "../lib/formValidation.js";
 import { Prisma, type CategoryType } from "@prisma/client";
 import { parseCategoryIcon } from "../lib/icons.js";
 import { categoryTypes, TaxonomyValidationError } from "../services/taxonomy.js";
 import { parseHexColor } from "./colors.js";
 import { field, type FormData } from "./form.js";
+
+function assertTaxonomyForm(kind: "category" | "tag", body: FormData) {
+  try { assertForm(kind, body); }
+  catch (error) {
+    if (error instanceof FormValidationError) throw new TaxonomyValidationError(error.message);
+    throw error;
+  }
+}
 
 function textField(body: FormData, name: string): string {
   const value = field(body, name);
@@ -13,6 +22,7 @@ function textField(body: FormData, name: string): string {
 }
 
 export function validateCategoryInput(body: FormData) {
+  assertTaxonomyForm("category", body);
   const name = textField(body, "name").trim();
   const type = textField(body, "type") as CategoryType;
   if (!name) throw new TaxonomyValidationError("Category name is required.");
@@ -29,6 +39,7 @@ export function validateCategoryInput(body: FormData) {
 }
 
 export function validateTagInput(body: FormData) {
+  assertTaxonomyForm("tag", body);
   const name = textField(body, "name").trim();
   if (!name) throw new TaxonomyValidationError("Tag name is required.");
   const color = textField(body, "color");
@@ -40,7 +51,7 @@ export function validateTagInput(body: FormData) {
 }
 
 export function quickTaxonomyError(error: unknown, kind: "category" | "tag") {
-  if (error instanceof TaxonomyValidationError) {
+  if (error instanceof TaxonomyValidationError || error instanceof FormValidationError) {
     return { statusCode: 400, message: error.message };
   }
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

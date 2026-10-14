@@ -2,7 +2,7 @@
 title: Interface, Localization, and Accessibility
 type: feature
 status: current
-updated: 2026-10-08
+updated: 2026-10-13
 source_ids: [project-contract, application-source, interface-source, finance-source, query-source, package-manifest, test-suite, issue-8-help]
 tags: [interface, accessibility, localization, themes]
 ---
@@ -14,6 +14,16 @@ Pennyworth is a mobile-first traditional web application. The server renders sem
 ## Rendering model
 
 Fastify renders EJS templates for authenticated pages and forms. Routes return full page responses after validation and service operations. Core forms and navigation remain usable without a client-side state framework.
+
+## Form validation
+
+Create and edit forms, quick category/tag dialogs, recurring fee previews, preferences, security, imports, and filters declare a shared validation contract. Browser and server validation are mandatory together for all future changes. Native `required`, input types, and patterns provide basic checks; the browser enhancement uses the same TypeScript field rules as the server and reports localized messages through native constraint validation. Invalid input is blocked before a normal submit or quick-dialog fetch.
+
+Transfer destinations become required when Transfer is selected, and source and destination must differ. Money checks accept decimal points or commas, reject excessive precision, enforce the integer minor-unit range, and distinguish positive amounts from zero-allowed fees, target balances, and average costs. Trades require quantity and unit price; quantity supports up to eight decimals within the database's decimal range. Other checks cover whitespace-only names, valid dates/months, compatible categories and parent hierarchies, rule phrase syntax, password confirmation and UTF-8 limits, backup source exclusivity, RESTORE confirmation, and import mapping alternatives.
+
+Server errors continue to appear in the page's error banner, while browser errors use the offending control's native validation message. The field rules run in both layers; these display mechanisms serve different stages of submission. Normal create/edit drafts retain submitted text and selections when the server rejects them. Passwords and backup passphrases are not repopulated. Native basic constraints and server checks remain usable without JavaScript; dynamic browser cross-field checks require the enhancement. See the [security contract](../architecture/security-and-privacy.md#browser-and-server-validation).
+
+Browser scripts that fill a validated control programmatically must trigger revalidation after the value changes; CSV file loading dispatches an input event after reading the file. Quick-created and recovered category options carry their saved parent relationship for hierarchy validation. Rejected CSV mappings render their correction form with source text, defaults, and unmapped choices retained, including without JavaScript.
 
 Approved Lucide icons render server-side. This keeps navigation consistent while preserving the self-only script Content Security Policy. Category forms use a keyboard-accessible visual icon picker, while category references throughout ledger and reporting views combine their saved icon and color with the name instead of exposing storage strings as separate columns. Native select options remain text-only because browsers do not reliably support SVG or other rich option content.
 

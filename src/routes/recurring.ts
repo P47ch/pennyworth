@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import { Prisma } from "@prisma/client";
 import { createTranslator } from "../lib/i18n.js";
@@ -33,6 +34,7 @@ async function pageData(userId: string) {
   return { recurringTransactions, accounts, categories, transactionTypes, recurringFrequencies, recurringFrequencyLabels };
 }
 function feeOverride(body: ReturnType<typeof formBody>) {
+  assertForm("fee", body);
   return { feeAmountMinor: parseMoneyToMinorUnits(field(body, "feeAmount") || "0"),
     feeAccount: (field(body, "feeAccount") || "source") as RecurringFeeAccount };
 }
@@ -73,7 +75,9 @@ export async function recurringRoutes(app: FastifyInstance) {
     const { recurringId } = request.params as { recurringId: string };
     const body = formBody(request.body);
     try {
-      await updateRecurringTransaction({ userId: user.id, recurringId, ...validateRecurringInput(body) });
+      const existing = await getRecurringForUser(user.id, recurringId);
+      if (!existing) return reply.redirect("/recurring");
+      await updateRecurringTransaction({ userId: user.id, recurringId, ...validateRecurringInput(body, existing.name) });
       return reply.redirect("/recurring");
     } catch (error) {
       const recurring = await getRecurringForUser(user.id, recurringId);

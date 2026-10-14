@@ -2,12 +2,14 @@
 title: Local Development
 type: runbook
 status: current
-updated: 2026-10-05
+updated: 2026-10-13
 source_ids: [package-manifest, environment-template, container-definitions, operational-scripts, project-contract]
 tags: [development, setup, postgres]
 ---
 
 # Local Development
+
+`npm run dev` and `npm run build` generate `src/public/form-validation-core.js` from the browser-safe TypeScript contracts in `src/lib/formValidation.ts`. After changing a contract while the development server is already running, run `npm run build:validation` and reload the page. Commit the generated module alongside its source; unit tests and CI verify they match. No new runtime dependency is needed. See [validation checks](testing-and-performance.md#browser-and-server-validation-checks).
 
 ## Requirements
 

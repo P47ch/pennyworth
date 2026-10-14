@@ -271,6 +271,9 @@ Important constraints:
 - Clear account balance overview.
 - Good filters by date, account, category, tag, and text search.
 - Forms should be simple and validated.
+- Every new or changed form must validate in **both the browser and the server**. This is mandatory for every implementation, including conditional fields, cross-field rules, quick-entry dialogs, imports, and edit forms. Never implement only one layer or mix browser-only rules with server-only field checks.
+- Use the shared form validation contracts in `src/lib/formValidation.ts`, declare the contract on the form, and invoke it in the server input validator. Keep native HTML constraints for basic checks and use the shared browser validator for conditional and cross-field checks. Rebuild the generated browser module after changing a contract.
+- Server validation remains mandatory when JavaScript is disabled or a request bypasses the form. Ownership, authorization, uniqueness, and financial/database state must be checked on the server at the time of writing; browser checks cannot replace them. Add browser and server regression coverage for changes to validation.
 - Use accessible form controls, links, buttons, tables, and semantic HTML.
 - Avoid clutter. Personal finance apps should feel calm and trustworthy.
 - Keep pages usable without client-side JavaScript where practical.

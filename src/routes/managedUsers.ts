@@ -1,3 +1,4 @@
+import { assertForm } from "../lib/formValidation.js";
 import type { FastifyInstance } from "fastify";
 import {
   createManagedUser,
@@ -33,6 +34,7 @@ export async function managedUserRoutes(app: FastifyInstance) {
     };
 
     try {
+      assertForm("user", body);
       const temporaryCredential = await createManagedUser(administrator.id, form);
 
       return reply.code(201).view("settings/users.ejs", {
